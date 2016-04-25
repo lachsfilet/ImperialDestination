@@ -4,6 +4,7 @@ using Assets.Scripts.Map;
 using UnityEngine.UI;
 using System;
 using System.Linq;
+using Assets.Scripts.Organization;
 
 //[ExecuteInEditMode]
 public class Map : MonoBehaviour {
@@ -13,7 +14,8 @@ public class Map : MonoBehaviour {
     public List<Color> TerrainColorMapping;
     public Text TerrainText;
     public Text PositionText;
-    public Text AreaText;
+    public Text ContinentText;
+    public Text TileCountText;
 
     public int Height = 1;
     public int Width = 1;
@@ -29,23 +31,30 @@ public class Map : MonoBehaviour {
     public int MinHillsValue = 10;
     public int MinMountainsValue = 20;
 
+    public int MajorCountries = 4;
+    public int MinorCountries = 4;
+    public int ProvincesMajorCountries = 8;
+    public int ProvincesMinorCountries = 4;
+
+    public List<Country> Countries { get; private set; }
 
     private Tile _lastHovered;
     private Tile _selectedTile;
     private HexGrid _hexGrid;
-    private Tile[,] _map;
-    private List<GameObject> _areas;
-
-    private int _equator;
     private Dictionary<Direction, Position>[] _directions;
-
+    private Tile[,] _map;
+    private int _equator;
+    private List<GameObject> _continents;
+    private int _provinceCount;
+    private int _tileCount;
+    private int _tileCountProvinces;
 
     // Use this for initialization
     void Start() {
         _hexGrid = new HexGrid(Height, Width, HexTile);
         _map = new Tile[Width, Height];
         _equator = (int)Math.Round(Height / 2m);
-        _areas = new List<GameObject>();
+        _continents = new List<GameObject>();
         _directions = new Dictionary<Direction, Position>[] {
                 new Dictionary<Direction, Position> {
                     { Direction.Northeast, new Position (0, -1) },
@@ -65,15 +74,25 @@ public class Map : MonoBehaviour {
                 }
         };
 
-        //var sectorFactory = new SectorFactory();
-        //_sectors = sectorFactory.CreateSectors(Height, Width, Continents).ToList();
-        //_sectors.ForEach(s => GenerateContinent(s));
+        Countries = new List<Country>();
+        _provinceCount = MajorCountries * ProvincesMajorCountries + MinorCountries * ProvincesMinorCountries;
+        _tileCount = _continents.Sum(c => c.transform.childCount);
+        _tileCountProvinces = _tileCount / _provinceCount;
+
+        Debug.LogFormat("Tiles total: {0}", _tileCount);
+        Debug.LogFormat("Countries total: {0}", Countries.Count);
+        Debug.LogFormat("Provinces total: {0}", _provinceCount);
+        Debug.LogFormat("Tiles per province: {0}", _tileCountProvinces);
+        Debug.LogFormat("Tiles per major country: {0}", _tileCountProvinces * ProvincesMajorCountries);
+        Debug.LogFormat("Tiles per minor country: {0}", _tileCountProvinces * ProvincesMinorCountries);
+        
         GenerateMap();
         SetContinents();
+        SetupCountries();
     }
-	
-	// Update is called once per frame
-	void Update () {
+
+    // Update is called once per frame
+    void Update () {
         var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         RaycastHit hit;
         if (!Physics.Raycast(ray, out hit))
@@ -90,7 +109,8 @@ public class Map : MonoBehaviour {
             _selectedTile = tile;
             TerrainText.text = _selectedTile.TileTerrainType.ToString();
             PositionText.text = string.Format("x: {0}, y: {1}", _selectedTile.Position.X, _selectedTile.Position.Y);
-            AreaText.text = tile.transform.parent != null ? tile.transform.parent.name : "None";
+            ContinentText.text = tile.transform.parent != null ? tile.transform.parent.name : "None";
+            TileCountText.text = tile.transform.parent != null ? tile.transform.parent.childCount.ToString() : "None";
             return;
         }
 
@@ -192,65 +212,48 @@ public class Map : MonoBehaviour {
                 if (hexTile.transform.parent != null)
                     continue;
 
-                continent = new GameObject(string.Format("Continent {0}", _areas.Count + 1));
+                continent = new GameObject(string.Format("Continent {0}", _continents.Count + 1));
                 AddTilesToContinent(hexTile, continent);
-                _areas.Add(continent);
+                _continents.Add(continent);
             }
         }
     }
 
-    //private void GenerateContinent(Sector sector)
-    //{
-    //    Debug.LogFormat("Sector left: {0}, top: {1}, right: {2}, bottom: {3}, center x: {4}, center y: {5}, height: {6}, width: {7}", sector.Left, sector.Top, sector.Right, sector.Bottom, sector.Center.X, sector.Center.Y, sector.Height, sector.Width);
-    //    var random = new System.Random(22);
-    //    for(var i = 0; i < sector.Width; i++)
-    //    {
-    //        for (var j = 0; j < sector.Height; j++)
-    //        {
-    //            var x = i + sector.Left;
-    //            var y = j + sector.Bottom;
-    //            var position = _hexGrid.Get(x, y);
-    //            var distanceX = Math.Abs(x - sector.Center.X);
-    //            var distanceY = Math.Abs(y - sector.Center.Y);
-    //            var valueX = random.NextDouble();
-    //            var valueY = random.NextDouble();
-    //            var probabilityX = 1d / (double)distanceX;
-    //            var probabilityY = 1d / (double)distanceY;
-    //            var type = TileTerrainType.Water;
-    //            if (valueX <= probabilityX && valueY <= probabilityY)
-    //                // Create land tiles
-    //                type = (TileTerrainType)UnityEngine.Random.Range(1, 6);
-    //            CreateTile(type, position, x, y);
-    //        }
-    //    }
-    //}
 
-    //private void GenerateContinent(Sector sector)
-    //{
-    //    var tileCount = sector.Height * sector.Width * (1 - WaterProportion);
-    //    System.Random random = new System.Random();
-    //    Debug.LogFormat("TileCount: {0}", tileCount);
-    //    for (var i = 0; i < tileCount; i++)
-    //    {
-    //        //Debug.Log(string.Format("Step: {0}", i));
-    //        var u1 = random.NextDouble();
-    //        var u2 = random.NextDouble();
+    private void SetupCountries()
+    {
+        for(var i = 0; i < MajorCountries; i++)
+        {
+            Countries.Add(new Country { Name = String.Format("Country {0}", 1), CountryType = CountryType.Major });
+        }
+        for (var i = 0; i < MinorCountries; i++)
+        {
+            Countries.Add(new Country { Name = String.Format("Country {0}", 1), CountryType = CountryType.Minor });
+        }
+    }
 
-    //        // Use Box-Muller-method to get the tile positions around the sector center
-    //        var z1 = Math.Sqrt(-2 * Math.Log(u1)) * Math.Cos(2 * Math.PI * u2);
-    //        var x = (int)Math.Abs(z1 * sector.Center.X);
-    //        //Debug.Log(string.Format("u1: {0}, u2: {1}, z1: {2}, x: {3}", u1, u2, z1, x));
+    public void SetupProvinces()
+    {
+        var province = new Province();
+        _continents.ForEach(continent =>
+        {
+            var hexTile = continent.GetComponentsInChildren<Tile>().First();
+            hexTile.Province = province;
 
-    //        var z2 = Math.Sqrt(-2 * Math.Log(u1)) * Math.Sin(2 * Math.PI * u2);
-    //        var y = (int)Math.Abs(z2 * sector.Center.Y);
-    //        //Debug.Log(string.Format("u1: {0}, u2: {1}, z2: {2}, y: {3}", u1, u2, z1, y));
-
-    //        // Create land tiles
-    //        var type = UnityEngine.Random.Range(1, 6);
-    //        var position = _hexGrid.Get(x, y);
-    //        CreateTile((TileTerrainType)type, position, x, y);
-    //    }
-    //}
+            var count = 0;
+            while(count <= _tileCountProvinces)
+            {
+                foreach (var direction in Enum.GetValues(typeof(Direction)).Cast<Direction>())
+                {
+                    hexTile = GetNeighbour(hexTile, direction);
+                    if (hexTile == null || hexTile.Province != null || hexTile.TileTerrainType == TileTerrainType.Water)
+                        continue;
+                    hexTile.Province = province;
+                    count++;
+                }
+            }
+        });
+    }
 
     private GameObject CreateTile(TileTerrainType type, Vector3 position, int x, int y)
     {
