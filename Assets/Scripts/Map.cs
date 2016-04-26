@@ -16,6 +16,8 @@ public class Map : MonoBehaviour {
     public Text PositionText;
     public Text ContinentText;
     public Text TileCountText;
+    public Text ProvinceText;
+    public Text ProvinceCountText;
 
     public int Height = 1;
     public int Width = 1;
@@ -35,9 +37,10 @@ public class Map : MonoBehaviour {
     public int MinorCountries = 4;
     public int ProvincesMajorCountries = 8;
     public int ProvincesMinorCountries = 4;
+    public int MinProvinceSize = 8;
 
     public List<Country> Countries { get; private set; }
-
+    
     private Tile _lastHovered;
     private Tile _selectedTile;
     private HexGrid _hexGrid;
@@ -45,6 +48,7 @@ public class Map : MonoBehaviour {
     private Tile[,] _map;
     private int _equator;
     private List<GameObject> _continents;
+    private Dictionary<GameObject, List<Country>> _continentCountryMapping;
     private int _provinceCount;
     private int _tileCount;
     private int _tileCountProvinces;
@@ -73,6 +77,9 @@ public class Map : MonoBehaviour {
                     { Direction.Northwest, new Position (0, -1) },
                 }
         };
+      
+        GenerateMap();
+        SetContinents();
 
         Countries = new List<Country>();
         _provinceCount = MajorCountries * ProvincesMajorCountries + MinorCountries * ProvincesMinorCountries;
@@ -85,10 +92,9 @@ public class Map : MonoBehaviour {
         Debug.LogFormat("Tiles per province: {0}", _tileCountProvinces);
         Debug.LogFormat("Tiles per major country: {0}", _tileCountProvinces * ProvincesMajorCountries);
         Debug.LogFormat("Tiles per minor country: {0}", _tileCountProvinces * ProvincesMinorCountries);
-        
-        GenerateMap();
-        SetContinents();
+
         SetupCountries();
+        SetupProvinces();
     }
 
     // Update is called once per frame
@@ -111,6 +117,8 @@ public class Map : MonoBehaviour {
             PositionText.text = string.Format("x: {0}, y: {1}", _selectedTile.Position.X, _selectedTile.Position.Y);
             ContinentText.text = tile.transform.parent != null ? tile.transform.parent.name : "None";
             TileCountText.text = tile.transform.parent != null ? tile.transform.parent.childCount.ToString() : "None";
+            ProvinceText.text = tile.Province != null ? tile.Province.Name : "None";
+            ProvinceCountText.text = tile.Province != null ? tile.Province.HexTiles.Count().ToString() : "None";
             return;
         }
 
@@ -224,35 +232,72 @@ public class Map : MonoBehaviour {
     {
         for(var i = 0; i < MajorCountries; i++)
         {
-            Countries.Add(new Country { Name = String.Format("Country {0}", 1), CountryType = CountryType.Major });
+            Countries.Add(new Country { Name = String.Format("Country {0}", i), CountryType = CountryType.Major });
         }
         for (var i = 0; i < MinorCountries; i++)
         {
-            Countries.Add(new Country { Name = String.Format("Country {0}", 1), CountryType = CountryType.Minor });
+            Countries.Add(new Country { Name = String.Format("Country {0}", i), CountryType = CountryType.Minor });
         }
     }
 
     public void SetupProvinces()
     {
-        var province = new Province();
         _continents.ForEach(continent =>
         {
-            var hexTile = continent.GetComponentsInChildren<Tile>().First();
-            hexTile.Province = province;
-
+            var emptyTiles = continent.GetComponentsInChildren<Tile>().ToList();
             var count = 0;
-            while(count <= _tileCountProvinces)
+            do
             {
+                var province = new Province() { Name = string.Format("Province {0}", count++) };
+                var hexTile = emptyTiles.First();
+                CreateProvince(province, hexTile);
+                emptyTiles = emptyTiles.Where(tile => tile.Province == null).ToList();
+            }
+            while (emptyTiles.Count >= MinProvinceSize);
+
+            // Add remaining tiles to existing provinces
+            while(emptyTiles.Any())
+            {
+                var hexTile = emptyTiles.First();
                 foreach (var direction in Enum.GetValues(typeof(Direction)).Cast<Direction>())
                 {
-                    hexTile = GetNeighbour(hexTile, direction);
-                    if (hexTile == null || hexTile.Province != null || hexTile.TileTerrainType == TileTerrainType.Water)
+                    var neighbour = GetNeighbour(hexTile, direction);
+                    if (neighbour == null || neighbour.Province == null)
                         continue;
-                    hexTile.Province = province;
-                    count++;
+
+                    neighbour.Province.AddHexTile(hexTile);
+                    emptyTiles.Remove(hexTile);
                 }
             }
         });
+    }
+
+    private void CreateProvince(Province province, Tile hexTile)
+    {
+        //var tileStack = new Stack<Tile>();
+        province.AddHexTile(hexTile);
+        //tileStack.Push(hexTile);
+        var count = 1;
+        while (count < _tileCountProvinces)
+        {
+            Tile neighbour = null;
+            foreach (var direction in Enum.GetValues(typeof(Direction)).Cast<Direction>())
+            {
+                neighbour = GetNeighbour(hexTile, direction);
+                if (neighbour == null || neighbour.Province != null || neighbour.TileTerrainType == TileTerrainType.Water)
+                    continue;
+                province.AddHexTile(neighbour);
+                //tileStack.Push(neighbour);
+                count++;
+            }
+
+            //if (neighbour != null)
+            //{
+            //    hexTile = neighbour;
+            //    continue;
+            //}
+            //hexTile = tileStack.Pop();
+        }
     }
 
     private GameObject CreateTile(TileTerrainType type, Vector3 position, int x, int y)
