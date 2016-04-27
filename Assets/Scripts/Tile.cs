@@ -14,7 +14,7 @@ public class Tile : MonoBehaviour {
     public Color SelectionColor = Color.yellow;
 
     public Color HoverColor = Color.red;
-
+    
     public List<IResource> Resources;
 
     public List<IBuilding> Buildings;
@@ -29,7 +29,9 @@ public class Tile : MonoBehaviour {
 
     private Renderer _renderer;
 
-    	// Use this for initialization
+    public Color Color { get { return _color; } }
+
+    // Use this for initialization
 	void Start () {
         _renderer = GetComponent<Renderer>();
         _color = _renderer.material.color;
@@ -60,5 +62,13 @@ public class Tile : MonoBehaviour {
     public void Leave()
     {
         _renderer.material.color = IsSelected ? SelectionColor : _color;
+    }
+
+    public void SetColor(Color color)
+    {
+        if(_renderer == null)
+            _renderer = GetComponent<Renderer>();
+        _renderer.material.color = color;
+        _color = color;
     }
 }

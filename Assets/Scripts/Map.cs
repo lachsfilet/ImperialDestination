@@ -242,6 +242,18 @@ public class Map : MonoBehaviour {
 
     public void SetupProvinces()
     {
+        var colors = new List<Color>
+        {
+            Color.blue,
+            Color.gray,
+            Color.green,
+            Color.grey,
+            Color.magenta,
+            Color.red,
+            Color.yellow,
+            Color.white
+        };
+        
         _continents.ForEach(continent =>
         {
             var emptyTiles = continent.GetComponentsInChildren<Tile>().ToList();
@@ -250,15 +262,18 @@ public class Map : MonoBehaviour {
             {
                 var province = new Province() { Name = string.Format("Province {0}", count++) };
                 var hexTile = emptyTiles.First();
-                CreateProvince(province, hexTile);
-                emptyTiles = emptyTiles.Where(tile => tile.Province == null).ToList();
+                var colorIndex = count % colors.Count;
+                var tiles = CreateProvince(province, hexTile, colors[colorIndex]);
+                emptyTiles = emptyTiles.Where(tile => !tiles.Contains(tile)).ToList();
             }
             while (emptyTiles.Count >= MinProvinceSize);
 
             // Add remaining tiles to existing provinces
-            while(emptyTiles.Any())
+            emptyTiles = continent.GetComponentsInChildren<Tile>().ToList();
+            while (emptyTiles.Any())
             {
                 var hexTile = emptyTiles.First();
+                Debug.LogFormat("Tile x: {0}, y: {1} remaining", hexTile.Position.X, hexTile.Position.Y);
                 foreach (var direction in Enum.GetValues(typeof(Direction)).Cast<Direction>())
                 {
                     var neighbour = GetNeighbour(hexTile, direction);
@@ -266,38 +281,42 @@ public class Map : MonoBehaviour {
                         continue;
 
                     neighbour.Province.AddHexTile(hexTile);
+                    hexTile.SetColor(neighbour.Color);
                     emptyTiles.Remove(hexTile);
                 }
             }
         });
     }
 
-    private void CreateProvince(Province province, Tile hexTile)
+    private List<Tile> CreateProvince(Province province, Tile hexTile, Color color)
     {
-        //var tileStack = new Stack<Tile>();
-        province.AddHexTile(hexTile);
-        //tileStack.Push(hexTile);
+        var provinceTiles = new List<Tile>();
+        provinceTiles.Add(hexTile);
         var count = 1;
         while (count < _tileCountProvinces)
         {
             Tile neighbour = null;
+            Tile nextTile = null;
             foreach (var direction in Enum.GetValues(typeof(Direction)).Cast<Direction>())
             {
                 neighbour = GetNeighbour(hexTile, direction);
                 if (neighbour == null || neighbour.Province != null || neighbour.TileTerrainType == TileTerrainType.Water)
                     continue;
-                province.AddHexTile(neighbour);
-                //tileStack.Push(neighbour);
+                provinceTiles.Add(neighbour);
+                nextTile = neighbour;
                 count++;
             }
-
-            //if (neighbour != null)
-            //{
-            //    hexTile = neighbour;
-            //    continue;
-            //}
-            //hexTile = tileStack.Pop();
+            if (nextTile == null)
+                return provinceTiles;
+            hexTile = nextTile;            
         }
+
+        provinceTiles.ForEach(tile =>
+        {
+            province.AddHexTile(tile);
+            tile.SetColor(color);
+        });
+        return provinceTiles;
     }
 
     private GameObject CreateTile(TileTerrainType type, Vector3 position, int x, int y)
@@ -332,9 +351,13 @@ public class Map : MonoBehaviour {
         
     private Tile GetNeighbour(Tile hexTile, Direction direction)
     {
+        if (hexTile == null)
+            return null;
+
         var parity = hexTile.Position.Y & 1;
         var position = _directions[parity][direction];
         var neighbour = hexTile.Position + position;
+
         if (neighbour.X < 0 || neighbour.X >= Width || neighbour.Y < 0 || neighbour.Y >= Height)
             return null;
         return _map[neighbour.X, neighbour.Y];
