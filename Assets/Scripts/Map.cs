@@ -256,20 +256,29 @@ public class Map : MonoBehaviour {
         
         _continents.ForEach(continent =>
         {
-            var emptyTiles = continent.GetComponentsInChildren<Tile>().ToList();
+            var continentIndex = _continents.IndexOf(continent);
+            var continentTiles = continent.GetComponentsInChildren<Tile>().ToList();
+            var emptyTiles = continentTiles;
             var count = 0;
             do
             {
-                var province = new Province() { Name = string.Format("Province {0}", count++) };
+                var province = new Province { Name = string.Format("Province {0}_{1}", continentIndex, count++) };
                 var hexTile = emptyTiles.First();
-                var colorIndex = count % colors.Count;
-                var tiles = CreateProvince(province, hexTile, colors[colorIndex]);
+                var tiles = CreateProvince(province, hexTile);
+                var neighbourColors = tiles.SelectMany(tile => GetNeighbours(tile)).
+                    Where(n => n.Province != null && n.Province != province).
+                    Select(n => n.Color).
+                    Distinct().ToList();
+                var remainingColors = colors.Where(c => !neighbourColors.Contains(c)).ToList();
+                var colorIndex = count % remainingColors.Count;
+                if(province.HexTiles.Any())
+                    tiles.ForEach(tile => tile.SetColor(remainingColors[colorIndex]));
                 emptyTiles = emptyTiles.Where(tile => !tiles.Contains(tile)).ToList();
             }
             while (emptyTiles.Count >= MinProvinceSize);
 
             // Add remaining tiles to existing provinces
-            emptyTiles = continent.GetComponentsInChildren<Tile>().ToList();
+            emptyTiles = continentTiles.Where(tile => tile.Province == null).ToList();
             while (emptyTiles.Any())
             {
                 var hexTile = emptyTiles.First();
@@ -283,12 +292,13 @@ public class Map : MonoBehaviour {
                     neighbour.Province.AddHexTile(hexTile);
                     hexTile.SetColor(neighbour.Color);
                     emptyTiles.Remove(hexTile);
+                    break;
                 }
             }
         });
     }
 
-    private List<Tile> CreateProvince(Province province, Tile hexTile, Color color)
+    private List<Tile> CreateProvince(Province province, Tile hexTile)
     {
         var provinceTiles = new List<Tile>();
         provinceTiles.Add(hexTile);
@@ -300,7 +310,9 @@ public class Map : MonoBehaviour {
             foreach (var direction in Enum.GetValues(typeof(Direction)).Cast<Direction>())
             {
                 neighbour = GetNeighbour(hexTile, direction);
-                if (neighbour == null || neighbour.Province != null || neighbour.TileTerrainType == TileTerrainType.Water)
+                if (neighbour == null || neighbour.Province != null 
+                    || neighbour.TileTerrainType == TileTerrainType.Water 
+                    || provinceTiles.Contains(neighbour))
                     continue;
                 provinceTiles.Add(neighbour);
                 nextTile = neighbour;
@@ -311,11 +323,7 @@ public class Map : MonoBehaviour {
             hexTile = nextTile;            
         }
 
-        provinceTiles.ForEach(tile =>
-        {
-            province.AddHexTile(tile);
-            tile.SetColor(color);
-        });
+        provinceTiles.ForEach(province.AddHexTile);
         return provinceTiles;
     }
 
@@ -361,6 +369,16 @@ public class Map : MonoBehaviour {
         if (neighbour.X < 0 || neighbour.X >= Width || neighbour.Y < 0 || neighbour.Y >= Height)
             return null;
         return _map[neighbour.X, neighbour.Y];
+    }
+
+    private IEnumerable<Tile> GetNeighbours(Tile hexTile)
+    {
+        foreach (var direction in Enum.GetValues(typeof(Direction)).Cast<Direction>())
+        {
+            var neighbour = GetNeighbour(hexTile, direction);
+            if (neighbour != null)
+                yield return neighbour;
+        }
     }
 
     private void AddTilesToContinent(Tile hexTile, GameObject continent)
