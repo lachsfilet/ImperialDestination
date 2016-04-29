@@ -301,16 +301,16 @@ public class Map : MonoBehaviour {
     private List<Tile> CreateProvince(Province province, Tile hexTile)
     {
         var provinceTiles = new List<Tile>();
+        var provinceSize = (int)Math.Round(Math.Sqrt(_tileCountProvinces));
         provinceTiles.Add(hexTile);
         var count = 1;
         while (count < _tileCountProvinces)
         {
-            Tile neighbour = null;
             Tile nextTile = null;
-            foreach (var direction in Enum.GetValues(typeof(Direction)).Cast<Direction>())
+            var neighbours = count <= provinceSize ? GetNeighbours(hexTile, true) : GetNeighbours(hexTile);
+            foreach (var neighbour in neighbours)
             {
-                neighbour = GetNeighbour(hexTile, direction);
-                if (neighbour == null || neighbour.Province != null 
+                if (neighbour.Province != null 
                     || neighbour.TileTerrainType == TileTerrainType.Water 
                     || provinceTiles.Contains(neighbour))
                     continue;
@@ -371,9 +371,12 @@ public class Map : MonoBehaviour {
         return _map[neighbour.X, neighbour.Y];
     }
 
-    private IEnumerable<Tile> GetNeighbours(Tile hexTile)
+    private IEnumerable<Tile> GetNeighbours(Tile hexTile, bool reverse = false)
     {
-        foreach (var direction in Enum.GetValues(typeof(Direction)).Cast<Direction>())
+        var directions = Enum.GetValues(typeof(Direction)).Cast<Direction>();
+        if (reverse)
+            directions = directions.OrderByDescending(d => d);
+        foreach (var direction in directions)
         {
             var neighbour = GetNeighbour(hexTile, direction);
             if (neighbour != null)
