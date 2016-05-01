@@ -77,8 +77,9 @@ public class Map : MonoBehaviour {
                     { Direction.Northwest, new Position (0, -1) },
                 }
         };
-      
-        GenerateMap();
+        _continentCountryMapping = new Dictionary<GameObject, List<Country>>();
+
+          GenerateMap();
         SetContinents();
 
         Countries = new List<Country>();
@@ -238,6 +239,33 @@ public class Map : MonoBehaviour {
         {
             Countries.Add(new Country { Name = String.Format("Country {0}", i), CountryType = CountryType.Minor });
         }
+
+        // Spread countries over the continents
+        var majorCountryStack = new Stack<Country>(Countries.Where(c => c.CountryType == CountryType.Major));
+        var minorCountryStack = new Stack<Country>(Countries.Where(c => c.CountryType == CountryType.Minor));
+        var continents = _continents.OrderByDescending(c => c.transform.childCount).ToList();
+        continents.ForEach(c =>
+        {
+            var countries = new List<Country>();
+            var tileCount = c.transform.childCount;
+            var provinceCount = (int)Math.Round((decimal)_tileCountProvinces / tileCount);
+
+            var majorCountryCount = provinceCount / ProvincesMajorCountries;
+            for (var i = 0; i < majorCountryCount; i++)
+                if (majorCountryStack.Any())
+                    countries.Add(majorCountryStack.Pop());
+
+            var majorCountryRemainder = provinceCount % ProvincesMajorCountries;
+            var minorCountryCount = provinceCount / ProvincesMinorCountries;
+            for (var i = 0; i < minorCountryCount; i++)
+            if (minorCountryStack.Any())
+                    countries.Add(minorCountryStack.Pop());
+
+            _continentCountryMapping.Add(c, countries);
+        });
+
+        var emptyContinents = _continentCountryMapping.Where(c => !c.Value.Any()).Select(c => c.Key).ToList();
+        emptyContinents.ForEach(c => Debug.LogFormat("Continent without countries: {0}", c.name));
     }
 
     public void SetupProvinces()
@@ -282,7 +310,7 @@ public class Map : MonoBehaviour {
             while (emptyTiles.Any())
             {
                 var hexTile = emptyTiles.First();
-                Debug.LogFormat("Tile x: {0}, y: {1} remaining", hexTile.Position.X, hexTile.Position.Y);
+                //Debug.LogFormat("Tile x: {0}, y: {1} remaining", hexTile.Position.X, hexTile.Position.Y);
                 foreach (var direction in Enum.GetValues(typeof(Direction)).Cast<Direction>())
                 {
                     var neighbour = GetNeighbour(hexTile, direction);
