@@ -52,6 +52,7 @@ public class Map : MonoBehaviour {
     private int _provinceCount;
     private int _tileCount;
     private int _tileCountProvinces;
+    private Dictionary<Direction, Vector3> _cornerPositions;
 
     // Use this for initialization
     void Start() {
@@ -77,9 +78,18 @@ public class Map : MonoBehaviour {
                     { Direction.Northwest, new Position (0, -1) },
                 }
         };
+        _cornerPositions = new Dictionary<Direction, Vector3>
+        {
+            { Direction.Northeast, new Vector3(0.5f, 0, 0) },
+            { Direction.East, new Vector3(0.5f, 0, 0) },
+            { Direction.Southeast, new Vector3(0.5f, 0, 0) },
+            { Direction.Southwest, new Vector3(0.5f, 0, 0) },
+            { Direction.West, new Vector3(0.5f, 0, 0) },
+            { Direction.Northwest, new Vector3(0.5f, 0, 0) }
+        };
         _continentCountryMapping = new Dictionary<GameObject, List<Country>>();
 
-          GenerateMap();
+        GenerateMap();
         SetContinents();
 
         Countries = new List<Country>();
@@ -120,6 +130,13 @@ public class Map : MonoBehaviour {
             TileCountText.text = tile.transform.parent != null ? tile.transform.parent.childCount.ToString() : "None";
             ProvinceText.text = tile.Province != null ? tile.Province.Name : "None";
             ProvinceCountText.text = tile.Province != null ? tile.Province.HexTiles.Count().ToString() : "None";
+
+            var mesh = tile.GetComponent<MeshFilter>().mesh;
+            Debug.Log(PositionText.text);
+            foreach (var vertex in mesh.vertices)
+            {
+                Debug.LogFormat("Vertex x: {0}, y: {1}, z: {2}", vertex.x, vertex.y, vertex.z);
+            }
             return;
         }
 
@@ -265,7 +282,7 @@ public class Map : MonoBehaviour {
         });
 
         var emptyContinents = _continentCountryMapping.Where(c => !c.Value.Any()).Select(c => c.Key).ToList();
-        emptyContinents.ForEach(c => Debug.LogFormat("Continent without countries: {0}", c.name));
+        //emptyContinents.ForEach(c => Debug.LogFormat("Continent without countries: {0}", c.name));
     }
 
     public void SetupProvinces()
@@ -287,6 +304,7 @@ public class Map : MonoBehaviour {
             var continentIndex = _continents.IndexOf(continent);
             var continentTiles = continent.GetComponentsInChildren<Tile>().ToList();
             var emptyTiles = continentTiles;
+            var provinces = new List<Province>();
             var count = 0;
             do
             {
@@ -299,8 +317,11 @@ public class Map : MonoBehaviour {
                     Distinct().ToList();
                 var remainingColors = colors.Where(c => !neighbourColors.Contains(c)).ToList();
                 var colorIndex = count % remainingColors.Count;
-                if(province.HexTiles.Any())
+                if (province.HexTiles.Any())
+                {
                     tiles.ForEach(tile => tile.SetColor(remainingColors[colorIndex]));
+                    provinces.Add(province);
+                }
                 emptyTiles = emptyTiles.Where(tile => !tiles.Contains(tile)).ToList();
             }
             while (emptyTiles.Count >= MinProvinceSize);
@@ -323,6 +344,22 @@ public class Map : MonoBehaviour {
                     break;
                 }
             }
+
+            // Draw border lines of provinces
+            //provinces.ForEach(p =>
+            //{
+            //    var tiles = p.HexTiles.ToList();
+            //    tiles.ForEach(t => {
+            //        var neighbours = GetNeighbours(t).ToList();
+            //        var borderEdges = neighbours.Where(n => n.TileTerrainType != TileTerrainType.Water && n.Province != p).
+            //            Select(n => neighbours.IndexOf(n)).
+            //            Select(i => _cornerPositions[(Direction)i]).ToArray();
+            //        var lineRenderer = t.GetComponent<LineRenderer>();
+            //        lineRenderer.SetVertexCount(borderEdges.Length);
+            //        var positionOffset = t.transform.position;
+            //        lineRenderer.SetPositions(borderEdges);
+            //    });
+            //});
         });
     }
 

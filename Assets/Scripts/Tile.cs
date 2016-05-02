@@ -71,4 +71,12 @@ public class Tile : MonoBehaviour {
         _renderer.material.color = color;
         _color = color;
     }
+
+    public void SetBorders(List<Direction> directions)
+    {
+        var mesh = GetComponent<MeshFilter>().mesh;
+        var lineRenderer = GetComponent<LineRenderer>();
+        lineRenderer.SetVertexCount(directions.Count + 1);
+        
+    }
 }
