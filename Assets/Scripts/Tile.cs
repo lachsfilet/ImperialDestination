@@ -4,6 +4,7 @@ using Assets.Scripts.Economy;
 using Assets.Scripts.Infrastructure;
 using Assets.Scripts.Organization;
 using Assets.Scripts.Map;
+using System.Linq;
 
 public class Tile : MonoBehaviour {
 
@@ -29,7 +30,23 @@ public class Tile : MonoBehaviour {
 
     private Renderer _renderer;
 
+    private Vector3[] _vertices;
+
     public Color Color { get { return _color; } }
+
+    void Awake ()
+    {
+        _vertices = new Vector3[]
+        {
+            new Vector3 (0, 0, 4 ),
+            new Vector3 (4, 0, 2 ),
+            new Vector3 (4, 0, -2 ),
+            new Vector3 (0, 0, -4 ),
+            new Vector3 (-4, 0, -2 ),
+            new Vector3 (-4, 0, 2 ),
+            new Vector3 (0, 0, 4 )
+        };
+    }
 
     // Use this for initialization
 	void Start () {
@@ -76,7 +93,7 @@ public class Tile : MonoBehaviour {
     {
         var mesh = GetComponent<MeshFilter>().mesh;
         var lineRenderer = GetComponent<LineRenderer>();
-        lineRenderer.SetVertexCount(directions.Count + 1);
-        
+        lineRenderer.SetVertexCount(7);
+        lineRenderer.SetPositions(_vertices);
     }
 }

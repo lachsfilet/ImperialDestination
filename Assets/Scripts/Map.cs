@@ -104,8 +104,11 @@ public class Map : MonoBehaviour {
         Debug.LogFormat("Tiles per major country: {0}", _tileCountProvinces * ProvincesMajorCountries);
         Debug.LogFormat("Tiles per minor country: {0}", _tileCountProvinces * ProvincesMinorCountries);
 
-        SetupCountries();
-        SetupProvinces();
+        for (var i = 0; i < _map.GetLength(0); i++)
+            for (var j = 0; j < _map.GetLength(1); j++)
+                _map[i, j].SetBorders(Enum.GetValues(typeof(Direction)).Cast<Direction>().ToList());
+        //SetupCountries();
+        //SetupProvinces();
     }
 
     // Update is called once per frame
@@ -130,13 +133,6 @@ public class Map : MonoBehaviour {
             TileCountText.text = tile.transform.parent != null ? tile.transform.parent.childCount.ToString() : "None";
             ProvinceText.text = tile.Province != null ? tile.Province.Name : "None";
             ProvinceCountText.text = tile.Province != null ? tile.Province.HexTiles.Count().ToString() : "None";
-
-            var mesh = tile.GetComponent<MeshFilter>().mesh;
-            Debug.Log(PositionText.text);
-            foreach (var vertex in mesh.vertices)
-            {
-                Debug.LogFormat("Vertex x: {0}, y: {1}, z: {2}", vertex.x, vertex.y, vertex.z);
-            }
             return;
         }
 
