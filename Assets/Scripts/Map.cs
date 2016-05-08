@@ -104,11 +104,11 @@ public class Map : MonoBehaviour {
         Debug.LogFormat("Tiles per major country: {0}", _tileCountProvinces * ProvincesMajorCountries);
         Debug.LogFormat("Tiles per minor country: {0}", _tileCountProvinces * ProvincesMinorCountries);
 
-        for (var i = 0; i < _map.GetLength(0); i++)
-            for (var j = 0; j < _map.GetLength(1); j++)
-                _map[i, j].SetBorders(Enum.GetValues(typeof(Direction)).Cast<Direction>().ToList());
-        //SetupCountries();
-        //SetupProvinces();
+        //for (var i = 0; i < _map.GetLength(0); i++)
+        //    for (var j = 0; j < _map.GetLength(1); j++)
+        //        _map[i, j].SetBorders(Enum.GetValues(typeof(Direction)).Cast<Direction>().ToList());
+        SetupCountries();
+        SetupProvinces();
     }
 
     // Update is called once per frame
@@ -342,20 +342,18 @@ public class Map : MonoBehaviour {
             }
 
             // Draw border lines of provinces
-            //provinces.ForEach(p =>
-            //{
-            //    var tiles = p.HexTiles.ToList();
-            //    tiles.ForEach(t => {
-            //        var neighbours = GetNeighbours(t).ToList();
-            //        var borderEdges = neighbours.Where(n => n.TileTerrainType != TileTerrainType.Water && n.Province != p).
-            //            Select(n => neighbours.IndexOf(n)).
-            //            Select(i => _cornerPositions[(Direction)i]).ToArray();
-            //        var lineRenderer = t.GetComponent<LineRenderer>();
-            //        lineRenderer.SetVertexCount(borderEdges.Length);
-            //        var positionOffset = t.transform.position;
-            //        lineRenderer.SetPositions(borderEdges);
-            //    });
-            //});
+            provinces.ForEach(p =>
+            {
+                var tiles = p.HexTiles.ToList();
+                tiles.ForEach(t =>
+                {
+                    var neighbours = GetNeighbours(t).ToList();
+                    var borderEdges = neighbours.Where(n => n.TileTerrainType != TileTerrainType.Water && n.Province != p).
+                        Select(n => neighbours.IndexOf(n)).
+                        Select(i => (Direction)i).ToList();
+                    t.SetBorders(borderEdges);
+                });
+            });
         });
     }
 

@@ -5,6 +5,7 @@ using Assets.Scripts.Infrastructure;
 using Assets.Scripts.Organization;
 using Assets.Scripts.Map;
 using System.Linq;
+using Assets.Scripts;
 
 public class Tile : MonoBehaviour {
 
@@ -30,21 +31,56 @@ public class Tile : MonoBehaviour {
 
     private Renderer _renderer;
 
-    private Vector3[] _vertices;
+    private Dictionary<Direction, List<Vector3>> _edges;
 
     public Color Color { get { return _color; } }
 
-    void Awake ()
+    void Awake()
     {
-        _vertices = new Vector3[]
+        _edges = new Dictionary<Direction, List<Vector3>>
         {
-            new Vector3 (0, 0, 4 ),
-            new Vector3 (4, 0, 2 ),
-            new Vector3 (4, 0, -2 ),
-            new Vector3 (0, 0, -4 ),
-            new Vector3 (-4, 0, -2 ),
-            new Vector3 (-4, 0, 2 ),
-            new Vector3 (0, 0, 4 )
+            {
+                Direction.Northeast, new List<Vector3>
+                {
+                    new Vector3 (0, 0, 4 ),
+                    new Vector3 (4, 0, 2 )
+                }
+            },
+            {
+                Direction.East, new List<Vector3>
+                {
+                    new Vector3 (4, 0, 2 ),
+                    new Vector3 (4, 0, -2 )
+                }
+            },
+            {
+                Direction.Southeast,new List<Vector3>
+                {
+                    new Vector3 (4, 0, -2 ),
+                    new Vector3 (0, 0, -4 )
+                }
+            },
+            {
+                Direction.Southwest, new List<Vector3>
+                {
+                    new Vector3 (0, 0, -4 ),
+                    new Vector3 (-4, 0, -2 )
+                }
+            },
+            {
+                Direction.West, new List<Vector3>
+                {
+                    new Vector3 (-4, 0, -2 ),
+                    new Vector3 (-4, 0, 2 )
+                }
+            },
+            {
+                Direction.Northwest, new List<Vector3>
+                {
+                    new Vector3 (-4, 0, 2 ),
+                    new Vector3 (0, 0, 4 )
+                }
+            }
         };
     }
 
@@ -93,7 +129,8 @@ public class Tile : MonoBehaviour {
     {
         var mesh = GetComponent<MeshFilter>().mesh;
         var lineRenderer = GetComponent<LineRenderer>();
-        lineRenderer.SetVertexCount(7);
-        lineRenderer.SetPositions(_vertices);
+        var vectors = directions.SelectMany(d => _edges[d]).Distinct().ToArray();
+        lineRenderer.SetVertexCount(vectors.Length);
+        lineRenderer.SetPositions(vectors);
     }
 }
