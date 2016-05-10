@@ -133,4 +133,40 @@ public class Tile : MonoBehaviour {
         lineRenderer.SetVertexCount(vectors.Length);
         lineRenderer.SetPositions(vectors);
     }
+
+    private List<Direction> SortDirections(List<Direction> list)
+    {
+        var enumerator = list.GetEnumerator();
+        var count = 0;
+        var indices = new List<int>();
+        enumerator.MoveNext();
+        while (true)
+        {
+            count++;
+
+            var a = enumerator.Current;
+            if (!enumerator.MoveNext()) break;
+            var b = enumerator.Current;
+
+            if (a - b < -1)
+            {
+                indices.Add(count);
+                count = 0;
+            }
+        }
+        indices.Add(count);
+
+        var lists = ChunkList(list, indices);
+        var result = lists.Reverse().SelectMany(l => l.ToList()).ToList();
+        return result;
+    }
+
+    private IEnumerable<IEnumerable<Direction>> ChunkList(List<Clockwise> list, IEnumerable<int> indices)
+    {
+        foreach (var i in indices)
+        {
+            yield return list.Take(i);
+            list = list.Skip(i).ToList();
+        }
+    }
 }
