@@ -127,9 +127,10 @@ public class Tile : MonoBehaviour {
 
     public void SetBorders(List<Direction> directions)
     {
-        var mesh = GetComponent<MeshFilter>().mesh;
+        //var mesh = GetComponent<MeshFilter>().mesh;
         var lineRenderer = GetComponent<LineRenderer>();
-        var vectors = directions.SelectMany(d => _edges[d]).Distinct().ToArray();
+        var sortedDirections = SortDirections(directions);
+        var vectors = sortedDirections.SelectMany(d => _edges[d]).Distinct().ToArray();
         lineRenderer.SetVertexCount(vectors.Length);
         lineRenderer.SetPositions(vectors);
     }
@@ -145,7 +146,8 @@ public class Tile : MonoBehaviour {
             count++;
 
             var a = enumerator.Current;
-            if (!enumerator.MoveNext()) break;
+            if (!enumerator.MoveNext())
+                break;
             var b = enumerator.Current;
 
             if (a - b < -1)
@@ -161,7 +163,7 @@ public class Tile : MonoBehaviour {
         return result;
     }
 
-    private IEnumerable<IEnumerable<Direction>> ChunkList(List<Clockwise> list, IEnumerable<int> indices)
+    private IEnumerable<IEnumerable<Direction>> ChunkList(List<Direction> list, IEnumerable<int> indices)
     {
         foreach (var i in indices)
         {

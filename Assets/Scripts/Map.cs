@@ -10,6 +10,8 @@ using Assets.Scripts.Organization;
 public class Map : MonoBehaviour {
     public GameObject HexTile;
     public GameObject MapStartPoint;
+    public GameObject Province;
+
     public Camera Camera;
     public List<Color> TerrainColorMapping;
     public Text TerrainText;
@@ -45,19 +47,18 @@ public class Map : MonoBehaviour {
     private Tile _selectedTile;
     private HexGrid _hexGrid;
     private Dictionary<Direction, Position>[] _directions;
-    private Tile[,] _map;
+    private HexMap _map;
     private int _equator;
     private List<GameObject> _continents;
     private Dictionary<GameObject, List<Country>> _continentCountryMapping;
     private int _provinceCount;
     private int _tileCount;
     private int _tileCountProvinces;
-    private Dictionary<Direction, Vector3> _cornerPositions;
 
     // Use this for initialization
     void Start() {
         _hexGrid = new HexGrid(Height, Width, HexTile);
-        _map = new Tile[Width, Height];
+        _map = new HexMap(Height, Width);
         _equator = (int)Math.Round(Height / 2m);
         _continents = new List<GameObject>();
         _directions = new Dictionary<Direction, Position>[] {
@@ -77,15 +78,6 @@ public class Map : MonoBehaviour {
                     { Direction.West, new Position (-1, 0) },
                     { Direction.Northwest, new Position (0, -1) },
                 }
-        };
-        _cornerPositions = new Dictionary<Direction, Vector3>
-        {
-            { Direction.Northeast, new Vector3(0.5f, 0, 0) },
-            { Direction.East, new Vector3(0.5f, 0, 0) },
-            { Direction.Southeast, new Vector3(0.5f, 0, 0) },
-            { Direction.Southwest, new Vector3(0.5f, 0, 0) },
-            { Direction.West, new Vector3(0.5f, 0, 0) },
-            { Direction.Northwest, new Vector3(0.5f, 0, 0) }
         };
         _continentCountryMapping = new Dictionary<GameObject, List<Country>>();
 
@@ -227,7 +219,7 @@ public class Map : MonoBehaviour {
         {
             for (var x = 0; x < _hexGrid.Width; x++)
             {
-                var hexTile = _map[x, y];
+                var hexTile = _map.GetTile(x, y);
                 if (hexTile.TileTerrainType == TileTerrainType.Water)
                     continue;
 
@@ -277,7 +269,7 @@ public class Map : MonoBehaviour {
             _continentCountryMapping.Add(c, countries);
         });
 
-        var emptyContinents = _continentCountryMapping.Where(c => !c.Value.Any()).Select(c => c.Key).ToList();
+        //var emptyContinents = _continentCountryMapping.Where(c => !c.Value.Any()).Select(c => c.Key).ToList();
         //emptyContinents.ForEach(c => Debug.LogFormat("Continent without countries: {0}", c.name));
     }
 
@@ -304,10 +296,12 @@ public class Map : MonoBehaviour {
             var count = 0;
             do
             {
-                var province = new Province { Name = string.Format("Province {0}_{1}", continentIndex, count++) };
+                var provinceContainer = Instantiate(Province);
+                var province = provinceContainer.GetComponent<Province>();
+                province.Name = string.Format("Province {0}_{1}", continentIndex, count++);
                 var hexTile = emptyTiles.First();
                 var tiles = CreateProvince(province, hexTile);
-                var neighbourColors = tiles.SelectMany(tile => GetNeighbours(tile)).
+                var neighbourColors = tiles.SelectMany(tile => _map.GetNeighbours(tile)).
                     Where(n => n.Province != null && n.Province != province).
                     Select(n => n.Color).
                     Distinct().ToList();
@@ -330,7 +324,7 @@ public class Map : MonoBehaviour {
                 //Debug.LogFormat("Tile x: {0}, y: {1} remaining", hexTile.Position.X, hexTile.Position.Y);
                 foreach (var direction in Enum.GetValues(typeof(Direction)).Cast<Direction>())
                 {
-                    var neighbour = GetNeighbour(hexTile, direction);
+                    var neighbour = _map.GetNeighbour(hexTile, direction);
                     if (neighbour == null || neighbour.Province == null)
                         continue;
 
@@ -347,7 +341,7 @@ public class Map : MonoBehaviour {
                 var tiles = p.HexTiles.ToList();
                 tiles.ForEach(t =>
                 {
-                    var neighbours = GetNeighbours(t).ToList();
+                    var neighbours = _map.GetNeighbours(t).ToList();
                     var borderEdges = neighbours.Where(n => n.TileTerrainType != TileTerrainType.Water && n.Province != p).
                         Select(n => neighbours.IndexOf(n)).
                         Select(i => (Direction)i).ToList();
@@ -366,7 +360,7 @@ public class Map : MonoBehaviour {
         while (count < _tileCountProvinces)
         {
             Tile nextTile = null;
-            var neighbours = count <= provinceSize ? GetNeighbours(hexTile, true) : GetNeighbours(hexTile);
+            var neighbours = count <= provinceSize ? _map.GetNeighbours(hexTile, true) : _map.GetNeighbours(hexTile);
             foreach (var neighbour in neighbours)
             {
                 if (neighbour.Province != null 
@@ -400,7 +394,7 @@ public class Map : MonoBehaviour {
             Debug.LogFormat("Index out of bounds: x: {0}, y; {1}, width: {2}, height: {3}", x, y, Width, Height);
             return null;
         }
-        _map[x, y] = tile;
+        _map.AddTile(x, y, tile);
         return hexTile;
     }
 
@@ -415,33 +409,6 @@ public class Map : MonoBehaviour {
     {
         return (y < PoleBelt || y >= Height - PoleBelt);
     }
-        
-    private Tile GetNeighbour(Tile hexTile, Direction direction)
-    {
-        if (hexTile == null)
-            return null;
-
-        var parity = hexTile.Position.Y & 1;
-        var position = _directions[parity][direction];
-        var neighbour = hexTile.Position + position;
-
-        if (neighbour.X < 0 || neighbour.X >= Width || neighbour.Y < 0 || neighbour.Y >= Height)
-            return null;
-        return _map[neighbour.X, neighbour.Y];
-    }
-
-    private IEnumerable<Tile> GetNeighbours(Tile hexTile, bool reverse = false)
-    {
-        var directions = Enum.GetValues(typeof(Direction)).Cast<Direction>();
-        if (reverse)
-            directions = directions.OrderByDescending(d => d);
-        foreach (var direction in directions)
-        {
-            var neighbour = GetNeighbour(hexTile, direction);
-            if (neighbour != null)
-                yield return neighbour;
-        }
-    }
 
     private void AddTilesToContinent(Tile hexTile, GameObject continent)
     {
@@ -449,7 +416,7 @@ public class Map : MonoBehaviour {
 
         foreach (var direction in Enum.GetValues(typeof(Direction)).Cast<Direction>())
         {
-            var neighbour = GetNeighbour(hexTile, direction);
+            var neighbour = _map.GetNeighbour(hexTile, direction);
             if (neighbour == null || neighbour.transform.parent != null || neighbour.TileTerrainType == TileTerrainType.Water)
                 continue;
             AddTilesToContinent(neighbour, continent);
