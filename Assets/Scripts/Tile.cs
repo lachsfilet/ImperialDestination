@@ -125,6 +125,11 @@ public class Tile : MonoBehaviour {
         _color = color;
     }
 
+    public IEnumerable<Vector3> GetVertices(IEnumerable<Direction> directions)
+    {
+        return directions.SelectMany(d => _edges[d]).Distinct();
+    }
+
     public void SetBorders(List<Direction> directions)
     {
         //var mesh = GetComponent<MeshFilter>().mesh;

@@ -46,7 +46,6 @@ public class Map : MonoBehaviour {
     private Tile _lastHovered;
     private Tile _selectedTile;
     private HexGrid _hexGrid;
-    private Dictionary<Direction, Position>[] _directions;
     private HexMap _map;
     private int _equator;
     private List<GameObject> _continents;
@@ -61,24 +60,6 @@ public class Map : MonoBehaviour {
         _map = new HexMap(Height, Width);
         _equator = (int)Math.Round(Height / 2m);
         _continents = new List<GameObject>();
-        _directions = new Dictionary<Direction, Position>[] {
-                new Dictionary<Direction, Position> {
-                    { Direction.Northeast, new Position (0, -1) },
-                    { Direction.East, new Position (1, 0) },
-                    { Direction.Southeast, new Position (0, 1) },
-                    { Direction.Southwest, new Position (-1, 1) },
-                    { Direction.West, new Position (-1, 0) },
-                    { Direction.Northwest, new Position (-1, -1) },
-                },
-                new Dictionary<Direction, Position> {
-                    { Direction.Northeast, new Position (1, -1) },
-                    { Direction.East, new Position (1, 0) },
-                    { Direction.Southeast, new Position (1, 1) },
-                    { Direction.Southwest, new Position (0, 1) },
-                    { Direction.West, new Position (-1, 0) },
-                    { Direction.Northwest, new Position (0, -1) },
-                }
-        };
         _continentCountryMapping = new Dictionary<GameObject, List<Country>>();
 
         GenerateMap();
@@ -96,9 +77,6 @@ public class Map : MonoBehaviour {
         Debug.LogFormat("Tiles per major country: {0}", _tileCountProvinces * ProvincesMajorCountries);
         Debug.LogFormat("Tiles per minor country: {0}", _tileCountProvinces * ProvincesMinorCountries);
 
-        //for (var i = 0; i < _map.GetLength(0); i++)
-        //    for (var j = 0; j < _map.GetLength(1); j++)
-        //        _map[i, j].SetBorders(Enum.GetValues(typeof(Direction)).Cast<Direction>().ToList());
         SetupCountries();
         SetupProvinces();
     }
@@ -275,17 +253,17 @@ public class Map : MonoBehaviour {
 
     public void SetupProvinces()
     {
-        var colors = new List<Color>
-        {
-            Color.blue,
-            Color.gray,
-            Color.green,
-            Color.grey,
-            Color.magenta,
-            Color.red,
-            Color.yellow,
-            Color.white
-        };
+        //var colors = new List<Color>
+        //{
+        //    Color.blue,
+        //    Color.gray,
+        //    Color.green,
+        //    Color.grey,
+        //    Color.magenta,
+        //    Color.red,
+        //    Color.yellow,
+        //    Color.white
+        //};
         
         _continents.ForEach(continent =>
         {
@@ -301,15 +279,15 @@ public class Map : MonoBehaviour {
                 province.Name = string.Format("Province {0}_{1}", continentIndex, count++);
                 var hexTile = emptyTiles.First();
                 var tiles = CreateProvince(province, hexTile);
-                var neighbourColors = tiles.SelectMany(tile => _map.GetNeighbours(tile)).
-                    Where(n => n.Province != null && n.Province != province).
-                    Select(n => n.Color).
-                    Distinct().ToList();
-                var remainingColors = colors.Where(c => !neighbourColors.Contains(c)).ToList();
-                var colorIndex = count % remainingColors.Count;
+                //var neighbourColors = tiles.SelectMany(tile => _map.GetNeighbours(tile)).
+                //    Where(n => n.Province != null && n.Province != province).
+                //    Select(n => n.Color).
+                //    Distinct().ToList();
+                //var remainingColors = colors.Where(c => !neighbourColors.Contains(c)).ToList();
+                //var colorIndex = count % remainingColors.Count;
                 if (province.HexTiles.Any())
                 {
-                    tiles.ForEach(tile => tile.SetColor(remainingColors[colorIndex]));
+                    //tiles.ForEach(tile => tile.SetColor(remainingColors[colorIndex]));
                     provinces.Add(province);
                 }
                 emptyTiles = emptyTiles.Where(tile => !tiles.Contains(tile)).ToList();
@@ -329,25 +307,27 @@ public class Map : MonoBehaviour {
                         continue;
 
                     neighbour.Province.AddHexTile(hexTile);
-                    hexTile.SetColor(neighbour.Color);
+                    //hexTile.SetColor(neighbour.Color);
                     emptyTiles.Remove(hexTile);
                     break;
                 }
             }
 
             // Draw border lines of provinces
-            provinces.ForEach(p =>
-            {
-                var tiles = p.HexTiles.ToList();
-                tiles.ForEach(t =>
-                {
-                    var neighbours = _map.GetNeighbours(t).ToList();
-                    var borderEdges = neighbours.Where(n => n.TileTerrainType != TileTerrainType.Water && n.Province != p).
-                        Select(n => neighbours.IndexOf(n)).
-                        Select(i => (Direction)i).ToList();
-                    t.SetBorders(borderEdges);
-                });
-            });
+            provinces.ForEach(p => p.DrawBorder(_map));
+
+            //provinces.ForEach(p =>
+            //{
+            //    var tiles = p.HexTiles.ToList();
+            //    tiles.ForEach(t =>
+            //    {
+            //        var neighbours = _map.GetNeighbours(t).ToList();
+            //        var borderEdges = neighbours.Where(n => n.TileTerrainType != TileTerrainType.Water && n.Province != p).
+            //            Select(n => neighbours.IndexOf(n)).
+            //            Select(i => (Direction)i).ToList();
+            //        t.SetBorders(borderEdges);
+            //    });
+            //});
         });
     }
 

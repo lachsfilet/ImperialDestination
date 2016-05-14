@@ -78,6 +78,23 @@ namespace Assets.Scripts.Map
                     yield return neighbour;
             }
         }
+
+        public Position ConvertCubeToPosition(Vector3 cube)
+        {
+            // Convert cube to odd-r offset
+            var x = (int)(cube.x + (cube.z - ((int)cube.z & 1)) / 2);
+            var y = (int)cube.z;
+            return new Position(x, y);
+        }
+
+        public Vector3 ConvertPositionToCube(Position position)
+        {
+            // Convert odd-r offset to cube
+            var x = position.X - (position.Y - (position.Y & 1)) / 2;
+            var z = position.X;
+            var y = -x - z;
+            return new Vector3(x, y, z);
+        }
     }
 }
 
