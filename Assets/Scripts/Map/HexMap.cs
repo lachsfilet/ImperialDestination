@@ -79,6 +79,15 @@ namespace Assets.Scripts.Map
             }
         }
 
+        public Tile GetNextNeighbour(Tile hexTile, Tile currentNeighbour)
+        {
+            var neighbours = GetNeighbours(hexTile).ToList();
+            var index = neighbours.IndexOf(currentNeighbour);
+            if (index < neighbours.Count - 1)
+                return neighbours[++index];
+            return neighbours[0];
+        }
+
         public Position ConvertCubeToPosition(Vector3 cube)
         {
             // Convert cube to odd-r offset

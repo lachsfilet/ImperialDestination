@@ -46,7 +46,7 @@ namespace Assets.Scripts.Organization
             var neighbour = neighbours.Where(n => n.Province != this).First();
             var borderRoute = new Dictionary<Tile, List<Tile>>();
 
-            TraceBorder(firstBorderTile, neighbour, neighbours.GetEnumerator(), borderRoute, map);
+            TraceBorder(firstBorderTile, neighbour, borderRoute, map);
             borderRoute.Keys.ToList().ForEach(b => b.SetColor(Color.magenta));
             
             //var vertices = tiles.SelectMany(t =>
@@ -59,48 +59,29 @@ namespace Assets.Scripts.Organization
             //});
         }
 
-        private void TraceBorder(Tile currentProvinceTile, Tile neighbourProvinceTile, IEnumerator<Tile> enumerator, Dictionary<Tile, List<Tile>> borderRoute, HexMap map)
+        private void TraceBorder(Tile currentProvinceTile, Tile neighbourProvinceTile, Dictionary<Tile, List<Tile>> borderRoute, HexMap map)
         {
-            var counter = Enum.GetValues(typeof(Direction)).Length + 2;
-            while (enumerator.Current != neighbourProvinceTile)
+            // Abort if current combination is already stored
+            if (borderRoute.ContainsKey(currentProvinceTile) && borderRoute[currentProvinceTile].Contains(neighbourProvinceTile))
+                return;
+
+            if (!borderRoute.ContainsKey(currentProvinceTile))
+                borderRoute.Add(currentProvinceTile, new List<Tile>());
+            borderRoute[currentProvinceTile].Add(neighbourProvinceTile);
+
+            var nextNeighbour = map.GetNextNeighbour(currentProvinceTile, neighbourProvinceTile);
+
+            if(nextNeighbour.Province != currentProvinceTile.Province)
             {
-                if (!enumerator.MoveNext())
-                {
-                    enumerator.Reset();
-                    enumerator.MoveNext();
-                }
-                counter--;
-                if (counter == 0)
-                    throw new ArgumentOutOfRangeException("Infinite loop while seeking neighbour province in current neighbours.");
-            }
-            //var nextTile = enumerator.Current;
-
-            if (neighbourProvinceTile.Province != currentProvinceTile.Province)
-            {
-                // Abort if current combination is already stored
-                if (borderRoute.ContainsKey(currentProvinceTile) && borderRoute[currentProvinceTile].Contains(neighbourProvinceTile))
-                    return;
-
-                if (!borderRoute.ContainsKey(currentProvinceTile))
-                    borderRoute.Add(currentProvinceTile, new List<Tile>());
-                borderRoute[currentProvinceTile].Add(neighbourProvinceTile);
-
-                if (!enumerator.MoveNext())
-                {
-                    enumerator.Reset();
-                    enumerator.MoveNext();
-                }
-
                 // Move on with current tile and next neighbour province tile
-                TraceBorder(currentProvinceTile, enumerator.Current, enumerator, borderRoute, map);
+                TraceBorder(currentProvinceTile, nextNeighbour, borderRoute, map);
                 return;
             }
-            
+
             // Take next own province tile and current neighbour province tile
-            var newCurrentProvinceTile = neighbourProvinceTile;
+            var newCurrentProvinceTile = nextNeighbour;
             var lastNeighbourProvinceTile = borderRoute[currentProvinceTile].Last();
-            var neighbours = map.GetNeighbours(newCurrentProvinceTile).ToList();           
-            TraceBorder(newCurrentProvinceTile, lastNeighbourProvinceTile, neighbours.GetEnumerator(), borderRoute, map);
+            TraceBorder(newCurrentProvinceTile, lastNeighbourProvinceTile, borderRoute, map);
         }
     }
 }
