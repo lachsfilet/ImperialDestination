@@ -65,6 +65,12 @@ namespace Assets.Scripts.Map
                 return null;
             return _map[neighbour.X, neighbour.Y];
         }
+        
+        public TilePair GetPairWithDirection(Tile hexTile, Tile neighbour)
+        {
+            var neighbours = GetNeighboursWithDirection(hexTile);
+            return neighbours.Where(n => n.Neighbour == neighbour).SingleOrDefault();
+        }
 
         public IEnumerable<Tile> GetNeighbours(Tile hexTile, bool reverse = false)
         {
@@ -79,10 +85,35 @@ namespace Assets.Scripts.Map
             }
         }
 
+        public IEnumerable<TilePair> GetNeighboursWithDirection(Tile hexTile)
+        {
+            var directions = Enum.GetValues(typeof(Direction)).Cast<Direction>();
+            foreach (var direction in directions)
+            {
+                var neighbour = GetNeighbour(hexTile, direction);
+                if (neighbour != null)
+                    yield return new TilePair
+                    {
+                        HexTile = hexTile,
+                        Neighbour = neighbour,
+                        Direction = direction
+                    };
+            }
+        }
+
         public Tile GetNextNeighbour(Tile hexTile, Tile currentNeighbour)
         {
             var neighbours = GetNeighbours(hexTile).ToList();
             var index = neighbours.IndexOf(currentNeighbour);
+            if (index < neighbours.Count - 1)
+                return neighbours[++index];
+            return neighbours[0];
+        }
+        
+        public TilePair GetNextNeighbourWithDirection(Tile hexTile, Tile currentNeighbour)
+        {
+            var neighbours = GetNeighboursWithDirection(hexTile).ToList();
+            var index = neighbours.Select(n=>n.Neighbour).ToList().IndexOf(currentNeighbour);
             if (index < neighbours.Count - 1)
                 return neighbours[++index];
             return neighbours[0];

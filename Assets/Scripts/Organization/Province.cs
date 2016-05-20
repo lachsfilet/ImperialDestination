@@ -42,13 +42,19 @@ namespace Assets.Scripts.Organization
             // Get first tile with any neighbour of another province
             var tiles = HexTiles.ToList();
             var firstBorderTile = tiles.Where(t => map.GetNeighbours(t).Where(n => n.Province != this).Any()).First();
-            var neighbours = map.GetNeighbours(firstBorderTile).ToList();
-            var neighbour = neighbours.Where(n => n.Province != this).First();
-            var borderRoute = new Dictionary<Tile, List<Tile>>();
+            var neighbourPairs = map.GetNeighboursWithDirection(firstBorderTile).ToList();
+            var neighbourPair = neighbourPairs.Where(n => n.Neighbour.Province != this).First();
+            var borderRoute = new Dictionary<Tile, List<TilePair>>();
 
-            TraceBorder(firstBorderTile, neighbour, borderRoute, map);
-            borderRoute.Keys.ToList().ForEach(b => b.SetColor(Color.magenta));
-            
+            TraceBorder(neighbourPair, borderRoute, map);
+            var vectors = borderRoute.Keys.Select(t => t.transform.position).ToArray();
+
+            var lineRenderer = GetComponent<LineRenderer>();
+            lineRenderer.SetVertexCount(vectors.Length);
+            lineRenderer.SetPositions(vectors);
+
+            //borderRoute.Keys.ToList().ForEach(b => b.SetColor(Color.magenta));
+
             //var vertices = tiles.SelectMany(t =>
             //{
             //    var neighbours = map.GetNeighbours(t).ToList();
@@ -59,29 +65,32 @@ namespace Assets.Scripts.Organization
             //});
         }
 
-        private void TraceBorder(Tile currentProvinceTile, Tile neighbourProvinceTile, Dictionary<Tile, List<Tile>> borderRoute, HexMap map)
+        private void TraceBorder(TilePair tilePair, Dictionary<Tile, List<TilePair>> borderRoute, HexMap map)
         {
             // Abort if current combination is already stored
-            if (borderRoute.ContainsKey(currentProvinceTile) && borderRoute[currentProvinceTile].Contains(neighbourProvinceTile))
+            if (borderRoute.ContainsKey(tilePair.HexTile) && borderRoute[tilePair.HexTile].Contains(tilePair))
                 return;
 
-            if (!borderRoute.ContainsKey(currentProvinceTile))
-                borderRoute.Add(currentProvinceTile, new List<Tile>());
-            borderRoute[currentProvinceTile].Add(neighbourProvinceTile);
+            if (!borderRoute.ContainsKey(tilePair.HexTile))
+                borderRoute.Add(tilePair.HexTile, new List<TilePair>());
+            borderRoute[tilePair.HexTile].Add(tilePair);
 
-            var nextNeighbour = map.GetNextNeighbour(currentProvinceTile, neighbourProvinceTile);
+            var nextPair = map.GetNextNeighbourWithDirection(tilePair.HexTile, tilePair.Neighbour);
 
-            if(nextNeighbour.Province != currentProvinceTile.Province)
+            if(nextPair.Neighbour.Province != tilePair.HexTile.Province)
             {
                 // Move on with current tile and next neighbour province tile
-                TraceBorder(currentProvinceTile, nextNeighbour, borderRoute, map);
+                TraceBorder(nextPair, borderRoute, map);
                 return;
             }
 
             // Take next own province tile and current neighbour province tile
-            var newCurrentProvinceTile = nextNeighbour;
-            var lastNeighbourProvinceTile = borderRoute[currentProvinceTile].Last();
-            TraceBorder(newCurrentProvinceTile, lastNeighbourProvinceTile, borderRoute, map);
+            var newCurrentProvinceTile = nextPair.Neighbour;
+            var lastNeighbourProvinceTile = borderRoute[tilePair.HexTile].Select(t => t.Neighbour).Last();
+            var newPair = map.GetPairWithDirection(newCurrentProvinceTile, lastNeighbourProvinceTile);
+            if (newPair == null)
+                return;
+            TraceBorder(newPair, borderRoute, map);
         }
     }
 }

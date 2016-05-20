@@ -289,6 +289,7 @@ public class Map : MonoBehaviour {
                 {
                     //tiles.ForEach(tile => tile.SetColor(remainingColors[colorIndex]));
                     provinces.Add(province);
+                    province.transform.SetParent(continent.transform);
                 }
                 emptyTiles = emptyTiles.Where(tile => !tiles.Contains(tile)).ToList();
             }
