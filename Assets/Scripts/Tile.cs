@@ -130,6 +130,20 @@ public class Tile : MonoBehaviour {
         return directions.SelectMany(d => _edges[d]).Distinct();
     }
 
+    public IEnumerable<Vector3> GetVertices(Direction direction, bool relative = false)
+    {
+        var pair = _edges[direction];
+        foreach (var vector in pair)
+        {
+            if (relative)
+                yield return vector;
+
+            var position = this.transform.position;
+            var result = position + vector;
+            yield return result;
+        }
+    }
+
     public void SetBorders(List<Direction> directions)
     {
         //var mesh = GetComponent<MeshFilter>().mesh;

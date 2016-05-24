@@ -47,28 +47,17 @@ namespace Assets.Scripts.Organization
             var borderRoute = new Dictionary<Tile, List<TilePair>>();
 
             TraceBorder(neighbourPair, borderRoute, map);
-            var vectors = borderRoute.Keys.Select(t => t.transform.position).ToArray();
+            var vectors = borderRoute.Values.SelectMany(l => l.SelectMany(p => p.HexTile.GetVertices(p.Direction))).ToArray();
 
             var lineRenderer = GetComponent<LineRenderer>();
             lineRenderer.SetVertexCount(vectors.Length);
             lineRenderer.SetPositions(vectors);
-
-            //borderRoute.Keys.ToList().ForEach(b => b.SetColor(Color.magenta));
-
-            //var vertices = tiles.SelectMany(t =>
-            //{
-            //    var neighbours = map.GetNeighbours(t).ToList();
-            //    var edges = neighbours.Where(n => n.TileTerrainType != TileTerrainType.Water && n.Province != this).
-            //        Select(n => neighbours.IndexOf(n)).
-            //        Select(i => (Direction)i);
-            //    return t.GetVertices(edges);
-            //});
         }
 
         private void TraceBorder(TilePair tilePair, Dictionary<Tile, List<TilePair>> borderRoute, HexMap map)
         {
             // Abort if current combination is already stored
-            if (borderRoute.ContainsKey(tilePair.HexTile) && borderRoute[tilePair.HexTile].Contains(tilePair))
+            if (borderRoute.ContainsKey(tilePair.HexTile) && borderRoute[tilePair.HexTile].Any(p => p.Neighbour == tilePair.Neighbour))
                 return;
 
             if (!borderRoute.ContainsKey(tilePair.HexTile))

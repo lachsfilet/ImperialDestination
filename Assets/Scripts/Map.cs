@@ -140,12 +140,13 @@ public class Map : MonoBehaviour {
                 var value = blurredMap[x, y];
                 var position = _hexGrid.Get(x, y);
 
-                if (value == 0)
+                // In the map border regions only use water
+                if (value == 0 || (x < 2 || y < 2 || y > _hexGrid.Height - 3 || x > _hexGrid.Width - 3))
                 {
                     CreateTile(TileTerrainType.Water, position, x, y);
                     continue;
                 }
-
+                
                 if (value >= MinHillsValue && value < MinMountainsValue)
                 {
                     CreateTile(TileTerrainType.Hills, position, x, y);
@@ -157,19 +158,6 @@ public class Map : MonoBehaviour {
                     CreateTile(TileTerrainType.Mountains, position, x, y);
                     continue;
                 }
-
-                // In the map border regions only use water
-                //if (i < 2 || j < 2 || i > _hexGrid.Height - 3 || j > _hexGrid.Width - 3)
-                //{
-                //    CreateTile(TileTerrainType.Water, position, j, i);
-                //    continue;
-                //}
-                //var water = rand.NextDouble();
-                //if(water <= WaterProportion)
-                //{
-                //    CreateTile(TileTerrainType.Water, position, j, i);
-                //    continue;
-                //}
 
                 if (isWithinDesertBelt(y))
                 {
