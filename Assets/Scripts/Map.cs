@@ -241,18 +241,6 @@ public class Map : MonoBehaviour {
 
     public void SetupProvinces()
     {
-        //var colors = new List<Color>
-        //{
-        //    Color.blue,
-        //    Color.gray,
-        //    Color.green,
-        //    Color.grey,
-        //    Color.magenta,
-        //    Color.red,
-        //    Color.yellow,
-        //    Color.white
-        //};
-        
         _continents.ForEach(continent =>
         {
             var continentIndex = _continents.IndexOf(continent);
@@ -267,15 +255,9 @@ public class Map : MonoBehaviour {
                 province.Name = string.Format("Province {0}_{1}", continentIndex, count++);
                 var hexTile = emptyTiles.First();
                 var tiles = CreateProvince(province, hexTile);
-                //var neighbourColors = tiles.SelectMany(tile => _map.GetNeighbours(tile)).
-                //    Where(n => n.Province != null && n.Province != province).
-                //    Select(n => n.Color).
-                //    Distinct().ToList();
-                //var remainingColors = colors.Where(c => !neighbourColors.Contains(c)).ToList();
-                //var colorIndex = count % remainingColors.Count;
+
                 if (province.HexTiles.Any())
                 {
-                    //tiles.ForEach(tile => tile.SetColor(remainingColors[colorIndex]));
                     provinces.Add(province);
                     province.transform.SetParent(continent.transform);
                 }
@@ -296,7 +278,6 @@ public class Map : MonoBehaviour {
                         continue;
 
                     neighbour.Province.AddHexTile(hexTile);
-                    //hexTile.SetColor(neighbour.Color);
                     emptyTiles.Remove(hexTile);
                     break;
                 }
@@ -304,19 +285,6 @@ public class Map : MonoBehaviour {
 
             // Draw border lines of provinces
             provinces.ForEach(p => p.DrawBorder(_map));
-
-            //provinces.ForEach(p =>
-            //{
-            //    var tiles = p.HexTiles.ToList();
-            //    tiles.ForEach(t =>
-            //    {
-            //        var neighbours = _map.GetNeighbours(t).ToList();
-            //        var borderEdges = neighbours.Where(n => n.TileTerrainType != TileTerrainType.Water && n.Province != p).
-            //            Select(n => neighbours.IndexOf(n)).
-            //            Select(i => (Direction)i).ToList();
-            //        t.SetBorders(borderEdges);
-            //    });
-            //});
         });
     }
 
