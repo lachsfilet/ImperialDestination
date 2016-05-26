@@ -53,6 +53,8 @@ public class Map : MonoBehaviour {
     private int _provinceCount;
     private int _tileCount;
     private int _tileCountProvinces;
+    private int _tileCountMajorCountry;
+    private int _tileCountMinorCountry;
 
     // Use this for initialization
     void Start() {
@@ -69,13 +71,15 @@ public class Map : MonoBehaviour {
         _provinceCount = MajorCountries * ProvincesMajorCountries + MinorCountries * ProvincesMinorCountries;
         _tileCount = _continents.Sum(c => c.transform.childCount);
         _tileCountProvinces = _tileCount / _provinceCount;
+        _tileCountMajorCountry = _tileCountProvinces * ProvincesMajorCountries;
+        _tileCountMinorCountry = _tileCountProvinces * ProvincesMinorCountries;
 
         Debug.LogFormat("Tiles total: {0}", _tileCount);
         Debug.LogFormat("Countries total: {0}", Countries.Count);
         Debug.LogFormat("Provinces total: {0}", _provinceCount);
         Debug.LogFormat("Tiles per province: {0}", _tileCountProvinces);
-        Debug.LogFormat("Tiles per major country: {0}", _tileCountProvinces * ProvincesMajorCountries);
-        Debug.LogFormat("Tiles per minor country: {0}", _tileCountProvinces * ProvincesMinorCountries);
+        Debug.LogFormat("Tiles per major country: {0}", _tileCountMajorCountry);
+        Debug.LogFormat("Tiles per minor country: {0}", _tileCountMinorCountry);
 
         SetupCountries();
         SetupProvinces();
@@ -202,7 +206,15 @@ public class Map : MonoBehaviour {
 
     private void SetupCountries()
     {
-        for(var i = 0; i < MajorCountries; i++)
+        // Get ratio of total tiles for the continents
+        var continentTileRatio = _continents.Select(c => new
+        {
+            Continent = c,
+            TileCount = c.transform.childCount,
+            Countries = new List<Country>()
+        }).OrderByDescending(c => c.TileCount).ToList();
+
+        for (var i = 0; i < MajorCountries; i++)
         {
             Countries.Add(new Country { Name = String.Format("Country {0}", i), CountryType = CountryType.Major });
         }
@@ -211,32 +223,33 @@ public class Map : MonoBehaviour {
             Countries.Add(new Country { Name = String.Format("Country {0}", i), CountryType = CountryType.Minor });
         }
 
-        // Spread countries over the continents
-        var majorCountryStack = new Stack<Country>(Countries.Where(c => c.CountryType == CountryType.Major));
-        var minorCountryStack = new Stack<Country>(Countries.Where(c => c.CountryType == CountryType.Minor));
-        var continents = _continents.OrderByDescending(c => c.transform.childCount).ToList();
-        continents.ForEach(c =>
+        // Spread countries over the continents (or fit countries into the continents)
+        var countries = Countries.OrderByDescending(c => c.CountryType).Select(c =>
+        new
         {
-            var countries = new List<Country>();
-            var tileCount = c.transform.childCount;
-            var provinceCount = (int)Math.Round((decimal)_tileCountProvinces / tileCount);
+            Country = c,
+            TileCount = c.CountryType == CountryType.Major ? _tileCountMajorCountry : _tileCountMinorCountry
+        }).ToList();
 
-            var majorCountryCount = provinceCount / ProvincesMajorCountries;
-            for (var i = 0; i < majorCountryCount; i++)
-                if (majorCountryStack.Any())
-                    countries.Add(majorCountryStack.Pop());
+        countries.ForEach(country =>
+        {
+            var continent = continentTileRatio.Where(con =>
+                con.TileCount - (con.Countries.Sum(x => x.CountryType == CountryType.Major ? _tileCountMajorCountry : _tileCountMinorCountry))
+                >= country.TileCount
+            ).FirstOrDefault();
 
-            var majorCountryRemainder = provinceCount % ProvincesMajorCountries;
-            var minorCountryCount = provinceCount / ProvincesMinorCountries;
-            for (var i = 0; i < minorCountryCount; i++)
-            if (minorCountryStack.Any())
-                    countries.Add(minorCountryStack.Pop());
+            if (continent != null)
+                continent = continentTileRatio.OrderBy(con => con.TileCount - (con.Countries.Sum(x => x.CountryType == CountryType.Major ? _tileCountMajorCountry : _tileCountMinorCountry))).First();
 
-            _continentCountryMapping.Add(c, countries);
+            if (!_continentCountryMapping.ContainsKey(continent.Continent))
+                _continentCountryMapping.Add(continent.Continent, new List<Country>());
+            _continentCountryMapping[continent.Continent].Add(country.Country);
         });
 
-        //var emptyContinents = _continentCountryMapping.Where(c => !c.Value.Any()).Select(c => c.Key).ToList();
-        //emptyContinents.ForEach(c => Debug.LogFormat("Continent without countries: {0}", c.name));
+        foreach (var key in _continentCountryMapping.Keys)
+        {
+            _continentCountryMapping[key].ForEach(c => Debug.LogFormat("Continent: {0}, Country: {1}", key.name, c.Name));
+        }
     }
 
     public void SetupProvinces()
