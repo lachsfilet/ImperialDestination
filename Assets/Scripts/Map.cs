@@ -20,6 +20,7 @@ public class Map : MonoBehaviour {
     public Text TileCountText;
     public Text ProvinceText;
     public Text ProvinceCountText;
+    public Text CountryText;
 
     public int Height = 1;
     public int Width = 1;
@@ -75,11 +76,11 @@ public class Map : MonoBehaviour {
         _tileCountMinorCountry = _tileCountProvinces * ProvincesMinorCountries;
 
         Debug.LogFormat("Tiles total: {0}", _tileCount);
-        Debug.LogFormat("Countries total: {0}", Countries.Count);
         Debug.LogFormat("Provinces total: {0}", _provinceCount);
         Debug.LogFormat("Tiles per province: {0}", _tileCountProvinces);
         Debug.LogFormat("Tiles per major country: {0}", _tileCountMajorCountry);
         Debug.LogFormat("Tiles per minor country: {0}", _tileCountMinorCountry);
+        Debug.LogFormat("Continents total: {0}", _continents.Count);
 
         SetupCountries();
         SetupProvinces();
@@ -107,6 +108,7 @@ public class Map : MonoBehaviour {
             TileCountText.text = tile.transform.parent != null ? tile.transform.parent.childCount.ToString() : "None";
             ProvinceText.text = tile.Province != null ? tile.Province.Name : "None";
             ProvinceCountText.text = tile.Province != null ? tile.Province.HexTiles.Count().ToString() : "None";
+            CountryText.text = tile.Province != null && tile.Province.Owner != null ? tile.Province.Owner.Name : "None";
             return;
         }
 
@@ -203,7 +205,6 @@ public class Map : MonoBehaviour {
         }
     }
 
-
     private void SetupCountries()
     {
         // Get ratio of total tiles for the continents
@@ -238,14 +239,16 @@ public class Map : MonoBehaviour {
                 >= country.TileCount
             ).FirstOrDefault();
 
-            if (continent != null)
+            if (continent == null)
                 continent = continentTileRatio.OrderBy(con => con.TileCount - (con.Countries.Sum(x => x.CountryType == CountryType.Major ? _tileCountMajorCountry : _tileCountMinorCountry))).First();
 
             if (!_continentCountryMapping.ContainsKey(continent.Continent))
                 _continentCountryMapping.Add(continent.Continent, new List<Country>());
             _continentCountryMapping[continent.Continent].Add(country.Country);
+            continent.Countries.Add(country.Country);
         });
 
+        Debug.LogFormat("Countries total: {0}", Countries.Count);
         foreach (var key in _continentCountryMapping.Keys)
         {
             _continentCountryMapping[key].ForEach(c => Debug.LogFormat("Continent: {0}, Country: {1}", key.name, c.Name));
@@ -258,16 +261,31 @@ public class Map : MonoBehaviour {
         {
             var continentIndex = _continents.IndexOf(continent);
             var continentTiles = continent.GetComponentsInChildren<Tile>().ToList();
+            var countries = _continentCountryMapping[continent];
+            var majorCountries = countries.Where(c => c.CountryType == CountryType.Major).Count();
+            var minorCountries = countries.Where(c => c.CountryType == CountryType.Minor).Count();
+            var provinceCount = (majorCountries * ProvincesMajorCountries) + (minorCountries * ProvincesMinorCountries);
+            var tileCountProvinces = continentTiles.Count / provinceCount;
+            
             var emptyTiles = continentTiles;
             var provinces = new List<Province>();
             var count = 0;
+            var countryStack = new Stack<Country>(countries);
+            var country = countryStack.Pop();
             do
             {
                 var provinceContainer = Instantiate(Province);
                 var province = provinceContainer.GetComponent<Province>();
                 province.Name = string.Format("Province {0}_{1}", continentIndex, count++);
+                var countryProvinceCount = country.Provinces.Count;
+                if (countryStack.Count > 0 &&
+                ((country.CountryType == CountryType.Major && countryProvinceCount == ProvincesMajorCountries)
+                || (country.CountryType == CountryType.Minor && countryProvinceCount == ProvincesMinorCountries)))
+                    country = countryStack.Pop();
+                province.Owner = country;
+                country.Provinces.Add(province);
                 var hexTile = emptyTiles.First();
-                var tiles = CreateProvince(province, hexTile);
+                var tiles = CreateProvince(province, hexTile, tileCountProvinces);
 
                 if (province.HexTiles.Any())
                 {
@@ -299,15 +317,23 @@ public class Map : MonoBehaviour {
             // Draw border lines of provinces
             provinces.ForEach(p => p.DrawBorder(_map));
         });
+
+        var colors = new List<Color> { Color.red, Color.blue, Color.green, Color.yellow, Color.magenta, Color.cyan, Color.gray, Color.grey };
+        var rand = new System.Random(12345);
+        Countries.ForEach(c =>
+        {
+            var color = colors[rand.Next(colors.Count)];
+            c.Provinces.ForEach(p => p.HexTiles.ToList().ForEach(t => t.SetColor(color)));
+        });
     }
 
-    private List<Tile> CreateProvince(Province province, Tile hexTile)
+    private List<Tile> CreateProvince(Province province, Tile hexTile, int tileCountProvinces)
     {
         var provinceTiles = new List<Tile>();
-        var provinceSize = (int)Math.Round(Math.Sqrt(_tileCountProvinces));
+        var provinceSize = (int)Math.Round(Math.Sqrt(tileCountProvinces));
         provinceTiles.Add(hexTile);
         var count = 1;
-        while (count < _tileCountProvinces)
+        while (count < tileCountProvinces)
         {
             Tile nextTile = null;
             var neighbours = count <= provinceSize ? _map.GetNeighbours(hexTile, true) : _map.GetNeighbours(hexTile);

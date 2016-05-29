@@ -14,5 +14,12 @@ namespace Assets.Scripts.Organization
         public CountryType CountryType { get; set; }
 
         public List<Province> Provinces { get; set; }
+
+        public Continent Continent { get; set; }
+
+        public Country()
+        {
+            Provinces = new List<Province>();
+        }
     }
 }
