@@ -278,14 +278,17 @@ public class Map : MonoBehaviour {
                 var province = provinceContainer.GetComponent<Province>();
                 province.Name = string.Format("Province {0}_{1}", continentIndex, count++);
 
-                var countryProvinceCount = country.Provinces.Count;
-                if (countryStack.Count > 0 &&
-                ((country.CountryType == CountryType.Major && countryProvinceCount == ProvincesMajorCountries)
-                || (country.CountryType == CountryType.Minor && countryProvinceCount == ProvincesMinorCountries)))
-                    country = countryStack.Pop();
+                if(country != null)
+                {
+                    var countryProvinceCount = country.Provinces.Count;
 
-                province.Owner = country;
-                country.Provinces.Add(province);
+                    if ((country.CountryType == CountryType.Major && countryProvinceCount == ProvincesMajorCountries)
+                    || (country.CountryType == CountryType.Minor && countryProvinceCount == ProvincesMinorCountries))
+                        if (countryStack.Count > 0)
+                            country = countryStack.Pop();
+                        else
+                            country = null;
+                }              
                 var hexTile = emptyTiles.First();
                 var tiles = CreateProvince(province, hexTile, tileCountProvinces);
 
@@ -293,10 +296,21 @@ public class Map : MonoBehaviour {
                 {
                     provinces.Add(province);
                     province.transform.SetParent(continent.transform);
+                    province.Owner = country;
+                    if (country != null)
+                        country.Provinces.Add(province);
                 }
                 emptyTiles = emptyTiles.Where(tile => !tiles.Contains(tile)).ToList();
             }
             while (emptyTiles.Count >= MinProvinceSize);
+
+            // Add ownerless province tiles to empty pool again
+            provinces.Where(p => p.Owner == null).ToList().ForEach(p =>
+            {
+                p.HexTiles.ToList().ForEach(t => t.Province = null);
+                emptyTiles.AddRange(p.HexTiles);
+                p.transform.parent = null;
+            });
 
             // Add remaining tiles to existing provinces
             emptyTiles = continentTiles.Where(tile => tile.Province == null).ToList();
@@ -315,9 +329,9 @@ public class Map : MonoBehaviour {
                     break;
                 }
             }
-
+            
             // Draw border lines of provinces
-            provinces.ForEach(p => p.DrawBorder(_map));
+            provinces.Where(p=>p.transform.parent != null).ToList().ForEach(p => p.DrawBorder(_map));
         });
 
         var colors = new List<Color> { Color.red, Color.blue, Color.green, Color.yellow, Color.magenta, Color.cyan, Color.gray, Color.grey };
@@ -328,7 +342,7 @@ public class Map : MonoBehaviour {
             var color = colors[colorIndex];
             c.Provinces.ForEach(p => p.HexTiles.ToList().ForEach(t => t.SetColor(color)));
             index++;
-        });
+        });        
     }
 
     private List<Tile> CreateProvince(Province province, Tile hexTile, int tileCountProvinces)
@@ -352,7 +366,11 @@ public class Map : MonoBehaviour {
                 count++;
             }
             if (nextTile == null)
+            {
+                if (provinceTiles.Count >= MinProvinceSize)
+                    provinceTiles.ForEach(province.AddHexTile);
                 return provinceTiles;
+            }
             hexTile = nextTile;            
         }
 
