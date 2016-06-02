@@ -1,8 +1,6 @@
-﻿using System;
-
-namespace Assets.Scripts.Map
+﻿namespace Assets.Scripts.Map
 {
-	public enum Direction
+    public enum Direction
 	{
 		Northeast,
 		East,

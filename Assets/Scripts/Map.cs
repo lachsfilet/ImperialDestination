@@ -11,6 +11,7 @@ public class Map : MonoBehaviour {
     public GameObject HexTile;
     public GameObject MapStartPoint;
     public GameObject Province;
+    public GameObject Country;
 
     public Camera Camera;
     public List<Color> TerrainColorMapping;
@@ -215,15 +216,16 @@ public class Map : MonoBehaviour {
             Countries = new List<Country>()
         }).OrderByDescending(c => c.TileCount).ToList();
 
-        for (var i = 0; i < MajorCountries; i++)
+        for (var i = 0; i < MajorCountries + MinorCountries; i++)
         {
-            Countries.Add(new Country { Name = String.Format("Major Country {0}", i), CountryType = CountryType.Major });
+            var countryContainer = Instantiate(Country);
+            var country = countryContainer.GetComponent<Country>();
+            var isMajor = i < MajorCountries;
+            country.Name = string.Format(isMajor ? "Major Country {0}" : "Minor Country {0}", i);
+            country.CountryType = isMajor ? CountryType.Major: CountryType.Minor;
+            Countries.Add(country);
         }
-        for (var i = 0; i < MinorCountries; i++)
-        {
-            Countries.Add(new Country { Name = String.Format("Minor Country {0}", i), CountryType = CountryType.Minor });
-        }
-
+        
         // Spread countries over the continents (or fit countries into the continents)
         var countries = Countries.OrderByDescending(c => c.CountryType).Select(c =>
         new
@@ -317,7 +319,7 @@ public class Map : MonoBehaviour {
             while (emptyTiles.Any())
             {
                 var hexTile = emptyTiles.First();
-                Debug.LogFormat("Tile x: {0}, y: {1} remaining", hexTile.Position.X, hexTile.Position.Y);
+                //Debug.LogFormat("Tile x: {0}, y: {1} remaining", hexTile.Position.X, hexTile.Position.Y);
                 foreach (var direction in Enum.GetValues(typeof(Direction)).Cast<Direction>())
                 {
                     var neighbour = _map.GetNeighbour(hexTile, direction);
@@ -329,20 +331,27 @@ public class Map : MonoBehaviour {
                     break;
                 }
             }
-            
-            // Draw border lines of provinces
-            provinces.Where(p=>p.transform.parent != null).ToList().ForEach(p => p.DrawBorder(_map));
+
+            provinces.Where(p => p.transform.parent != null).ToList().ForEach(p =>
+            {
+                // Draw border lines of provinces
+                p.DrawBorder(_map);
+
+                // Set province capitals
+                p.SetCapital(_map);
+                var tile = p.Capital;
+                tile.TileTerrainType = TileTerrainType.City;
+                tile.SetColor(TerrainColorMapping[(int)TileTerrainType.City]);
+            });
         });
 
-        var colors = new List<Color> { Color.red, Color.blue, Color.green, Color.yellow, Color.magenta, Color.cyan, Color.gray, Color.grey };
-        var index = 0;
-        Countries.ForEach(c =>
+        Countries.ForEach(c => 
         {
-            var colorIndex = index % colors.Count;
-            var color = colors[colorIndex];
-            c.Provinces.ForEach(p => p.HexTiles.ToList().ForEach(t => t.SetColor(color)));
-            index++;
-        });        
+            c.DrawBorder(_map);
+            c.SetCapital(_map);
+            var capital = c.Provinces.Where(p => p.IsCapital).SelectMany(p => p.HexTiles.Where(t => t.TileTerrainType == TileTerrainType.City)).Single();
+            capital.SetColor(Color.red);
+        });
     }
 
     private List<Tile> CreateProvince(Province province, Tile hexTile, int tileCountProvinces)

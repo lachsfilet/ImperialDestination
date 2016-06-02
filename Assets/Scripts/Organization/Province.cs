@@ -1,8 +1,6 @@
 ﻿using Assets.Scripts.Map;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace Assets.Scripts.Organization
@@ -20,6 +18,10 @@ namespace Assets.Scripts.Organization
 
         public Country Owner { get; set; }
 
+        public Tile Capital { get; private set; }
+
+        public bool IsCapital { get; set; }
+
         public IEnumerable<Tile> HexTiles
         {
             get
@@ -35,6 +37,17 @@ namespace Assets.Scripts.Organization
 
             _hexTiles.Add(hexTile);
             hexTile.Province = this;
+        }
+
+        public void SetCapital(HexMap map)
+        {
+            var tiles = HexTiles.ToList();
+            var innerTiles = tiles.Where(t => map.GetNeighbours(t).All(n => n.Province == this)).ToList();
+            if (!innerTiles.Any())
+                innerTiles = tiles;
+            var rand = new System.Random();
+            var index = rand.Next(innerTiles.Count);
+            Capital = innerTiles[index];
         }
 
         public void DrawBorder(HexMap map)
