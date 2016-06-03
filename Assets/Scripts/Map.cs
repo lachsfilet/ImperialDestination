@@ -5,6 +5,8 @@ using UnityEngine.UI;
 using System;
 using System.Linq;
 using Assets.Scripts.Organization;
+using Assets.Scripts.Economy;
+using Assets.Scripts.Economy.Resources;
 
 //[ExecuteInEditMode]
 public class Map : MonoBehaviour {
@@ -22,6 +24,7 @@ public class Map : MonoBehaviour {
     public Text ProvinceText;
     public Text ProvinceCountText;
     public Text CountryText;
+    public Text ResourcesText;
 
     public int Height = 1;
     public int Width = 1;
@@ -85,6 +88,18 @@ public class Map : MonoBehaviour {
 
         SetupCountries();
         SetupProvinces();
+
+        var resources = new Dictionary<Type, double>
+        {
+            { typeof(Coal), 0.3 },
+            { typeof(IronOre), 0.2 },
+            { typeof(Gold), 0.1 },
+            { typeof(Oil), 0.3 },
+            { typeof(Wood), 1 },
+            { typeof(Wool), 1 }
+        };
+
+        ResourceService.Instance.SpreadResources(_map, resources);
     }
 
     // Update is called once per frame
@@ -110,6 +125,7 @@ public class Map : MonoBehaviour {
             ProvinceText.text = tile.Province != null ? tile.Province.Name : "None";
             ProvinceCountText.text = tile.Province != null ? tile.Province.HexTiles.Count().ToString() : "None";
             CountryText.text = tile.Province != null && tile.Province.Owner != null ? tile.Province.Owner.Name : "None";
+            ResourcesText.text = string.Join(",", tile.Resources.Select(r => r.Name).ToArray());
             return;
         }
 
@@ -257,7 +273,7 @@ public class Map : MonoBehaviour {
         }
     }
 
-    public void SetupProvinces()
+    private void SetupProvinces()
     {
         _continents.ForEach(continent =>
         {

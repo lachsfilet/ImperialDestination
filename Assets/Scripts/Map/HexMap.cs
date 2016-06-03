@@ -52,6 +52,19 @@ namespace Assets.Scripts.Map
             return null;
         }
 
+        public IEnumerable<Tile> GetTilesOfTerrainType(TileTerrainType terrainType)
+        {
+            for(var i = 0; i < _map.GetLength(0); i++)
+            {
+                for (var j = 0; j < _map.GetLength(1); j++)
+                {
+                    var tile = _map[i, j];
+                    if (tile.TileTerrainType == terrainType)
+                        yield return tile;
+                }
+            }
+        }
+
         public Tile GetNeighbour(Tile hexTile, Direction direction)
         {
             if (hexTile == null)

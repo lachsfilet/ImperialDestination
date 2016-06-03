@@ -11,6 +11,11 @@
         Mountains,
         Desert,
         Tundra,
-        City
+        City,
+        CattleMeadows,
+        SheepMeadows,
+        CottonField,
+        Orchard,
+        GrainField
     }
 }

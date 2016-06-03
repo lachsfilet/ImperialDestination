@@ -82,6 +82,7 @@ public class Tile : MonoBehaviour {
                 }
             }
         };
+        Resources = new List<IResource>();
     }
 
     // Use this for initialization
