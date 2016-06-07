@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
 namespace Assets.Scripts.Map
 {
-    public class HexMap
+    public class HexMap : IEnumerable<Tile>
     {
         private Dictionary<Direction, Position>[] _directions;
         private Tile[,] _map;
@@ -147,6 +148,20 @@ namespace Assets.Scripts.Map
             var z = position.X;
             var y = -x - z;
             return new Vector3(x, y, z);
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return _map.GetEnumerator();
+        }
+
+        public IEnumerator<Tile> GetEnumerator()
+        {
+            var iterator = _map.GetEnumerator();
+            while (iterator.MoveNext())
+            {
+                yield return (Tile)iterator.Current;
+            }
         }
     }
 }

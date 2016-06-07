@@ -94,9 +94,15 @@ public class Map : MonoBehaviour {
             { typeof(Coal), 0.3 },
             { typeof(IronOre), 0.2 },
             { typeof(Gold), 0.1 },
+            { typeof(Gemstone), 0.05 },
             { typeof(Oil), 0.3 },
             { typeof(Wood), 1 },
-            { typeof(Wool), 1 }
+            { typeof(Wool), 1 },
+            { typeof(Grain), 1 },
+            { typeof(Cotton), 1 },
+            { typeof(Cattle), 1 },
+            { typeof(Fruit), 1 },
+            { typeof(Horse), 1 }
         };
 
         ResourceService.Instance.SpreadResources(_map, resources);
@@ -198,6 +204,36 @@ public class Map : MonoBehaviour {
                 CreateTile(TileTerrainType.Plain, position, x, y);
             }
         }
+
+        // Generate busk, forest and agriculture tiles 
+        var tiles = _map.GetTilesOfTerrainType(TileTerrainType.Plain).ToList();
+        var terrainTypes = new Dictionary<TileTerrainType, double>
+        {
+            { TileTerrainType.Bosk, 0.1 },
+            { TileTerrainType.Forest, 0.1 },
+            { TileTerrainType.Marsh, 0.02 },
+            { TileTerrainType.GrainField, 0.2 },
+            { TileTerrainType.Orchard, 0.05 },
+            { TileTerrainType.CattleMeadows, 0.05 },
+            { TileTerrainType.CottonField, 0.05 },
+            { TileTerrainType.SheepMeadows, 0.05 },
+            { TileTerrainType.StudFarm, 0.01 }
+        };
+
+        var random = new System.Random();
+        tiles.ForEach(t =>
+        {
+            foreach(var terrainType in terrainTypes.Keys)
+            {
+                var randomValue = random.NextDouble();
+                if (randomValue > terrainTypes[terrainType])
+                    continue;
+                
+                t.TileTerrainType = terrainType;
+                t.SetColor(TerrainColorMapping[(int)terrainType]);
+                break;
+            }
+        });
     }
 
     private void SetContinents()

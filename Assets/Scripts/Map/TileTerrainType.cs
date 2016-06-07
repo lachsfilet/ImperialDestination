@@ -16,6 +16,7 @@
         SheepMeadows,
         CottonField,
         Orchard,
-        GrainField
+        GrainField,
+        StudFarm
     }
 }
