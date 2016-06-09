@@ -1,11 +1,11 @@
 ﻿using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UI;
 using System.Collections.Generic;
 using Assets.Scripts.Map;
-using UnityEngine.UI;
 using System;
 using System.Linq;
 using Assets.Scripts.Organization;
-using Assets.Scripts.Economy;
 using Assets.Scripts.Economy.Resources;
 
 //[ExecuteInEditMode]
@@ -110,8 +110,12 @@ public class Map : MonoBehaviour {
 
     // Update is called once per frame
     void Update () {
+        if (EventSystem.current.IsPointerOverGameObject())
+            return;
+
         var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         RaycastHit hit;
+        
         if (!Physics.Raycast(ray, out hit))
             return;
 
