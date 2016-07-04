@@ -26,6 +26,7 @@ public class Map : MonoBehaviour {
     public Text CountryText;
     public Text ResourcesText;
 
+    public MapMode MapMode = MapMode.InGame;
     public int Height = 1;
     public int Width = 1;
     public int DesertBelt = 10;
@@ -50,6 +51,7 @@ public class Map : MonoBehaviour {
     
     private Tile _lastHovered;
     private Tile _selectedTile;
+    private Country _selectedCountry;
     private HexGrid _hexGrid;
     private HexMap _map;
     private int _equator;
@@ -124,6 +126,35 @@ public class Map : MonoBehaviour {
 
         if (Input.GetMouseButtonDown(0))
         {
+            if (MapMode == MapMode.Overview)
+            {
+                var country = tile.Province.Owner;
+                if (_selectedCountry != null && _selectedCountry != country)
+                {
+                    _selectedCountry.Provinces.ForEach(p =>
+                    {
+                        p.HexTiles.ToList().ForEach(
+                            t =>
+                            {
+                                t.Deselect();
+                            });
+                    });
+                }
+                if (country == _selectedCountry)
+                    return;
+
+                country.Provinces.ForEach(p =>
+                {
+                    p.HexTiles.ToList().ForEach(
+                        t =>
+                        {
+                            t.Select();
+                        });
+                });
+                _selectedCountry = country;
+                return;
+            }
+
             if(_selectedTile != null)
                 _selectedTile.Deselect();
             tile.Select();
@@ -157,87 +188,28 @@ public class Map : MonoBehaviour {
             ParticleStablityRadius = ParticleStablityRadius,
             PassesCount = PassesCount
         };
-        var map = mapGenerator.Generate(_hexGrid.Width, _hexGrid.Height);
 
-        var gaussianBlur = new GaussianBlur();
-        int[,] blurredMap = map;
-        for (var i = 0; i < FilterCount; i++)
+        var mapFactory = new MapFactory(mapGenerator)
         {
-            blurredMap = gaussianBlur.Filter(blurredMap);
-        }
+            DesertBelt = DesertBelt,
+            FilterCount = FilterCount,
+            MinHillsValue = MinHillsValue,
+            MinMountainsValue = MinMountainsValue,
+            PoleBelt = PoleBelt
+        };
+
+        var terrainMap = mapFactory.CreateMap(_hexGrid.Width, _hexGrid.Height);
 
         for (var y = 0; y < _hexGrid.Height; y++)
         {
             for (var x = 0; x < _hexGrid.Width; x++)
             {
-                var value = blurredMap[x, y];
+                var terrain = terrainMap.Get(x, y);
                 var position = _hexGrid.Get(x, y);
-
-                // In the map border regions only use water
-                if (value == 0 || (x < 2 || y < 2 || y > _hexGrid.Height - 3 || x > _hexGrid.Width - 3))
-                {
-                    CreateTile(TileTerrainType.Water, position, x, y);
-                    continue;
-                }
-                
-                if (value >= MinHillsValue && value < MinMountainsValue)
-                {
-                    CreateTile(TileTerrainType.Hills, position, x, y);
-                    continue;
-                }
-
-                if (value >= MinMountainsValue)
-                {
-                    CreateTile(TileTerrainType.Mountains, position, x, y);
-                    continue;
-                }
-
-                if (isWithinDesertBelt(y))
-                {
-                    CreateTile(TileTerrainType.Desert, position, x, y);
-                    continue;
-                }
-
-                if (isWithinPoleBelt(y))
-                {
-                    CreateTile(TileTerrainType.Tundra, position, x, y);
-                    continue;
-                }
-
-                // Create land tiles
-                CreateTile(TileTerrainType.Plain, position, x, y);
+                if(terrain.HasValue)
+                    CreateTile(terrain.Value, position, x, y);
             }
         }
-
-        // Generate busk, forest and agriculture tiles 
-        var tiles = _map.GetTilesOfTerrainType(TileTerrainType.Plain).ToList();
-        var terrainTypes = new Dictionary<TileTerrainType, double>
-        {
-            { TileTerrainType.Bosk, 0.1 },
-            { TileTerrainType.Forest, 0.1 },
-            { TileTerrainType.Marsh, 0.02 },
-            { TileTerrainType.GrainField, 0.2 },
-            { TileTerrainType.Orchard, 0.05 },
-            { TileTerrainType.CattleMeadows, 0.05 },
-            { TileTerrainType.CottonField, 0.05 },
-            { TileTerrainType.SheepMeadows, 0.05 },
-            { TileTerrainType.StudFarm, 0.01 }
-        };
-
-        var random = new System.Random();
-        tiles.ForEach(t =>
-        {
-            foreach(var terrainType in terrainTypes.Keys)
-            {
-                var randomValue = random.NextDouble();
-                if (randomValue > terrainTypes[terrainType])
-                    continue;
-                
-                t.TileTerrainType = terrainType;
-                t.SetColor(TerrainColorMapping[(int)terrainType]);
-                break;
-            }
-        });
     }
 
     private void SetContinents()
@@ -459,18 +431,6 @@ public class Map : MonoBehaviour {
         }
         _map.AddTile(x, y, tile);
         return hexTile;
-    }
-
-    private bool isWithinDesertBelt(int y)
-    {
-        var upper = _equator + DesertBelt / 2;
-        var lower = _equator - DesertBelt / 2;
-        return (y < upper && y > lower);
-    }
-
-    private bool isWithinPoleBelt(int y)
-    {
-        return (y < PoleBelt || y >= Height - PoleBelt);
     }
 
     private void AddTilesToContinent(Tile hexTile, GameObject continent)
