@@ -102,6 +102,14 @@ public class Tile : MonoBehaviour {
         _renderer.material.color = SelectionColor;
     }
 
+
+    public void Select(Color color)
+    {
+        IsSelected = true;
+        SelectionColor = color;
+        _renderer.material.color = color;
+    }
+
     public void Deselect()
     {
         IsSelected = false;

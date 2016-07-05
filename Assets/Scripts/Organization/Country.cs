@@ -12,6 +12,8 @@ namespace Assets.Scripts.Organization
 
         public Player Player { get; set; }
 
+        public Color Color { get; set; }
+
         public CountryType CountryType { get; set; }
 
         public List<Province> Provinces { get; set; }

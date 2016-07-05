@@ -1,11 +1,9 @@
-﻿using System;
+﻿using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace Assets.Scripts.Map
 {
-    public class TileTerrainTypeMap
+    public class TileTerrainTypeMap : IEnumerable<TileTerrainType>
     {
         private TileTerrainType[,] _map;
 
@@ -31,6 +29,21 @@ namespace Assets.Scripts.Map
         {
             if (x >= 0 && x < Width && y >= 0 && y < Height)
                 _map[x, y] = terrainType;
+        }
+
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return _map.GetEnumerator();
+        }
+
+        public IEnumerator<TileTerrainType> GetEnumerator()
+        {
+            var iterator = _map.GetEnumerator();
+            while (iterator.MoveNext())
+            {
+                yield return (TileTerrainType)iterator.Current;
+            }
         }
     }
 }

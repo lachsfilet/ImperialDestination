@@ -25,6 +25,7 @@ public class Map : MonoBehaviour {
     public Text ProvinceCountText;
     public Text CountryText;
     public Text ResourcesText;
+    public Text SelectedCountryText;
 
     public MapMode MapMode = MapMode.InGame;
     public int Height = 1;
@@ -41,6 +42,7 @@ public class Map : MonoBehaviour {
     public int MinHillsValue = 10;
     public int MinMountainsValue = 20;
 
+    public List<Color> CountryColors;
     public int MajorCountries = 4;
     public int MinorCountries = 4;
     public int ProvincesMajorCountries = 8;
@@ -54,6 +56,7 @@ public class Map : MonoBehaviour {
     private Country _selectedCountry;
     private HexGrid _hexGrid;
     private HexMap _map;
+    private TileTerrainTypeMap _terrainMap;
     private int _equator;
     private List<GameObject> _continents;
     private Dictionary<GameObject, List<Country>> _continentCountryMapping;
@@ -108,6 +111,11 @@ public class Map : MonoBehaviour {
         };
 
         ResourceService.Instance.SpreadResources(_map, resources);
+
+        if (MapMode == MapMode.InGame)
+            SkinMap();
+        else
+            ColorCountries();
     }
 
     // Update is called once per frame
@@ -128,7 +136,13 @@ public class Map : MonoBehaviour {
         {
             if (MapMode == MapMode.Overview)
             {
+                if (tile.Province == null)
+                    return;
+
                 var country = tile.Province.Owner;
+                if (country.CountryType == CountryType.Minor)
+                    return;
+
                 if (_selectedCountry != null && _selectedCountry != country)
                 {
                     _selectedCountry.Provinces.ForEach(p =>
@@ -143,15 +157,17 @@ public class Map : MonoBehaviour {
                 if (country == _selectedCountry)
                     return;
 
+                var color = country.Color.gamma;
                 country.Provinces.ForEach(p =>
                 {
                     p.HexTiles.ToList().ForEach(
                         t =>
                         {
-                            t.Select();
+                            t.Select(color);
                         });
                 });
                 _selectedCountry = country;
+                SelectedCountryText.text = country.Name;
                 return;
             }
 
@@ -169,6 +185,9 @@ public class Map : MonoBehaviour {
             ResourcesText.text = string.Join(",", tile.Resources.Select(r => r.Name).ToArray());
             return;
         }
+
+        if (MapMode == MapMode.Overview)
+            return;
 
         if (_lastHovered != null && tile != _lastHovered)
         {
@@ -198,13 +217,13 @@ public class Map : MonoBehaviour {
             PoleBelt = PoleBelt
         };
 
-        var terrainMap = mapFactory.CreateMap(_hexGrid.Width, _hexGrid.Height);
+        _terrainMap = mapFactory.CreateMap(_hexGrid.Width, _hexGrid.Height);
 
         for (var y = 0; y < _hexGrid.Height; y++)
         {
             for (var x = 0; x < _hexGrid.Width; x++)
             {
-                var terrain = terrainMap.Get(x, y);
+                var terrain = _terrainMap.Get(x, y);
                 var position = _hexGrid.Get(x, y);
                 if(terrain.HasValue)
                     CreateTile(terrain.Value, position, x, y);
@@ -251,6 +270,7 @@ public class Map : MonoBehaviour {
             var isMajor = i < MajorCountries;
             country.Name = string.Format(isMajor ? "Major Country {0}" : "Minor Country {0}", i);
             country.CountryType = isMajor ? CountryType.Major: CountryType.Minor;
+            country.Color = isMajor ? CountryColors[i] : Color.grey;
             Countries.Add(country);
         }
         
@@ -418,19 +438,41 @@ public class Map : MonoBehaviour {
     private GameObject CreateTile(TileTerrainType type, Vector3 position, int x, int y)
     {
         var hexTile = (GameObject)Instantiate(HexTile, position, MapStartPoint.transform.rotation);
-        var renderer = hexTile.GetComponent<Renderer>();
-        renderer.material.color = TerrainColorMapping[(int)type];
         var tile = hexTile.GetComponent<Tile>();
         tile.TileTerrainType = type;
         tile.Position.X = x;
         tile.Position.Y = y;
-        if(x >= Width || y >= Height)
-        {
-            Debug.LogFormat("Index out of bounds: x: {0}, y; {1}, width: {2}, height: {3}", x, y, Width, Height);
-            return null;
-        }
         _map.AddTile(x, y, tile);
         return hexTile;
+    }
+
+    private void SkinMap()
+    {
+        var tiles = _map.ToList();
+        tiles.ForEach(t =>
+        {
+            var renderer = t.GetComponent<Renderer>();
+            renderer.material.color = TerrainColorMapping[(int)t.TileTerrainType];
+        });
+    }
+
+    private void ColorCountries()
+    {
+        Countries.ForEach(c =>
+        {
+            c.Provinces.ForEach(p => p.HexTiles.ToList().ForEach(t =>
+            {
+                var renderer = t.GetComponent<Renderer>();
+                renderer.material.color = c.Color;
+            }));
+        });
+
+        var waterTiles = _map.Where(t => t.TileTerrainType == TileTerrainType.Water).ToList();
+        waterTiles.ForEach(t =>
+        {
+            var renderer = t.GetComponent<Renderer>();
+            renderer.material.color = TerrainColorMapping[(int)t.TileTerrainType];
+        });
     }
 
     private void AddTilesToContinent(Tile hexTile, GameObject continent)
