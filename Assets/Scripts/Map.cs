@@ -10,6 +10,8 @@ using Assets.Scripts.Economy.Resources;
 
 //[ExecuteInEditMode]
 public class Map : MonoBehaviour {
+    public static GameObject CurrentMap;
+
     public GameObject HexTile;
     public GameObject MapStartPoint;
     public GameObject Province;
@@ -37,7 +39,7 @@ public class Map : MonoBehaviour {
 	public int MinParticles = 100;
 	public int MaxParticles = 400;
 	public int PassesCount = 4;
-	public int ParticleStablityRadius = 1;
+	public int ParticleStabilityRadius = 1;
     public int FilterCount = 2;
     public int MinHillsValue = 10;
     public int MinMountainsValue = 20;
@@ -51,13 +53,9 @@ public class Map : MonoBehaviour {
 
     public List<Country> Countries { get; private set; }
     
-    private Tile _lastHovered;
-    private Tile _selectedTile;
-    private Country _selectedCountry;
     private HexGrid _hexGrid;
     private HexMap _map;
     private TileTerrainTypeMap _terrainMap;
-    private int _equator;
     private List<GameObject> _continents;
     private Dictionary<GameObject, List<Country>> _continentCountryMapping;
     private int _provinceCount;
@@ -66,14 +64,43 @@ public class Map : MonoBehaviour {
     private int _tileCountMajorCountry;
     private int _tileCountMinorCountry;
 
+    void Awake()
+    {
+        //DontDestroyOnLoad(CurrentMap);
+    }
+
     // Use this for initialization
     void Start() {
+        //DontDestroyOnLoad(CurrentMap);
+
+        //if (CurrentMap != null)
+        //    return;
+
+        CurrentMap = new GameObject("Map");
+        var map = CurrentMap.AddComponent<Assets.Scripts.Map.Map>();
+        map.MapInfo = new MapInfo();
+        
         _hexGrid = new HexGrid(Height, Width, HexTile);
         _map = new HexMap(Height, Width);
-        _equator = (int)Math.Round(Height / 2m);
         _continents = new List<GameObject>();
         _continentCountryMapping = new Dictionary<GameObject, List<Country>>();
 
+        map.MapInfo.HexGrid = _hexGrid;
+        map.MapInfo.Map = _map;
+        map.MapInfo.TerrainMap = _terrainMap;
+
+        map.SelectedCountryText = SelectedCountryText;
+        map.TerrainText = TerrainText;
+        map.TileCountText = TileCountText;
+        map.ProvinceText = ProvinceText;
+        map.ProvinceCountText = ProvinceCountText;
+        map.ResourcesText = ResourcesText;
+        map.PositionText = PositionText;
+        map.ContinentText = ContinentText;
+        map.CountryText = CountryText;
+
+        map.MapMode = MapMode;
+        
         GenerateMap();
         SetContinents();
 
@@ -118,85 +145,6 @@ public class Map : MonoBehaviour {
             ColorCountries();
     }
 
-    // Update is called once per frame
-    void Update () {
-        if (EventSystem.current.IsPointerOverGameObject())
-            return;
-
-        var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        RaycastHit hit;
-        
-        if (!Physics.Raycast(ray, out hit))
-            return;
-
-        var hexTile = hit.collider.gameObject;
-        var tile = hexTile.GetComponent<Tile>();
-
-        if (Input.GetMouseButtonDown(0))
-        {
-            if (MapMode == MapMode.Overview)
-            {
-                if (tile.Province == null)
-                    return;
-
-                var country = tile.Province.Owner;
-                if (country.CountryType == CountryType.Minor)
-                    return;
-
-                if (_selectedCountry != null && _selectedCountry != country)
-                {
-                    _selectedCountry.Provinces.ForEach(p =>
-                    {
-                        p.HexTiles.ToList().ForEach(
-                            t =>
-                            {
-                                t.Deselect();
-                            });
-                    });
-                }
-                if (country == _selectedCountry)
-                    return;
-
-                var color = country.Color.gamma;
-                country.Provinces.ForEach(p =>
-                {
-                    p.HexTiles.ToList().ForEach(
-                        t =>
-                        {
-                            t.Select(color);
-                        });
-                });
-                _selectedCountry = country;
-                SelectedCountryText.text = country.Name;
-                return;
-            }
-
-            if(_selectedTile != null)
-                _selectedTile.Deselect();
-            tile.Select();
-            _selectedTile = tile;
-            TerrainText.text = _selectedTile.TileTerrainType.ToString();
-            PositionText.text = string.Format("x: {0}, y: {1}", _selectedTile.Position.X, _selectedTile.Position.Y);
-            ContinentText.text = tile.transform.parent != null ? tile.transform.parent.name : "None";
-            TileCountText.text = tile.transform.parent != null ? tile.transform.parent.childCount.ToString() : "None";
-            ProvinceText.text = tile.Province != null ? tile.Province.Name : "None";
-            ProvinceCountText.text = tile.Province != null ? tile.Province.HexTiles.Count().ToString() : "None";
-            CountryText.text = tile.Province != null && tile.Province.Owner != null ? tile.Province.Owner.Name : "None";
-            ResourcesText.text = string.Join(",", tile.Resources.Select(r => r.Name).ToArray());
-            return;
-        }
-
-        if (MapMode == MapMode.Overview)
-            return;
-
-        if (_lastHovered != null && tile != _lastHovered)
-        {
-            _lastHovered.Leave(); 
-        }
-        tile.Hover();
-        _lastHovered = tile;        
-    }
-
     private void GenerateMap()
     {
         var mapGenerator = new ParticleDeposition
@@ -204,7 +152,7 @@ public class Map : MonoBehaviour {
             DropPoints = DropPoints,
             MaxParticles = MaxParticles,
             MinParticles = MinParticles,
-            ParticleStablityRadius = ParticleStablityRadius,
+            ParticleStabilityRadius = ParticleStabilityRadius,
             PassesCount = PassesCount
         };
 
@@ -247,6 +195,7 @@ public class Map : MonoBehaviour {
                     continue;
 
                 continent = new GameObject(string.Format("Continent {0}", _continents.Count + 1));
+                continent.transform.SetParent(CurrentMap.transform);
                 AddTilesToContinent(hexTile, continent);
                 _continents.Add(continent);
             }

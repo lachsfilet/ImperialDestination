@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 
 namespace  Assets.Scripts.Game
 {
@@ -24,6 +25,11 @@ namespace  Assets.Scripts.Game
             SetInfoTexts();
         }
 
+        public void StartGame()
+        {
+            SceneManager.LoadScene("Map");
+        }
+
         public void EndTurn()
         {
             CurrentTurn++;
@@ -41,7 +47,8 @@ namespace  Assets.Scripts.Game
 
         private void SetInfoTexts()
         {
-            YearSeasonText.text = string.Format("{0}, {1}", CurrentSeason, CurrentYear);
+            if(YearSeasonText != null)
+                YearSeasonText.text = string.Format("{0}, {1}", CurrentSeason, CurrentYear);
         }
     }
 }

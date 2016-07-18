@@ -9,7 +9,7 @@ namespace Assets.Scripts.Map
 		public int MinParticles { get; set; }
 		public int MaxParticles { get; set; }
 		public int PassesCount { get; set; }
-		public int ParticleStablityRadius { get; set; }
+		public int ParticleStabilityRadius { get; set; }
 
 		public ParticleDeposition ()
 		{
@@ -17,7 +17,7 @@ namespace Assets.Scripts.Map
 			MinParticles = 100;
 			MaxParticles = 400;
 			PassesCount = 4;
-			ParticleStablityRadius = 1;
+			ParticleStabilityRadius = 1;
 		}
 
 		public int[,] Generate(int width, int height)
@@ -54,7 +54,7 @@ namespace Assets.Scripts.Map
                 var current = rand.Next(MinParticles, MaxParticles);
 				drops.Add(new List<Particle>());
 				for (var j = 0; j < current; j++) {
-					drops [i].Add (new Particle (ParticleStablityRadius));
+					drops [i].Add (new Particle (ParticleStabilityRadius));
 				}
 			}
 			return drops;

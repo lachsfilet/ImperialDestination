@@ -23,7 +23,7 @@ namespace Assets.Scripts.Menu
 
         public void StartGame()
         {
-            SceneManager.LoadScene("Map");
+            SceneManager.LoadScene("CountrySelection");
         }
 
         public void ExitGame()
