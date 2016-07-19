@@ -13,6 +13,8 @@ public class Tile : MonoBehaviour {
 
     public bool IsSelected = false;
 
+    public Color DefaultSelectionColor = Color.yellow;
+
     public Color SelectionColor = Color.yellow;
 
     public Color HoverColor = Color.red;
@@ -151,5 +153,10 @@ public class Tile : MonoBehaviour {
             var result = position + vector;
             yield return result;
         }
-    }    
+    } 
+    
+    public void ResetSelectionColor()
+    {
+        SelectionColor = DefaultSelectionColor;
+    }   
 }

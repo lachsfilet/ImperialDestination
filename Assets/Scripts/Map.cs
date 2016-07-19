@@ -10,7 +10,6 @@ using Assets.Scripts.Economy.Resources;
 
 //[ExecuteInEditMode]
 public class Map : MonoBehaviour {
-    public static GameObject CurrentMap;
 
     public GameObject HexTile;
     public GameObject MapStartPoint;
@@ -52,7 +51,8 @@ public class Map : MonoBehaviour {
     public int MinProvinceSize = 8;
 
     public List<Country> Countries { get; private set; }
-    
+
+    private GameObject _mapObject;
     private HexGrid _hexGrid;
     private HexMap _map;
     private TileTerrainTypeMap _terrainMap;
@@ -64,20 +64,34 @@ public class Map : MonoBehaviour {
     private int _tileCountMajorCountry;
     private int _tileCountMinorCountry;
 
-    void Awake()
-    {
-        //DontDestroyOnLoad(CurrentMap);
-    }
-
     // Use this for initialization
     void Start() {
-        //DontDestroyOnLoad(CurrentMap);
+        Assets.Scripts.Map.Map map = Assets.Scripts.Map.Map.CurrentMap;
 
-        //if (CurrentMap != null)
-        //    return;
+        if (map != null && MapMode == MapMode.InGame)
+        {
+            map.MapMode = MapMode;
+            map.SelectedCountryText = SelectedCountryText;
+            map.TerrainText = TerrainText;
+            map.TileCountText = TileCountText;
+            map.ProvinceText = ProvinceText;
+            map.ProvinceCountText = ProvinceCountText;
+            map.ResourcesText = ResourcesText;
+            map.PositionText = PositionText;
+            map.ContinentText = ContinentText;
+            map.CountryText = CountryText;
 
-        CurrentMap = new GameObject("Map");
-        var map = CurrentMap.AddComponent<Assets.Scripts.Map.Map>();
+            _hexGrid = map.MapInfo.HexGrid;
+            _map = map.MapInfo.Map;
+            _terrainMap = map.MapInfo.TerrainMap;
+
+            _mapObject = map.gameObject;
+            SkinMap();
+            return;
+        }
+
+        _mapObject = new GameObject("Map");
+        map = _mapObject.AddComponent<Assets.Scripts.Map.Map>();
         map.MapInfo = new MapInfo();
         
         _hexGrid = new HexGrid(Height, Width, HexTile);
@@ -195,7 +209,7 @@ public class Map : MonoBehaviour {
                     continue;
 
                 continent = new GameObject(string.Format("Continent {0}", _continents.Count + 1));
-                continent.transform.SetParent(CurrentMap.transform);
+                continent.transform.SetParent(_mapObject.transform);
                 AddTilesToContinent(hexTile, continent);
                 _continents.Add(continent);
             }
@@ -397,11 +411,12 @@ public class Map : MonoBehaviour {
 
     private void SkinMap()
     {
-        var tiles = _map.ToList();
+        //var tiles = _map.ToList();
+        var tiles = _mapObject.transform.GetComponentsInChildren<Tile>().ToList();
         tiles.ForEach(t =>
         {
-            var renderer = t.GetComponent<Renderer>();
-            renderer.material.color = TerrainColorMapping[(int)t.TileTerrainType];
+            t.SetColor(TerrainColorMapping[(int)t.TileTerrainType]);
+            t.ResetSelectionColor();
         });
     }
 
@@ -419,8 +434,7 @@ public class Map : MonoBehaviour {
         var waterTiles = _map.Where(t => t.TileTerrainType == TileTerrainType.Water).ToList();
         waterTiles.ForEach(t =>
         {
-            var renderer = t.GetComponent<Renderer>();
-            renderer.material.color = TerrainColorMapping[(int)t.TileTerrainType];
+            t.SetColor(TerrainColorMapping[(int)t.TileTerrainType]);
         });
     }
 

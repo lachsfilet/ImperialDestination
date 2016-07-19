@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Collections.Generic;
 using Assets.Scripts.Organization;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -8,6 +9,8 @@ namespace Assets.Scripts.Map
 {
     public class Map : MonoBehaviour
     {
+        public static Map CurrentMap { get; set; }
+
         private Tile _lastHovered;
         private Tile _selectedTile;
         private Country _selectedCountry;
@@ -24,6 +27,18 @@ namespace Assets.Scripts.Map
         public Text CountryText { get; set; }
         public Text ResourcesText { get; set; }
         public Text SelectedCountryText { get; set; }
+
+        void Awake()
+        {
+            if (CurrentMap == null)
+            {
+                DontDestroyOnLoad(gameObject);
+                CurrentMap = this;
+                return;
+            }
+            if (CurrentMap != this)
+                Destroy(gameObject);
+        }
 
         // Update is called once per frame
         void Update()
