@@ -81,9 +81,9 @@ public class Map : MonoBehaviour {
             map.ContinentText = ContinentText;
             map.CountryText = CountryText;
 
-            _hexGrid = map.MapInfo.HexGrid;
-            _map = map.MapInfo.Map;
-            _terrainMap = map.MapInfo.TerrainMap;
+            _hexGrid = new HexGrid(map.MapInfo.MapGrid, HexTile);
+            _map = new HexMap(Height, Width);
+            _terrainMap = new TileTerrainTypeMap(map.MapInfo.Map);
 
             _mapObject = map.gameObject;
             SkinMap();
@@ -99,9 +99,7 @@ public class Map : MonoBehaviour {
         _continents = new List<GameObject>();
         _continentCountryMapping = new Dictionary<GameObject, List<Country>>();
 
-        map.MapInfo.HexGrid = _hexGrid;
-        map.MapInfo.Map = _map;
-        map.MapInfo.TerrainMap = _terrainMap;
+        map.MapInfo.MapGrid = _hexGrid.MapGrid;
 
         map.SelectedCountryText = SelectedCountryText;
         map.TerrainText = TerrainText;
@@ -116,6 +114,9 @@ public class Map : MonoBehaviour {
         map.MapMode = MapMode;
         
         GenerateMap();
+
+        map.MapInfo.Map = _terrainMap.Map;
+
         SetContinents();
 
         Countries = new List<Country>();
@@ -187,8 +188,12 @@ public class Map : MonoBehaviour {
             {
                 var terrain = _terrainMap.Get(x, y);
                 var position = _hexGrid.Get(x, y);
-                if(terrain.HasValue)
-                    CreateTile(terrain.Value, position, x, y);
+                if (!terrain.HasValue)
+                    continue;
+
+                var tile = CreateTile(terrain.Value, position, x, y);
+                if (terrain.Value == TileTerrainType.Water)
+                    tile.transform.SetParent(_mapObject.transform);
             }
         }
     }

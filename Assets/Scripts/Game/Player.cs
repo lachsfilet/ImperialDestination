@@ -1,9 +1,10 @@
 ﻿using UnityEngine;
 using System.Collections;
-
+using System;
 
 namespace Assets.Scripts.Game
 {
+    [Serializable]
     public class Player : MonoBehaviour
     {
         public string Name { get; set; }

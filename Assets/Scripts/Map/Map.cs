@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using System.Collections.Generic;
 using Assets.Scripts.Organization;
 using UnityEngine;
 using UnityEngine.EventSystems;

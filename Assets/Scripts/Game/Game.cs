@@ -24,12 +24,7 @@ namespace  Assets.Scripts.Game
         {
             SetInfoTexts();
         }
-
-        public void StartGame()
-        {
-            SceneManager.LoadScene("Map");
-        }
-
+        
         public void EndTurn()
         {
             CurrentTurn++;

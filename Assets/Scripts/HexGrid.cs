@@ -13,16 +13,22 @@ public class HexGrid : IEnumerable<Vector3>
 
     public int Width { get; private set; }
 
-    private Vector3[,] _mapGrid;
+    public Vector3[,] MapGrid { get; private set; }
     
     public HexGrid(int height, int width, GameObject hexTile)
     {
         Height = height;
         Width = width;
         _hexTile = hexTile;
-        _mapGrid = new Vector3[Width, Height];
+        MapGrid = new Vector3[Width, Height];
 
         GenerateGrid();
+    }
+    
+    public HexGrid(Vector3[,] mapGrid, GameObject hexTile)
+    {
+        MapGrid = mapGrid;
+        _hexTile = hexTile;        
     }
 
     private void GenerateGrid()
@@ -38,7 +44,7 @@ public class HexGrid : IEnumerable<Vector3>
                 var x = i * size.x + (even ? 0 : size.x / 2);
 				var z = j * (float)(size.z * 3 / 4);
                 var position = new Vector3(x, 0, -z);
-                _mapGrid[i, j] = position;
+                MapGrid[i, j] = position;
             }
         }
     }
@@ -46,18 +52,18 @@ public class HexGrid : IEnumerable<Vector3>
     public Vector3 Get(int x, int y)
     {
         if(x < Width && y < Height)
-            return _mapGrid[x, y];
+            return MapGrid[x, y];
         return Vector3.zero;        
     }
        
     IEnumerator IEnumerable.GetEnumerator()
     {
-        return _mapGrid.GetEnumerator();
+        return MapGrid.GetEnumerator();
     }
 
     public IEnumerator<Vector3> GetEnumerator()
     {
-        var iterator = _mapGrid.GetEnumerator();
+        var iterator = MapGrid.GetEnumerator();
         while (iterator.MoveNext())
         {
             yield return (Vector3)iterator.Current;

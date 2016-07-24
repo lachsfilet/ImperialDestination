@@ -1,15 +1,18 @@
-﻿using System;
+﻿using Assets.Scripts.Organization;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using UnityEngine;
 
 namespace Assets.Scripts.Map
 {
     [Serializable]
     public class MapInfo
     {
-        public HexGrid HexGrid { get; set; }
-        public HexMap Map { get; set; }
-        public TileTerrainTypeMap TerrainMap { get; set; }
+        public Vector3[,] MapGrid { get; set; }
+        public TileTerrainType[,] Map { get; set; }
+        public IList<CountryInfo> Countries { get; set; }
+        public IList<ProvinceInfo> Provinces { get; set; }   
     }
 }

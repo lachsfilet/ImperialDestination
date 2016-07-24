@@ -5,7 +5,7 @@ namespace Assets.Scripts.Map
 {
     public class TileTerrainTypeMap : IEnumerable<TileTerrainType>
     {
-        private TileTerrainType[,] _map;
+        public TileTerrainType[,] Map { get; set; }
 
         public int Width { get; private set; }
 
@@ -13,33 +13,39 @@ namespace Assets.Scripts.Map
 
         public TileTerrainTypeMap(int width, int height)
         {
-            _map = new TileTerrainType[width, height];
+            Map = new TileTerrainType[width, height];
             Width = width;
             Height = height;
+        }
+
+
+        public TileTerrainTypeMap(TileTerrainType[,] map)
+        {
+            Map = map;
         }
 
         public TileTerrainType? Get(int x, int y)
         {
             if (x >= 0 && x < Width && y >= 0 && y < Height)
-                return _map[x, y];
+                return Map[x, y];
             return null;
         }
 
         public void Add(TileTerrainType terrainType, int x, int y)
         {
             if (x >= 0 && x < Width && y >= 0 && y < Height)
-                _map[x, y] = terrainType;
+                Map[x, y] = terrainType;
         }
 
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return _map.GetEnumerator();
+            return Map.GetEnumerator();
         }
 
         public IEnumerator<TileTerrainType> GetEnumerator()
         {
-            var iterator = _map.GetEnumerator();
+            var iterator = Map.GetEnumerator();
             while (iterator.MoveNext())
             {
                 yield return (TileTerrainType)iterator.Current;
