@@ -5,7 +5,6 @@ using Assets.Scripts.Infrastructure;
 using Assets.Scripts.Organization;
 using Assets.Scripts.Map;
 using System.Linq;
-using Assets.Scripts;
 
 public class Tile : MonoBehaviour {
 

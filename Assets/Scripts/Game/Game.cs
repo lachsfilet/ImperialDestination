@@ -1,9 +1,8 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
-using UnityEngine.SceneManagement;
 
-namespace  Assets.Scripts.Game
+namespace Assets.Scripts.Game
 {
     public class Game : MonoBehaviour
     {
@@ -22,6 +21,11 @@ namespace  Assets.Scripts.Game
         // Use this for initialization
         void Start()
         {
+            if(!GameCache.Instance.IsEmpty())
+            {
+                CurrentSeason = GameCache.Instance.CurrentGame.Season;
+                CurrentYear = GameCache.Instance.CurrentGame.Year;
+            }
             SetInfoTexts();
         }
         
@@ -37,6 +41,7 @@ namespace  Assets.Scripts.Game
             else
                 CurrentSeason++;
 
+            GameCache.Instance.SetSeasonAndYear(CurrentSeason, CurrentYear);
             SetInfoTexts();
         }
 

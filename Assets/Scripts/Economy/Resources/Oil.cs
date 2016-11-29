@@ -1,6 +1,5 @@
 ﻿using Assets.Scripts.Map;
 using System.Collections.Generic;
-using System;
 
 namespace Assets.Scripts.Economy.Resources
 {

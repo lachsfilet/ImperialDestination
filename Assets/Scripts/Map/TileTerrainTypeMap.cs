@@ -22,6 +22,8 @@ namespace Assets.Scripts.Map
         public TileTerrainTypeMap(TileTerrainType[,] map)
         {
             Map = map;
+            Width = map.GetLength(0);
+            Height = map.GetLength(1);
         }
 
         public TileTerrainType? Get(int x, int y)

@@ -1,8 +1,6 @@
-﻿using System;
-
-namespace Assets.Scripts.Map
+﻿namespace Assets.Scripts.Map
 {
-	public class CubeCoord
+    public class CubeCoord
 	{
 		public int X { get; private set; }
 		public int Y { get; private set; }

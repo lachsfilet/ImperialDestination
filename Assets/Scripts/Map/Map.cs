@@ -3,19 +3,17 @@ using Assets.Scripts.Organization;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using Assets.Scripts.Game;
 
 namespace Assets.Scripts.Map
 {
     public class Map : MonoBehaviour
     {
-        public static Map CurrentMap { get; set; }
-
         private Tile _lastHovered;
         private Tile _selectedTile;
         private Country _selectedCountry;
 
         public MapMode MapMode { get; set; }
-        public MapInfo MapInfo { get; set; }
 
         public Text TerrainText { get; set; }
         public Text PositionText { get; set; }
@@ -26,19 +24,7 @@ namespace Assets.Scripts.Map
         public Text CountryText { get; set; }
         public Text ResourcesText { get; set; }
         public Text SelectedCountryText { get; set; }
-
-        void Awake()
-        {
-            if (CurrentMap == null)
-            {
-                DontDestroyOnLoad(gameObject);
-                CurrentMap = this;
-                return;
-            }
-            if (CurrentMap != this)
-                Destroy(gameObject);
-        }
-
+        
         // Update is called once per frame
         void Update()
         {
@@ -90,6 +76,7 @@ namespace Assets.Scripts.Map
                     });
                     _selectedCountry = country;
                     SelectedCountryText.text = country.Name;
+                    GameCache.Instance.SetPlayer("Player 1", country.Name);
                     return;
                 }
 
@@ -103,8 +90,9 @@ namespace Assets.Scripts.Map
                 TileCountText.text = tile.transform.parent != null ? tile.transform.parent.childCount.ToString() : "None";
                 ProvinceText.text = tile.Province != null ? tile.Province.Name : "None";
                 ProvinceCountText.text = tile.Province != null ? tile.Province.HexTiles.Count().ToString() : "None";
-                CountryText.text = tile.Province != null && tile.Province.Owner != null ? tile.Province.Owner.Name : "None";
+                CountryText.text = tile.Province != null && tile.Province.Owner != null ? tile.Province.Owner.Name : "???";
                 ResourcesText.text = string.Join(",", tile.Resources.Select(r => r.Name).ToArray());
+
                 return;
             }
 

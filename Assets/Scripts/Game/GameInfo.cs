@@ -13,6 +13,6 @@ namespace Assets.Scripts.Game
 
         public Season Season { get; set; }
 
-        public IList<Player> Player { get; set; }
+        public IList<Player> Players { get; set; }
     }
 }

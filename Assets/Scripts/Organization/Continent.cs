@@ -1,7 +1,5 @@
 ﻿using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using Assets.Scripts.Organization;
 
 public class Continent : MonoBehaviour {

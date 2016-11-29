@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using System.Collections.Generic;
 using Assets.Scripts.Map;
@@ -7,6 +6,7 @@ using System;
 using System.Linq;
 using Assets.Scripts.Organization;
 using Assets.Scripts.Economy.Resources;
+using Assets.Scripts.Game;
 
 //[ExecuteInEditMode]
 public class Map : MonoBehaviour {
@@ -53,6 +53,7 @@ public class Map : MonoBehaviour {
     public List<Country> Countries { get; private set; }
 
     private GameObject _mapObject;
+    private GameObject _mapInfoCache;
     private HexGrid _hexGrid;
     private HexMap _map;
     private TileTerrainTypeMap _terrainMap;
@@ -66,10 +67,16 @@ public class Map : MonoBehaviour {
 
     // Use this for initialization
     void Start() {
-        Assets.Scripts.Map.Map map = Assets.Scripts.Map.Map.CurrentMap;
+        _mapObject = new GameObject("Map");
+        _continents = new List<GameObject>();
+        _mapInfoCache = new GameObject("MapInfoCache");
+        var map = _mapInfoCache.AddComponent<Assets.Scripts.Map.Map>();
+        MapInfo mapInfo = null;
 
-        if (map != null && MapMode == MapMode.InGame)
+        if (!GameCache.Instance.IsEmpty() && MapMode == MapMode.InGame)
         {
+            mapInfo = GameCache.Instance.CurrentGame.MapInfo;
+            // TODO: Replace debug text fields
             map.MapMode = MapMode;
             map.SelectedCountryText = SelectedCountryText;
             map.TerrainText = TerrainText;
@@ -81,25 +88,24 @@ public class Map : MonoBehaviour {
             map.ContinentText = ContinentText;
             map.CountryText = CountryText;
 
-            _hexGrid = new HexGrid(map.MapInfo.MapGrid, HexTile);
+            Height = mapInfo.Map.GetLength(1);
+            Width = mapInfo.Map.GetLength(0);
+            _hexGrid = new HexGrid(Height, Width, HexTile);
             _map = new HexMap(Height, Width);
-            _terrainMap = new TileTerrainTypeMap(map.MapInfo.Map);
+            _terrainMap = new TileTerrainTypeMap(mapInfo.Map);
 
-            _mapObject = map.gameObject;
+            _mapInfoCache = map.gameObject;
+
+            CreateMap();
+
+            SetupMap(GameCache.Instance.CurrentGame.MapInfo);
+
             SkinMap();
             return;
-        }
-
-        _mapObject = new GameObject("Map");
-        map = _mapObject.AddComponent<Assets.Scripts.Map.Map>();
-        map.MapInfo = new MapInfo();
-        
+        }       
         _hexGrid = new HexGrid(Height, Width, HexTile);
         _map = new HexMap(Height, Width);
-        _continents = new List<GameObject>();
         _continentCountryMapping = new Dictionary<GameObject, List<Country>>();
-
-        map.MapInfo.MapGrid = _hexGrid.MapGrid;
 
         map.SelectedCountryText = SelectedCountryText;
         map.TerrainText = TerrainText;
@@ -114,8 +120,6 @@ public class Map : MonoBehaviour {
         map.MapMode = MapMode;
         
         GenerateMap();
-
-        map.MapInfo.Map = _terrainMap.Map;
 
         SetContinents();
 
@@ -153,11 +157,34 @@ public class Map : MonoBehaviour {
         };
 
         ResourceService.Instance.SpreadResources(_map, resources);
-
+        
         if (MapMode == MapMode.InGame)
             SkinMap();
         else
             ColorCountries();
+
+        // Store generated map in game cache
+        mapInfo = new MapInfo
+        {
+            Map = _terrainMap.Map,
+            Tiles = Countries.SelectMany(c => c.Provinces.SelectMany(p => p.HexTiles.Select(t => new TileInfo
+            {
+                Position = t.Position,
+                TileTerrainType = t.TileTerrainType,
+                Resources = t.Resources,
+                ProvinceInfo = new ProvinceInfo
+                {
+                    Name = t.Province.Name,
+                    IsCapital = t.Province.IsCapital,
+                    OwnerInfo = new CountryInfo { Name = t.Province.Owner.Name },
+                    ContinentInfo = new ContinentInfo { Name = t.transform.parent.name }
+                }
+            }))).ToList()
+        };
+
+        var gameInfo = new GameInfo { MapInfo = mapInfo };
+        GameCache.Instance.ReplaceCurrentGame(gameInfo);
+        GameCache.Instance.SetSeasonAndYear(Season.Spring, 1815);
     }
 
     private void GenerateMap()
@@ -182,6 +209,11 @@ public class Map : MonoBehaviour {
 
         _terrainMap = mapFactory.CreateMap(_hexGrid.Width, _hexGrid.Height);
 
+        CreateMap();
+    }
+
+    private void CreateMap()
+    {
         for (var y = 0; y < _hexGrid.Height; y++)
         {
             for (var x = 0; x < _hexGrid.Width; x++)
@@ -357,7 +389,7 @@ public class Map : MonoBehaviour {
                 p.SetCapital(_map);
                 var tile = p.Capital;
                 tile.TileTerrainType = TileTerrainType.City;
-                tile.SetColor(TerrainColorMapping[(int)TileTerrainType.City]);
+                //tile.SetColor(TerrainColorMapping[(int)TileTerrainType.City]);
             });
         });
 
@@ -365,8 +397,8 @@ public class Map : MonoBehaviour {
         {
             c.DrawBorder(_map);
             c.SetCapital(_map);
-            var capital = c.Provinces.Where(p => p.IsCapital).SelectMany(p => p.HexTiles.Where(t => t.TileTerrainType == TileTerrainType.City)).Single();
-            capital.SetColor(Color.red);
+            //var capital = c.Provinces.Where(p => p.IsCapital).SelectMany(p => p.HexTiles.Where(t => t.TileTerrainType == TileTerrainType.City)).Single();
+            //capital.SetColor(Color.red);
         });
     }
 
@@ -416,11 +448,13 @@ public class Map : MonoBehaviour {
 
     private void SkinMap()
     {
-        //var tiles = _map.ToList();
         var tiles = _mapObject.transform.GetComponentsInChildren<Tile>().ToList();
         tiles.ForEach(t =>
         {
-            t.SetColor(TerrainColorMapping[(int)t.TileTerrainType]);
+            if(t.Province != null && t.Province.IsCapital && t.TileTerrainType == TileTerrainType.City)
+                t.SetColor(Color.red);
+            else
+                t.SetColor(TerrainColorMapping[(int)t.TileTerrainType]);
             t.ResetSelectionColor();
         });
     }
@@ -453,6 +487,61 @@ public class Map : MonoBehaviour {
             if (neighbour == null || neighbour.transform.parent != null || neighbour.TileTerrainType == TileTerrainType.Water)
                 continue;
             AddTilesToContinent(neighbour, continent);
+        }
+    }
+
+    private void SetupMap(MapInfo mapInfo)
+    {
+        foreach (var continentInfo in mapInfo.Tiles.Select(t => t.ProvinceInfo.ContinentInfo).Distinct())
+        {
+            var continent = new GameObject(continentInfo.Name);
+            continent.transform.SetParent(_mapObject.transform);
+            _continents.Add(continent);
+        }
+
+        var countries = new Dictionary<string, Country>();
+        foreach (var countryInfo in mapInfo.Tiles.Select(t => t.ProvinceInfo.OwnerInfo).Distinct().ToList())
+        {
+            var countryContainer = Instantiate(Country);
+            var country = countryContainer.GetComponent<Country>();
+            var countryName = countryInfo.Name;
+            country.Name = countryName;
+            countries.Add(countryName, country);
+        }
+
+        var provinces = new Dictionary<string, Province>();
+        foreach (var provinceInfo in mapInfo.Tiles.Select(t => t.ProvinceInfo).Distinct())
+        {
+            var provinceContainer = Instantiate(Province);
+            var province = provinceContainer.GetComponent<Province>();
+            province.Name = provinceInfo.Name;
+            provinces.Add(provinceInfo.Name, province);
+            var country = countries[provinceInfo.OwnerInfo.Name];
+            country.Provinces.Add(province);
+            province.Owner = country;
+            province.IsCapital = provinceInfo.IsCapital;
+        }
+
+        foreach (var tileInfo in mapInfo.Tiles)
+        {
+            var tile = _map.GetTile(tileInfo.Position.X, tileInfo.Position.Y);
+            tile.TileTerrainType = tileInfo.TileTerrainType;
+            tile.Resources = tileInfo.Resources.ToList();
+
+            var provinceInfo = tileInfo.ProvinceInfo;
+            provinces[provinceInfo.Name].AddHexTile(tile);
+
+            var continent = _continents.Single(c => c.name == provinceInfo.ContinentInfo.Name);
+            tile.transform.SetParent(continent.transform);
+        }
+
+        foreach (var province in provinces.Values)
+        {
+            province.DrawBorder(_map);
+        }
+        foreach(var country in countries.Values)
+        {
+            country.DrawBorder(_map);
         }
     }
 }

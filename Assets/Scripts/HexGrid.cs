@@ -1,8 +1,6 @@
 ﻿using UnityEngine;
-using System;
 using System.Collections.Generic;
 using System.Collections;
-using Assets.Scripts.Map;
 
 public class HexGrid : IEnumerable<Vector3>
 {
@@ -23,12 +21,6 @@ public class HexGrid : IEnumerable<Vector3>
         MapGrid = new Vector3[Width, Height];
 
         GenerateGrid();
-    }
-    
-    public HexGrid(Vector3[,] mapGrid, GameObject hexTile)
-    {
-        MapGrid = mapGrid;
-        _hexTile = hexTile;        
     }
 
     private void GenerateGrid()

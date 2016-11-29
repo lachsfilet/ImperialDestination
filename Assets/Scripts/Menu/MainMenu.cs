@@ -1,7 +1,10 @@
 ﻿using UnityEngine;
+using UnityEditor;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
-using System.Collections;
+using System.IO;
+using Newtonsoft.Json;
+using Assets.Scripts.Game;
 
 namespace Assets.Scripts.Menu
 {
@@ -24,6 +27,16 @@ namespace Assets.Scripts.Menu
         public void StartGame()
         {
             SceneManager.LoadScene("CountrySelection");
+        }
+
+        public void LoadGame()
+        {
+            var path = EditorUtility.OpenFilePanel("Load savegame", "", "json");
+            var jsonContent = File.ReadAllText(path);
+            var gameInfo = JsonConvert.DeserializeObject<GameInfo>(jsonContent, new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.Auto });
+            GameCache.Instance.ReplaceCurrentGame(gameInfo);
+
+            SceneManager.LoadScene("Map");
         }
 
         public void ExitGame()

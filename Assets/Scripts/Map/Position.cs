@@ -1,11 +1,14 @@
-﻿namespace Assets.Scripts.Map
+﻿using System;
+
+namespace Assets.Scripts.Map
 {
+    [Serializable]
     public class Position
     {
         public int X { get; set; }
         public int Y { get; set; }
 
-		public Position ()
+        public Position ()
 		{			
 		}
 

@@ -1,9 +1,8 @@
 ﻿using UnityEngine;
-using System.Collections;
 
 public class MainCamera : MonoBehaviour {
 
-    public float Speed = 30;
+    public float Speed = 60;
 
     public int ScrollArea = 20;
 
@@ -28,7 +27,7 @@ public class MainCamera : MonoBehaviour {
         if (Input.mousePosition.y > Screen.height - ScrollArea)
             v = 1;
         
-        _movement.Set(h, v, v);
+        _movement.Set(h, 0, v);
         _movement = _movement.normalized * Speed * Time.deltaTime;
         transform.Translate(_movement);
     }
