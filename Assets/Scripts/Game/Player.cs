@@ -6,6 +6,9 @@ namespace Assets.Scripts.Game
     public class Player
     {
         public string Name { get; set; }
+
         public string CountryName { get; set; }
+
+        public int Balance { get; set; }
     }
 }

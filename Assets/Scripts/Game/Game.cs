@@ -6,9 +6,11 @@ namespace Assets.Scripts.Game
 {
     public class Game : MonoBehaviour
     {
+        public Text CountryText;
+
         public Text YearSeasonText;
 
-        public Text BalaneText;
+        public Text BalanceText;
 
         public int CurrentTurn;
 
@@ -21,7 +23,7 @@ namespace Assets.Scripts.Game
         // Use this for initialization
         void Start()
         {
-            if(!GameCache.Instance.IsEmpty())
+            if(!GameCache.Instance.ContainsMapInfo())
             {
                 CurrentSeason = GameCache.Instance.CurrentGame.Season;
                 CurrentYear = GameCache.Instance.CurrentGame.Year;
@@ -47,8 +49,14 @@ namespace Assets.Scripts.Game
 
         private void SetInfoTexts()
         {
-            if(YearSeasonText != null)
+            if (CountryText != null)
+                CountryText.text = GameCache.Instance.CurrentGame.Players[0].CountryName;
+
+            if (YearSeasonText != null)
                 YearSeasonText.text = string.Format("{0}, {1}", CurrentSeason, CurrentYear);
+
+            if (BalanceText != null)
+                BalanceText.text = GameCache.Instance.CurrentGame.Players[0].Balance.ToString();
         }
     }
 }

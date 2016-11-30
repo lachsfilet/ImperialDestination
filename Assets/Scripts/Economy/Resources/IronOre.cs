@@ -34,6 +34,6 @@ namespace Assets.Scripts.Economy.Resources
             }
         }
 
-        public decimal Price { get; set; }
+        public int Price { get; set; }
     }
 }

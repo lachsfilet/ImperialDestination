@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using Assets.Scripts.Game;
+using System.Linq;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace Assets.Scripts.CountrySelection
@@ -7,7 +9,8 @@ namespace Assets.Scripts.CountrySelection
     {
         public void StartGame()
         {
-            SceneManager.LoadScene("Map");
+            if (GameCache.Instance.CurrentGame.Players.Any())
+                SceneManager.LoadScene("Map");
         }
     }
 }

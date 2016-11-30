@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using Assets.Scripts.Map;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Assets.Scripts.Game
 {
@@ -18,6 +20,11 @@ namespace Assets.Scripts.Game
 
         private GameCache()
         {
+            _currentGame = new GameInfo
+            {
+                Players = new List<Player>(),
+                Year = 1815
+            };
         }
 
         public GameInfo CurrentGame
@@ -28,17 +35,17 @@ namespace Assets.Scripts.Game
             }
         }
 
-        public bool IsEmpty()
+        public bool ContainsMapInfo()
         {
-            return _currentGame == null;
+            return _currentGame.MapInfo == null;
         }
 
-        public void SetPlayer(string name, string country)
+        public void SetPlayer(string name, string country, int balance)
         {
-            _currentGame = _currentGame ?? CreateGameInfo();
-            if (_currentGame.Players == null)
-                _currentGame.Players = new List<Player>();
-            _currentGame.Players.Add(new Player { Name = name, CountryName = country });
+            var player = new Player { Name = name, CountryName = country, Balance = balance };
+            if (!_currentGame.Players.Any())
+                _currentGame.Players.Add(player);
+            _currentGame.Players[0] = player;
         }
 
         public void ReplaceCurrentGame(GameInfo gameInfo)
@@ -48,18 +55,13 @@ namespace Assets.Scripts.Game
 
         public void SetSeasonAndYear(Season season, int year)
         {
-            _currentGame = _currentGame ?? CreateGameInfo();
             _currentGame.Season = season;
             _currentGame.Year = year;
         }
 
-        private GameInfo CreateGameInfo()
+        public void AddMapInfo(MapInfo mapInfo)
         {
-            _currentGame = new GameInfo
-            {
-                Players = new List<Player>()
-            };
-            return _currentGame;
+            _currentGame.MapInfo = mapInfo;
         }
     }
 }

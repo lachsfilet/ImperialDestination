@@ -14,5 +14,7 @@ namespace Assets.Scripts.Game
         public Season Season { get; set; }
 
         public IList<Player> Players { get; set; }
+
+        public Level Level { get; set; }
     }
 }

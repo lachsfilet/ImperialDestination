@@ -76,7 +76,7 @@ namespace Assets.Scripts.Map
                     });
                     _selectedCountry = country;
                     SelectedCountryText.text = country.Name;
-                    GameCache.Instance.SetPlayer("Player 1", country.Name);
+                    GameCache.Instance.SetPlayer("Player 1", country.Name, 40000);
                     return;
                 }
 

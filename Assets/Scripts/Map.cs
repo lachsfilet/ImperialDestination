@@ -73,7 +73,7 @@ public class Map : MonoBehaviour {
         var map = _mapInfoCache.AddComponent<Assets.Scripts.Map.Map>();
         MapInfo mapInfo = null;
 
-        if (!GameCache.Instance.IsEmpty() && MapMode == MapMode.InGame)
+        if (!GameCache.Instance.ContainsMapInfo() && MapMode == MapMode.InGame)
         {
             mapInfo = GameCache.Instance.CurrentGame.MapInfo;
             // TODO: Replace debug text fields
@@ -181,10 +181,7 @@ public class Map : MonoBehaviour {
                 }
             }))).ToList()
         };
-
-        var gameInfo = new GameInfo { MapInfo = mapInfo };
-        GameCache.Instance.ReplaceCurrentGame(gameInfo);
-        GameCache.Instance.SetSeasonAndYear(Season.Spring, 1815);
+        GameCache.Instance.AddMapInfo(mapInfo);
     }
 
     private void GenerateMap()

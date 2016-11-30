@@ -4,6 +4,6 @@
     {
         string Name { get; }
 
-        decimal Price { get; set; }
+        int Price { get; set; }
     }
 }
