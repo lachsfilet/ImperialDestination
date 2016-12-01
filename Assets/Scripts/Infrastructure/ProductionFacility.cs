@@ -26,7 +26,7 @@ namespace Assets.Scripts.Infrastructure
 
         public int Capacity { get; set; }
 
-        public IInvention Precondition
+        public ITechnology Precondition
         {
             get
             {

@@ -181,7 +181,8 @@ public class Map : MonoBehaviour {
                 }
             }))).ToList()
         };
-        GameCache.Instance.AddMapInfo(mapInfo);
+        GameCache.Instance.SetMapInfo(mapInfo);
+        GameCache.Instance.SetCountryNames(Countries.Select(c => c.Name));
     }
 
     private void GenerateMap()

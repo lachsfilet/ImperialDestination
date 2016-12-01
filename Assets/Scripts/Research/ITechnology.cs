@@ -1,6 +1,6 @@
 ﻿namespace Assets.Scripts.Research
 {
-    public interface IInvention
+    public interface ITechnology
     {
        bool IsInvented { get; set; }
 

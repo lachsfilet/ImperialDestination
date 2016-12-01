@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Assets.Scripts.Research;
+using System;
+using System.Collections.Generic;
 
 namespace Assets.Scripts.Organization
 {
@@ -6,6 +8,8 @@ namespace Assets.Scripts.Organization
     public class CountryInfo : IEquatable<CountryInfo>
     {
         public string Name { get; set; }
+
+        public List<ITechnology> Technologies { get; set; }
 
         public bool Equals(CountryInfo other)
         {

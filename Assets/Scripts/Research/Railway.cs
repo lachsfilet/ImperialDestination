@@ -1,6 +1,9 @@
-﻿namespace Assets.Scripts.Research
+﻿using System;
+
+namespace Assets.Scripts.Research
 {
-    public class Railway : IInvention
+    [Serializable]
+    public class Railway : ITechnology
     {
         public bool IsInvented
         {

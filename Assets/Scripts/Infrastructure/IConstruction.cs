@@ -5,7 +5,7 @@ namespace Assets.Scripts.Infrastructure
 {
     public interface IConstruction
     {
-        IInvention Precondition { get; set; }
+        ITechnology Precondition { get; }
 
         int Price { get; set; }
 

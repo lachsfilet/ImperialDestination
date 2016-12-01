@@ -9,8 +9,11 @@ namespace Assets.Scripts.CountrySelection
     {
         public void StartGame()
         {
-            if (GameCache.Instance.CurrentGame.Players.Any())
-                SceneManager.LoadScene("Map");
+            if (!GameCache.Instance.CurrentGame.Players.Any())
+                return;
+
+            GameCache.Instance.SetAiPlayers(20000);
+            SceneManager.LoadScene("Map");
         }
     }
 }

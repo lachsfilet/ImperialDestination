@@ -5,6 +5,11 @@ namespace Assets.Scripts.Infrastructure
 {
     public class Railway : IConstruction
     {
+        public Railway(Research.Railway precondition)
+        {
+            Precondition = precondition;
+        }
+
         public int Price { get; set; }
 
         public RailwayDirection Direction { get; set; }
@@ -13,6 +18,6 @@ namespace Assets.Scripts.Infrastructure
 
         public Position Location { get; set; }
 
-        public IInvention Precondition { get; set; }
+        public ITechnology Precondition { get; private set; }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using System.Linq;
 using System.Collections.Generic;
 
 namespace Assets.Scripts.Game
@@ -18,7 +19,7 @@ namespace Assets.Scripts.Game
 
         public Season CurrentSeason;
 
-        public List<Player> Players;
+        public Player Player;
 
         // Use this for initialization
         void Start()
@@ -28,6 +29,8 @@ namespace Assets.Scripts.Game
                 CurrentSeason = GameCache.Instance.CurrentGame.Season;
                 CurrentYear = GameCache.Instance.CurrentGame.Year;
             }
+            Player = GameCache.Instance.CurrentGame.Players.Single(x => x.IsHuman);
+
             SetInfoTexts();
         }
         
@@ -49,14 +52,16 @@ namespace Assets.Scripts.Game
 
         private void SetInfoTexts()
         {
+
+
             if (CountryText != null)
-                CountryText.text = GameCache.Instance.CurrentGame.Players[0].CountryName;
+                CountryText.text = Player.CountryName;
 
             if (YearSeasonText != null)
                 YearSeasonText.text = string.Format("{0}, {1}", CurrentSeason, CurrentYear);
 
             if (BalanceText != null)
-                BalanceText.text = GameCache.Instance.CurrentGame.Players[0].Balance.ToString();
+                BalanceText.text = Player.Balance.ToString();
         }
     }
 }
