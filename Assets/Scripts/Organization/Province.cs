@@ -63,7 +63,8 @@ namespace Assets.Scripts.Organization
             var vectors = borderRoute.SelectMany(p => p.HexTile.GetVertices(p.Direction)).Distinct().ToArray();
 
             var lineRenderer = GetComponent<LineRenderer>();
-            lineRenderer.SetVertexCount(vectors.Length);
+            lineRenderer.positionCount = vectors.Length;
+            //lineRenderer.SetVertexCount(vectors.Length);
             lineRenderer.SetPositions(vectors);
         }
 
