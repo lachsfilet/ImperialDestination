@@ -150,6 +150,17 @@ namespace Assets.Scripts.Map
             return new Vector3(x, y, z);
         }
 
+        public float GetCubeDistance(Vector3 a, Vector3 b) =>
+            Math.Max(Math.Abs(a.x - b.x), Math.Max(Math.Abs(a.y - b.y), Math.Abs(a.z - b.z)));
+
+        public float GetHexDistance(Position a, Position b)
+        {
+            var ac = ConvertPositionToCube(a);
+            var bc = ConvertPositionToCube(b);
+
+            return GetCubeDistance(ac, bc);
+        }
+
         IEnumerator IEnumerable.GetEnumerator()
         {
             return _map.GetEnumerator();
