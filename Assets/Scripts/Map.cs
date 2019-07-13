@@ -435,7 +435,7 @@ public class Map : MonoBehaviour {
 
     private GameObject CreateTile(TileTerrainType type, Vector3 position, int x, int y)
     {
-        var hexTile = (GameObject)Instantiate(HexTile, position, MapStartPoint.transform.rotation);
+        var hexTile = Instantiate(HexTile, position, MapStartPoint.transform.rotation);
         var tile = hexTile.GetComponent<Tile>();
         tile.TileTerrainType = type;
         tile.Position.X = x;

@@ -26,10 +26,7 @@ namespace Assets.Scripts.Map
             return X == position.X && Y == position.Y;
         }
 
-        public override int GetHashCode()
-        {
-            return base.GetHashCode();
-        }
+        public override int GetHashCode() => base.GetHashCode();        
 
         public static Position operator +(Position p1, Position p2)
         {
@@ -44,5 +41,7 @@ namespace Assets.Scripts.Map
             var y = p1.Y - p2.Y;
             return new Position(x, y);
         }
+
+        public override string ToString() => $"Position X: {X}, Y: {Y}";
     }
 }
