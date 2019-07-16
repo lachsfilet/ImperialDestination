@@ -1,10 +1,12 @@
 ﻿using Assets.Scripts.Map;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using VoronoiEngine;
 using VoronoiEngine.Elements;
+using VoronoiEngine.Structures;
 
 public class VoronoiGenerator : MonoBehaviour
 {
@@ -21,6 +23,8 @@ public class VoronoiGenerator : MonoBehaviour
     public int Regions = 1;
 
     public List<Color> TerrainColorMapping;
+
+    public List<Color> RegionColors;
 
     private GameObject _mapObject;
 
@@ -39,11 +43,14 @@ public class VoronoiGenerator : MonoBehaviour
         _hexGrid = new HexGrid(Height, Width, HexTile);
         _map = new HexMap(Height, Width);
 
-        GenerateMap();
+        var voronoiMap = GenerateMap();
         SkinMap();
+
+        var points = voronoiMap.Where(g => g is Site).Select(s => s.Point).ToList();
+        DetectRegions(points, RegionColors);        
     }
     
-    private void GenerateMap()
+    private VoronoiMap GenerateMap()
     {
         _terrainMap = new TileTerrainTypeMap(Width, Height);
 
@@ -66,7 +73,9 @@ public class VoronoiGenerator : MonoBehaviour
                 var line = _map.DrawLine(start, end);
                 return line;
             }).ToList();
+        return voronoiMap;
     }
+
     private void CreateMap()
     {
         for (var y = 0; y < _hexGrid.Height; y++)
@@ -106,5 +115,43 @@ public class VoronoiGenerator : MonoBehaviour
                 t.SetColor(TerrainColorMapping[(int)t.TileTerrainType]);
             t.ResetSelectionColor();
         });
+    }
+
+    private ICollection<ICollection<Tile>> DetectRegions(ICollection<Point> points, IList<Color> colors) =>
+        points.OrderBy(p => p.X).ThenBy(p => p.Y).Select((point, index) =>
+            {
+                var color = colors[index % colors.Count];
+                var tile = _map.GetTile(point.XInt, point.YInt);
+                return FillRegion(tile, color, colors);
+            }).ToList();
+    
+    private ICollection<Tile> FillRegion(Tile start, Color color, ICollection<Color> colors)
+    {
+        var tileStack = new Stack<Tile>();
+        var region = new List<Tile>();
+        tileStack.Push(start);
+
+        while (tileStack.Count > 0)
+        {
+            var tile = tileStack.Pop();
+            if (region.Contains(tile) || tile.Color == Color.black)
+                continue;
+
+            //var oldColor = tile.Color;
+            region.Add(tile);
+            tile.SetColor(color);
+
+            //if (oldColor == Color.black)
+            //    continue;
+
+            foreach (var neighbour in _map.GetNeighboursWithDirection(tile))
+            {
+                //if (!colors.Contains(neighbour.Neighbour.Color)
+                //    && (neighbour.Neighbour.Color != Color.black
+                //    || new[] { Direction.Northeast, Direction.East, Direction.Southeast, Direction.Southwest }.Contains(neighbour.Direction)))
+                    tileStack.Push(neighbour.Neighbour);
+            }
+        }
+        return region;
     }
 }
