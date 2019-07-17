@@ -1,4 +1,5 @@
 ﻿using Assets.Scripts.Map;
+using Assets.Scripts.Organization;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -15,6 +16,8 @@ public class VoronoiGenerator : MonoBehaviour
     public GameObject MapStartPoint;
 
     public GameObject Camera;
+
+    public GameObject Province;
 
     public int Height = 1;
 
@@ -122,10 +125,15 @@ public class VoronoiGenerator : MonoBehaviour
             {
                 var color = colors[index % colors.Count];
                 var tile = _map.GetTile(point.XInt, point.YInt);
-                return FillRegion(tile, color, colors);
+                var provinceContainer = Instantiate(Province);
+                var province = provinceContainer.GetComponent<Province>();
+                province.Name = $"Region {index}";
+                var region = FillRegion(province, tile, color, colors);
+                province.DrawBorder(_map);
+                return region;
             }).ToList();
     
-    private ICollection<Tile> FillRegion(Tile start, Color color, ICollection<Color> colors)
+    private ICollection<Tile> FillRegion(Province province, Tile start, Color color, ICollection<Color> colors)
     {
         var tileStack = new Stack<Tile>();
         var region = new List<Tile>();
@@ -134,21 +142,23 @@ public class VoronoiGenerator : MonoBehaviour
         while (tileStack.Count > 0)
         {
             var tile = tileStack.Pop();
-            if (region.Contains(tile) || tile.Color == Color.black)
+            if (region.Contains(tile))
                 continue;
 
-            //var oldColor = tile.Color;
+            if (tile == null)
+                Debug.LogError($"Tile is {tile}, color is {color}, tileStack.Count is {tileStack.Count}");
+
+            var oldColor = tile.Color;
             region.Add(tile);
             tile.SetColor(color);
+            province.AddHexTile(tile);
 
-            //if (oldColor == Color.black)
-            //    continue;
+            if (oldColor == Color.black)
+                continue;
 
             foreach (var neighbour in _map.GetNeighboursWithDirection(tile))
             {
-                //if (!colors.Contains(neighbour.Neighbour.Color)
-                //    && (neighbour.Neighbour.Color != Color.black
-                //    || new[] { Direction.Northeast, Direction.East, Direction.Southeast, Direction.Southwest }.Contains(neighbour.Direction)))
+                if(!colors.Contains(neighbour.Neighbour.Color))
                     tileStack.Push(neighbour.Neighbour);
             }
         }
