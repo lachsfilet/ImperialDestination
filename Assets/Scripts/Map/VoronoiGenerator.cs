@@ -27,8 +27,6 @@ public class VoronoiGenerator : MonoBehaviour
 
     public List<Color> TerrainColorMapping;
 
-    public List<Color> RegionColors;
-
     private GameObject _mapObject;
 
     private HexGrid _hexGrid;
@@ -39,6 +37,8 @@ public class VoronoiGenerator : MonoBehaviour
 
     private ICollection<Position> _lines;
 
+    private ICollection<Province> _regions;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -47,12 +47,12 @@ public class VoronoiGenerator : MonoBehaviour
         _map = new HexMap(Height, Width);
 
         var voronoiMap = GenerateMap();
-        SkinMap();
-
         var points = voronoiMap.Where(g => g is Site).Select(s => s.Point).ToList();
-        DetectRegions(points, RegionColors);        
+        _regions = DetectRegions(points);
+        SetWater();
+        SkinMap();
     }
-    
+
     private VoronoiMap GenerateMap()
     {
         _terrainMap = new TileTerrainTypeMap(Width, Height);
@@ -67,7 +67,7 @@ public class VoronoiGenerator : MonoBehaviour
         CreateMap();
 
         var voronoiFactory = new VoronoiFactory();
-        var voronoiMap = voronoiFactory.CreateVoronoiMap(Height, Width, Regions);
+        var voronoiMap = voronoiFactory.CreateVoronoiMap(Height - 1, Width - 1, Regions);
         _lines = voronoiMap.Where(g => g is HalfEdge).Cast<HalfEdge>().SelectMany(
             edge =>
             {
@@ -111,57 +111,71 @@ public class VoronoiGenerator : MonoBehaviour
     {
         var tiles = _mapObject.transform.GetComponentsInChildren<Tile>().ToList();
         tiles.ForEach(t =>
-        {
-            if (_lines.Contains(t.Position))
-                t.SetColor(Color.black);
-            else
-                t.SetColor(TerrainColorMapping[(int)t.TileTerrainType]);
+        {            
+            t.SetColor(TerrainColorMapping[(int)t.TileTerrainType]);
             t.ResetSelectionColor();
         });
     }
 
-    private ICollection<ICollection<Tile>> DetectRegions(ICollection<Point> points, IList<Color> colors) =>
+    private ICollection<Province> DetectRegions(ICollection<Point> points) =>
         points.OrderBy(p => p.X).ThenBy(p => p.Y).Select((point, index) =>
             {
-                var color = colors[index % colors.Count];
                 var tile = _map.GetTile(point.XInt, point.YInt);
+                if(tile == null)
+                    Debug.LogError($"Tile is NULL at X: {point.XInt}, Y: {point.YInt} (X: {point.X}, Y: {point.Y})");
                 var provinceContainer = Instantiate(Province);
                 var province = provinceContainer.GetComponent<Province>();
                 province.Name = $"Region {index}";
-                var region = FillRegion(province, tile, color, colors);
+                FillRegion(province, tile);
                 province.DrawBorder(_map);
-                return region;
+                return province;
             }).ToList();
     
-    private ICollection<Tile> FillRegion(Province province, Tile start, Color color, ICollection<Color> colors)
+    private void FillRegion(Province province, Tile start)
     {
         var tileStack = new Stack<Tile>();
-        var region = new List<Tile>();
         tileStack.Push(start);
 
         while (tileStack.Count > 0)
         {
             var tile = tileStack.Pop();
-            if (region.Contains(tile))
+            if (province.HexTiles.Contains(tile))
                 continue;
 
             if (tile == null)
-                Debug.LogError($"Tile is {tile}, color is {color}, tileStack.Count is {tileStack.Count}");
+            {
+                Debug.LogError($"Tile is null, tileStack.Count is {tileStack.Count}, province is {province.Name}");
+            }
 
-            var oldColor = tile.Color;
-            region.Add(tile);
-            tile.SetColor(color);
             province.AddHexTile(tile);
 
-            if (oldColor == Color.black)
+            if (_lines.Contains(tile.Position))
                 continue;
 
             foreach (var neighbour in _map.GetNeighboursWithDirection(tile))
             {
-                if(!colors.Contains(neighbour.Neighbour.Color))
+                if(neighbour.Neighbour == null)
+                    Debug.LogError($"Neighbour is null, tile is {tile}, tileStack.Count is {tileStack.Count}, province is {province.Name}");
+
+                if (neighbour.Neighbour.Province == null)
+                {
                     tileStack.Push(neighbour.Neighbour);
+                }
             }
         }
-        return region;
+    }
+
+    private void SetWater()
+    {
+        foreach(var region in _regions)
+        {
+            if (!region.HexTiles.Any(h => h.Position.X == 0 || h.Position.Y == 0 || h.Position.X == Width - 1 || h.Position.Y == Height - 1))
+                continue;
+
+            foreach(var tile in region.HexTiles)
+            {
+                tile.TileTerrainType = TileTerrainType.Water;
+            }
+        }
     }
 }
