@@ -1,5 +1,7 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using Assets.Scripts.Utilities;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -10,9 +12,17 @@ namespace Tests
     {
         // A Test behaves as an ordinary method
         [Test]
-        public void NewTestScriptSimplePasses()
+        [TestCase(0, 1)]
+        [TestCase(1, 1)]
+        [TestCase(8, 1)]
+        [TestCase(1887, 4)]
+        [TestCase(12345, 5)]
+        [TestCase(-10, 2)]
+        public void TestCountDigits(int n, int expected)
         {
-            // Use the Assert class to test conditions
+            var result = n.CountDigits();
+
+            Assert.AreEqual(expected, result);
         }
 
         // A UnityTest behaves like a coroutine in Play Mode. In Edit Mode you can use
