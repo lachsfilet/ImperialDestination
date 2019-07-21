@@ -186,27 +186,43 @@ public class VoronoiGenerator : MonoBehaviour
     {
         //var color = new Color(1, 1, 1, 1);
         //var step = 1f / _regions.Count;
-        var majorCountries = MajorCountries;
-        var regions = _regions.Where(p => !p.HexTiles.Any(h => h.Position.X == 0 || h.Position.Y == 0 || h.Position.X == Width - 1 || h.Position.Y == Height - 1))
-            .ToDictionary(p => p.HexTiles.Select(t => t.Position).First(), p => p);
+        //var majorCountries = MajorCountries;
+        var regions = _regions.Where(p => !p.HexTiles.Any(h => h.Position.X == 0 || h.Position.Y == 0 || h.Position.X == Width - 1 || h.Position.Y == Height - 1)).ToList();
 
-        var count = 0;
-        foreach (var position in regions.Keys)
+        var regionsX = regions.ToDictionary(p => p.HexTiles.Select(t => t.Position).First(), p => p);
+        var regionsY = regions.GroupBy(p => p.HexTiles.OrderBy(t => t.Position.Y * Width.CountDigits() * 10 + t.Position.X).First().Position)
+            .OrderBy(p => p.Key.Y * Width.CountDigits() * 10 + p.Key.X)
+            .ToDictionary(p => p.Single().HexTiles.OrderBy(t => t.Position.X * Height.CountDigits() * 10 + t.Position.Y).First().Position, p => p.Single());
+
+        var majorCountries = Enumerable.Range(1, MajorCountries).Select(n => new { number = n, isMajor = true });
+        var minorCountries = Enumerable.Range(1, MinorCountries).Select(n => new { number = n, isMajor = false });
+        var countries = majorCountries.Concat(minorCountries).Shuffle().ToList();
+
+        //var count = 0;
+        
+        foreach (var country in countries)
         {
-            if (majorCountries == 0)
-                break;
-
-            var region = regions[position];
-            //Debug.Log($"Index: {position.X * Height.CountDigits() * 10 + position.Y}: {province.Name}, {position}");
-         
-            foreach(var tile in region.HexTiles)
+            var index = UnityEngine.Random.Range(0, regions.Count - 1);
+            var region = regions[index];
+            for (var i = 0; i < (country.isMajor ? ProvincesMajorCountries : ProvincesMinorCountries); i++)
             {
-                tile.TileTerrainType = TileTerrainType.Plain;
-                //tile.SetColor(color);
+                //Debug.Log($"Index: {position.X * Height.CountDigits() * 10 + position.Y}: {province.Name}, {position}");
+
+                foreach (var tile in region.HexTiles)
+                {
+                    tile.TileTerrainType = TileTerrainType.Plain;
+                    //tile.SetColor(color);
+                }
+                //color = new Color(color.r - step, color.g - step, color.b - step, 1);
+                //if (++count % ProvincesMajorCountries == 0)
+                regions.Remove(region);
+
+                var position = region.HexTiles.OrderBy(t => t.Position).First().Position;
+                var seekX = UnityEngine.Random.Range(0, 1);
+                var regionDic = seekX == 0 ? regionsX : regionsY;
+                var next = regionDic.Keys.SkipWhile(k => k != position).Skip(1).First();
+                region = regionDic[next];
             }
-            //color = new Color(color.r - step, color.g - step, color.b - step, 1);
-            if(++count % ProvincesMajorCountries == 0)
-                majorCountries--;
         }
     }
 }

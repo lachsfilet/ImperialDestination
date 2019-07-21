@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Assets.Scripts.Utilities;
 using NUnit.Framework;
 using UnityEngine;
@@ -23,6 +24,22 @@ namespace Tests
             var result = n.CountDigits();
 
             Assert.AreEqual(expected, result);
+        }
+
+        [Test]
+        public void TestShuffle()
+        {
+            var numbers = new[] { 1, 2, 3, 4, 5 };
+            var result = numbers.Shuffle().ToList();
+
+            foreach (var number in numbers)
+                Assert.Contains(number, result);
+
+            // Shuffle does not mean, that every number has to be in another position
+            //Debug.Log(string.Join(", ", numbers.Select(n => n)));
+            //Debug.Log(string.Join(", ", result.Select(n => n)));
+            //for (var i = 0; i < numbers.Length; i++)
+            //    Assert.AreNotEqual(numbers[i], result[i]);
         }
 
         // A UnityTest behaves like a coroutine in Play Mode. In Edit Mode you can use
