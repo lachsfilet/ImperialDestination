@@ -9,6 +9,10 @@ namespace Assets.Scripts.Organization
     {
         private List<Tile> _hexTiles;
 
+        private List<TilePair> _borderRoute;
+
+        private IDictionary<Direction, ICollection<Province>> _neighbours;
+
         public Province()
         {
             _hexTiles = new List<Tile>();
@@ -50,22 +54,51 @@ namespace Assets.Scripts.Organization
             Capital = innerTiles[index];
         }
 
+        public IDictionary<Direction, ICollection<Province>> GetNeighbours(HexMap map)
+        {
+            if (_neighbours != null)
+                return _neighbours;
+
+            TraceBorder(map);
+
+            var provinceGroups = _borderRoute.GroupBy(b => b.Neighbour.Province.Name).ToList();
+            _neighbours = new Dictionary<Direction, ICollection<Province>>();
+            foreach(var provinceGroup in provinceGroups)
+            {
+                var direction = provinceGroup.GroupBy(t => t.Direction).OrderByDescending(d => d.Count()).First().Key;
+                if (!_neighbours.ContainsKey(direction))
+                    _neighbours.Add(direction, new List<Province>());
+
+                _neighbours[direction].Add(provinceGroup.First().Neighbour.Province);
+            }
+            return _neighbours;
+        }
+
         public void DrawBorder(HexMap map)
         {
-            // Get first tile with any neighbour of another province
-            var tiles = HexTiles.ToList();
-            var firstBorderTile = tiles.Where(t => map.GetNeighbours(t).Where(n => n.Province != this).Any()).First();
-            var neighbourPairs = map.GetNeighboursWithDirection(firstBorderTile).ToList();
-            var neighbourPair = neighbourPairs.Where(n => n.Neighbour.Province != this).First();
-            var borderRoute = new List<TilePair>();
+            TraceBorder(map);
 
-            TraceBorder(neighbourPair, borderRoute, map);
-            var vectors = borderRoute.SelectMany(p => p.HexTile.GetVertices(p.Direction)).Distinct().ToArray();
+            var vectors = _borderRoute.SelectMany(p => p.HexTile.GetVertices(p.Direction)).Distinct().ToArray();
 
             var lineRenderer = GetComponent<LineRenderer>();
             lineRenderer.positionCount = vectors.Length;
             //lineRenderer.SetVertexCount(vectors.Length);
             lineRenderer.SetPositions(vectors);
+        }
+
+        private void TraceBorder(HexMap map)
+        {
+            if (_borderRoute != null)
+                return;
+
+            // Get first tile with any neighbour of another province
+            var tiles = HexTiles.ToList();
+            var firstBorderTile = tiles.Where(t => map.GetNeighbours(t).Where(n => n.Province != this).Any()).First();
+            var neighbourPairs = map.GetNeighboursWithDirection(firstBorderTile).ToList();
+            var neighbourPair = neighbourPairs.Where(n => n.Neighbour.Province != this).First();
+            _borderRoute = new List<TilePair>();
+
+            TraceBorder(neighbourPair, _borderRoute, map);
         }
 
         private void TraceBorder(TilePair tilePair, List<TilePair> borderRoute, HexMap map)
