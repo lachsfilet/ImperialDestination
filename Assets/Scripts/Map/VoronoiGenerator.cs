@@ -50,6 +50,8 @@ public class VoronoiGenerator : MonoBehaviour
 
     private ICollection<Province> _regions;
 
+    private ICollection<Country> _countries;
+
     private int _landRegionCount;
 
     // Start is called before the first frame update
@@ -64,7 +66,7 @@ public class VoronoiGenerator : MonoBehaviour
         var points = voronoiMap.Where(g => g is Site).Select(s => s.Point).ToList();
         _regions = DetectRegions(points);
         SetContinents();
-        //SkinMap();
+        SkinMap();
     }
 
     private VoronoiMap GenerateMap()
@@ -123,7 +125,7 @@ public class VoronoiGenerator : MonoBehaviour
 
     private void SkinMap()
     {
-        var tiles = _mapObject.transform.GetComponentsInChildren<Tile>().ToList();
+        var tiles = _mapObject.transform.GetComponentsInChildren<Tile>().Where(t=>t.TileTerrainType == TileTerrainType.Water).ToList();
         tiles.ForEach(t =>
         {            
             t.SetColor(TerrainColorMapping[(int)t.TileTerrainType]);
@@ -185,54 +187,37 @@ public class VoronoiGenerator : MonoBehaviour
     private void SetContinents()
     {
         var color = new Color(1, 1, 1, 1);
-        //var step = 1f / _regions.Count;
 
-        //var majorCountries = MajorCountries;
         var regions = _regions.Where(p => !p.HexTiles.Any(h => h.Position.X == 0 || h.Position.Y == 0 || h.Position.X == Width - 1 || h.Position.Y == Height - 1)).ToList();
-
-        var regionsX = regions.GroupBy(p => p.HexTiles.OrderBy(t => t.Position.X * Height.CountDigits() * 10 + t.Position.Y).First().Position)
-            .OrderBy(p => p.Key.X * Height.CountDigits() * 10 + p.Key.Y)
-            .ToDictionary(p => p.Single().HexTiles.OrderBy(t => t.Position.X * Height.CountDigits() * 10 + t.Position.Y).First().Position, p => p.Single());
-
-        var regionsY = regions.GroupBy(p => p.HexTiles.OrderBy(t => t.Position.Y * Width.CountDigits() * 10 + t.Position.X).First().Position)
-            .OrderBy(p => p.Key.Y * Width.CountDigits() * 10 + p.Key.X)
-            .ToDictionary(p => p.Single().HexTiles.OrderBy(t => t.Position.X * Height.CountDigits() * 10 + t.Position.Y).First().Position, p => p.Single());
 
         var majorCountries = Enumerable.Range(1, MajorCountries).Select(n => new { number = n, isMajor = true });
         var minorCountries = Enumerable.Range(1, MinorCountries).Select(n => new { number = n, isMajor = false });
         var countries = majorCountries.Concat(minorCountries).Shuffle().ToList();
         var step = 1f / countries.Count;
 
-        //var count = 0;
-
         foreach (var country in countries)
         {
             var regionCount = country.isMajor ? ProvincesMajorCountries : ProvincesMinorCountries;
             var index = UnityEngine.Random.Range(regionCount - 1, regions.Count - regionCount - 1);
-
+            var countryStep = step * (1f / regionCount);
+            
             var region = regions[index];
             for (var i = 0; i < regionCount; i++)
-            {
-                //Debug.Log($"Index: {position.X * Height.CountDigits() * 10 + position.Y}: {province.Name}, {position}");
+            {                
+                Debug.Log($"Province: {region.Name}");
                 
                 foreach (var tile in region.HexTiles)
                 {
                     tile.TileTerrainType = TileTerrainType.Plain;
                     tile.SetColor(color);
                 }
-                //if (++count % ProvincesMajorCountries == 0)
                 regions.Remove(region);
-
-                var position = region.HexTiles.OrderBy(t => t.Position.X * Height.CountDigits() * 10 + t.Position.Y).First().Position;
-                var seekX = UnityEngine.Random.Range(0, 1);
-                var regionDic = seekX == 0 ? regionsX : regionsY;
-
-                var rest = regionDic.Keys.SkipWhile(k => k != position);
-                if(rest.Count() < regionCount + 1)
-                    regionDic = seekX != 0 ? regionsX : regionsY;
-
-                var next = regionDic.Keys.SkipWhile(k => k != position).Skip(1).First();
-                region = regionDic[next];
+                
+                var neighbours = region.GetNeighbours(_map);
+                var neighbourIndex = UnityEngine.Random.Range(0, neighbours.Count);
+                region = neighbours[neighbourIndex];
+                regions.Remove(region);
+                color = new Color(color.r - countryStep, color.g - countryStep, color.b - countryStep, 1);
             }
             color = new Color(color.r - step, color.g - step, color.b - step, 1);
         }

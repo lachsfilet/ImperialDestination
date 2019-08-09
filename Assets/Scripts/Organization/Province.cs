@@ -11,7 +11,7 @@ namespace Assets.Scripts.Organization
 
         private List<TilePair> _borderRoute;
 
-        private IDictionary<Direction, ICollection<Province>> _neighbours;
+        private IList<Province> _neighbours;
 
         public Province()
         {
@@ -26,13 +26,7 @@ namespace Assets.Scripts.Organization
 
         public bool IsCapital { get; set; }
 
-        public IEnumerable<Tile> HexTiles
-        {
-            get
-            {
-                return _hexTiles;
-            }
-        }
+        public IEnumerable<Tile> HexTiles => _hexTiles;
 
         public void AddHexTile(Tile hexTile)
         {
@@ -54,23 +48,14 @@ namespace Assets.Scripts.Organization
             Capital = innerTiles[index];
         }
 
-        public IDictionary<Direction, ICollection<Province>> GetNeighbours(HexMap map)
+        public IList<Province> GetNeighbours(HexMap map)
         {
             if (_neighbours != null)
                 return _neighbours;
 
             TraceBorder(map);
 
-            var provinceGroups = _borderRoute.GroupBy(b => b.Neighbour.Province.Name).ToList();
-            _neighbours = new Dictionary<Direction, ICollection<Province>>();
-            foreach(var provinceGroup in provinceGroups)
-            {
-                var direction = provinceGroup.GroupBy(t => t.Direction).OrderByDescending(d => d.Count()).First().Key;
-                if (!_neighbours.ContainsKey(direction))
-                    _neighbours.Add(direction, new List<Province>());
-
-                _neighbours[direction].Add(provinceGroup.First().Neighbour.Province);
-            }
+            _neighbours = _borderRoute.Select(b=>b.Neighbour.Province).Distinct().ToList();
             return _neighbours;
         }
 
