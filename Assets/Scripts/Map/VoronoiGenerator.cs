@@ -198,12 +198,16 @@ public class VoronoiGenerator : MonoBehaviour
         foreach (var country in countries)
         {
             var regionCount = country.isMajor ? ProvincesMajorCountries : ProvincesMinorCountries;
-            var index = UnityEngine.Random.Range(regionCount - 1, regions.Count - regionCount - 1);
+            var index = UnityEngine.Random.Range(regionCount - 1, regions.Count - (regionCount - 1));
             var countryStep = step * (1f / regionCount);
             
             var region = regions[index];
+            
             for (var i = 0; i < regionCount; i++)
-            {                
+            {
+                if (region == null)
+                    Debug.LogError($"Invalid index {index} for regions of count {regions.Count}");
+
                 Debug.Log($"Province: {region.Name}");
                 
                 foreach (var tile in region.HexTiles)
@@ -212,11 +216,28 @@ public class VoronoiGenerator : MonoBehaviour
                     tile.SetColor(color);
                 }
                 regions.Remove(region);
-                
-                var neighbours = region.GetNeighbours(_map);
-                var neighbourIndex = UnityEngine.Random.Range(0, neighbours.Count);
-                region = neighbours[neighbourIndex];
-                regions.Remove(region);
+
+                var found = false;
+                var tries = 20;
+                do
+                {
+                    var neighbours = region.GetNeighbours(_map);
+                    var freeNeighbours = neighbours.Where(n => regions.Contains(n)).ToList();
+                    if (freeNeighbours.Any())
+                    {
+                        var neighbourIndex = UnityEngine.Random.Range(0, freeNeighbours.Count);
+                        region = freeNeighbours[neighbourIndex];
+                        found = true;
+                    }
+                    else
+                    {
+                        var neighbourIndex = UnityEngine.Random.Range(0, neighbours.Count);
+                        region = neighbours[neighbourIndex];
+                    }
+                } while (!found || --tries > 0);
+                if (!found)
+                    throw new InvalidOperationException("No unset neighbour found!");
+
                 color = new Color(color.r - countryStep, color.g - countryStep, color.b - countryStep, 1);
             }
             color = new Color(color.r - step, color.g - step, color.b - step, 1);
