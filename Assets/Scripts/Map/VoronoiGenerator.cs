@@ -21,6 +21,8 @@ public class VoronoiGenerator : MonoBehaviour
 
     public GameObject Province;
 
+    public GameObject Country;
+
     public int Height = 1;
 
     public int Width = 1;
@@ -195,16 +197,27 @@ public class VoronoiGenerator : MonoBehaviour
         var countries = majorCountries.Concat(minorCountries).Shuffle().ToList();
         var step = 1f / countries.Count;
 
-        foreach (var country in countries)
+        var count = 0;
+        foreach (var countryInfo in countries)
         {
-            var regionCount = country.isMajor ? ProvincesMajorCountries : ProvincesMinorCountries;
+            var regionCount = countryInfo.isMajor ? ProvincesMajorCountries : ProvincesMinorCountries;
             var index = UnityEngine.Random.Range(regionCount - 1, regions.Count - (regionCount - 1));
             var countryStep = step * (1f / regionCount);
-            
+
+            var prefix = countryInfo.isMajor ? "Major" : "Minor";
+            var countryContainer = Instantiate(Country);
+            var country = OrganisationFactory.Instance.CreateCountry(
+                countryContainer,
+                $"{prefix} Country {count}",
+                countryInfo.isMajor ? CountryType.Major : CountryType.Minor,
+                color);
+
             var region = regions[index];
             
             for (var i = 0; i < regionCount; i++)
             {
+                country.Provinces.Add(region);
+                region.Owner = country;
                 if (region == null)
                     Debug.LogError($"Invalid index {index} for regions of count {regions.Count}");
 
@@ -223,6 +236,7 @@ public class VoronoiGenerator : MonoBehaviour
                 {
                     var neighbours = region.GetNeighbours(_map);
                     var freeNeighbours = neighbours.Where(n => regions.Contains(n)).ToList();
+                    var countryNeighbours = neighbours.Where(n => country.Provinces.Contains(n)).ToList();
                     if (freeNeighbours.Any())
                     {
                         var neighbourIndex = UnityEngine.Random.Range(0, freeNeighbours.Count);
@@ -231,8 +245,8 @@ public class VoronoiGenerator : MonoBehaviour
                     }
                     else
                     {
-                        var neighbourIndex = UnityEngine.Random.Range(0, neighbours.Count);
-                        region = neighbours[neighbourIndex];
+                        var neighbourIndex = UnityEngine.Random.Range(0, countryNeighbours.Count);
+                        region = countryNeighbours[neighbourIndex];
                     }
                 } while (!found || --tries > 0);
                 if (!found)
@@ -241,6 +255,7 @@ public class VoronoiGenerator : MonoBehaviour
                 color = new Color(color.r - countryStep, color.g - countryStep, color.b - countryStep, 1);
             }
             color = new Color(color.r - step, color.g - step, color.b - step, 1);
+            count++;
         }
     }
 }
