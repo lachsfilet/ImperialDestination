@@ -230,6 +230,8 @@ public class VoronoiGenerator : MonoBehaviour
                 }
                 regions.Remove(region);
 
+                Debug.Log($"Remaining provinces: {string.Join(", ", regions.Select(r => r.Name).OrderBy(n => n))}");
+
                 var found = false;
                 var tries = 20;
                 do
@@ -237,18 +239,24 @@ public class VoronoiGenerator : MonoBehaviour
                     var neighbours = region.GetNeighbours(_map);
                     var freeNeighbours = neighbours.Where(n => regions.Contains(n)).ToList();
                     var countryNeighbours = neighbours.Where(n => country.Provinces.Contains(n)).ToList();
+
+                    Debug.Log($"Remaining free provinces: {string.Join(", ", freeNeighbours.Select(r => r.Name).OrderBy(n => n))}");
+                    Debug.Log($"Remaining country neighbours: {string.Join(", ", countryNeighbours.Select(r => r.Name).OrderBy(n => n))}");
+
                     if (freeNeighbours.Any())
                     {
                         var neighbourIndex = UnityEngine.Random.Range(0, freeNeighbours.Count);
                         region = freeNeighbours[neighbourIndex];
+                        Debug.Log($"Free neighbour province: {region.Name}");
                         found = true;
                     }
                     else
                     {
                         var neighbourIndex = UnityEngine.Random.Range(0, countryNeighbours.Count);
                         region = countryNeighbours[neighbourIndex];
+                        Debug.Log($"Neighbour of another province: {region.Name}");
                     }
-                } while (!found || --tries > 0);
+                } while (!found && --tries > 0);
                 if (!found)
                     throw new InvalidOperationException("No unset neighbour found!");
 
