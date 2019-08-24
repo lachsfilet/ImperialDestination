@@ -1,4 +1,4 @@
-﻿namespace Assets.Scripts.Map
+﻿namespace Assets.Contracts.Map
 {
     public enum TileTerrainType
     {

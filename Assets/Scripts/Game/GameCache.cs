@@ -1,4 +1,5 @@
-﻿using Assets.Scripts.Map;
+﻿using Assets.Contracts.Research;
+using Assets.Scripts.Map;
 using Assets.Scripts.Research;
 using System.Collections.Generic;
 using System.Linq;

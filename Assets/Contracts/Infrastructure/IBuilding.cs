@@ -1,4 +1,4 @@
-﻿namespace Assets.Scripts.Infrastructure
+﻿namespace Assets.Contracts.Infrastructure
 {
     public interface IBuilding : IConstruction
     {

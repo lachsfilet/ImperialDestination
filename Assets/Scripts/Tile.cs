@@ -1,10 +1,12 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using Assets.Scripts.Economy;
-using Assets.Scripts.Infrastructure;
 using Assets.Scripts.Organization;
 using Assets.Scripts.Map;
 using System.Linq;
+using Assets.Contracts.Map;
+using Assets.Contracts.Economy;
+using Assets.Contracts.Infrastructure;
 
 public class Tile : MonoBehaviour {
 

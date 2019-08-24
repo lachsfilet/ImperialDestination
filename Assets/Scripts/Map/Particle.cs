@@ -1,10 +1,11 @@
-﻿using System;
+﻿using Assets.Contracts.Map;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace Assets.Scripts.Map
 {
-	public class Particle
+    public class Particle
 	{
 		private int _stabilityRadius;
 

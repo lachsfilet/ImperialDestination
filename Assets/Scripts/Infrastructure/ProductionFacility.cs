@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using Assets.Scripts.Economy;
-using Assets.Scripts.Map;
-using Assets.Scripts.Research;
+using Assets.Contracts.Economy;
+using Assets.Contracts.Infrastructure;
+using Assets.Contracts.Map;
+using Assets.Contracts.Research;
 
 namespace Assets.Scripts.Infrastructure
 {

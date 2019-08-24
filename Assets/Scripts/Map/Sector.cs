@@ -1,4 +1,6 @@
-﻿namespace Assets.Scripts.Map
+﻿using Assets.Contracts.Map;
+
+namespace Assets.Scripts.Map
 {
     public class Sector
     {

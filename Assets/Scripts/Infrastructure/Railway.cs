@@ -1,5 +1,6 @@
-﻿using Assets.Scripts.Map;
-using Assets.Scripts.Research;
+﻿using Assets.Contracts.Infrastructure;
+using Assets.Contracts.Map;
+using Assets.Contracts.Research;
 
 namespace Assets.Scripts.Infrastructure
 {

@@ -1,4 +1,6 @@
-﻿using Assets.Scripts.Map;
+﻿using Assets.Contracts.Economy;
+using Assets.Contracts.Map;
+using Assets.Scripts.Map;
 using System;
 using System.Collections.Generic;
 using System.Linq;

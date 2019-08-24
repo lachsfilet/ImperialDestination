@@ -1,4 +1,6 @@
-﻿using Assets.Scripts.Economy;
+﻿using Assets.Contracts.Economy;
+using Assets.Contracts.Map;
+using Assets.Scripts.Economy;
 using Assets.Scripts.Organization;
 using System;
 using System.Collections.Generic;

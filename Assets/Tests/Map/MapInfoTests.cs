@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using Assets.Contracts.Economy;
+using Assets.Contracts.Map;
 using Assets.Scripts.Economy;
 using Assets.Scripts.Economy.Resources;
 using Assets.Scripts.Map;

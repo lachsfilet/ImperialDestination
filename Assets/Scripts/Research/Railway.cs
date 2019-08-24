@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Assets.Contracts.Research;
+using System;
 
 namespace Assets.Scripts.Research
 {

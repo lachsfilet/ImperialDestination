@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Assets.Scripts.Game;
+using Assets.Contracts.Map;
+using Assets.Contracts.Organization;
 
 namespace Assets.Scripts.Organization
 {

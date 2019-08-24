@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using Assets.Scripts.Game;
+using Assets.Contracts.Organization;
 
 namespace Assets.Scripts.Map
 {

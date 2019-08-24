@@ -1,4 +1,6 @@
-﻿namespace Assets.Scripts.Economy
+﻿using Assets.Contracts.Economy;
+
+namespace Assets.Scripts.Economy
 {
     public class ProductionOrder
     {

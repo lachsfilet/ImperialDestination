@@ -1,4 +1,6 @@
-﻿using Assets.Scripts.Map;
+﻿using Assets.Contracts.Map;
+using Assets.Contracts.Organization;
+using Assets.Scripts.Map;
 using Assets.Scripts.Organization;
 using Assets.Scripts.Utilities;
 using System;

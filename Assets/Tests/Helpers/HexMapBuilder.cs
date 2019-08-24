@@ -1,4 +1,5 @@
-﻿using Assets.Scripts.Map;
+﻿using Assets.Contracts.Map;
+using Assets.Scripts.Map;
 
 namespace Tests
 {

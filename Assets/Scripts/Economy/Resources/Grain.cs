@@ -1,4 +1,5 @@
-﻿using Assets.Scripts.Map;
+﻿using Assets.Contracts.Economy;
+using Assets.Contracts.Map;
 using System.Collections.Generic;
 
 namespace Assets.Scripts.Economy.Resources

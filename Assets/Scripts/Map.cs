@@ -7,6 +7,8 @@ using System.Linq;
 using Assets.Scripts.Organization;
 using Assets.Scripts.Economy.Resources;
 using Assets.Scripts.Game;
+using Assets.Contracts.Map;
+using Assets.Contracts.Organization;
 
 //[ExecuteInEditMode]
 public class Map : MonoBehaviour {

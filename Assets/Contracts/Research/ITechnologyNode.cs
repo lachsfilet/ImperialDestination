@@ -1,4 +1,6 @@
-﻿namespace Assets.Scripts.Research
+﻿using Assets.Contracts.Research;
+
+namespace Assets.Scripts.Research
 {
     public interface ITechnologyNode : ITechnology
     {

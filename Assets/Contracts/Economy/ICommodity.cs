@@ -1,4 +1,4 @@
-﻿namespace Assets.Scripts.Economy
+﻿namespace Assets.Contracts.Economy
 {
     public interface ICommodity
     {

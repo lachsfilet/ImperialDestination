@@ -1,4 +1,4 @@
-﻿namespace Assets.Scripts.Organization
+﻿namespace Assets.Contracts.Organization
 {
     public enum CountryType
     {

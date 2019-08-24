@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Assets.Contracts.Map;
+using System;
 using System.Collections.Generic;
 
 namespace Assets.Scripts.Map

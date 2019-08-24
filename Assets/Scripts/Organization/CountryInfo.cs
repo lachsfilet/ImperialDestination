@@ -1,4 +1,4 @@
-﻿using Assets.Scripts.Research;
+﻿using Assets.Contracts.Research;
 using System;
 using System.Collections.Generic;
 

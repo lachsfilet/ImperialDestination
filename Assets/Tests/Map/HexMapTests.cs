@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Assets.Contracts.Map;
 using Assets.Scripts.Map;
 using NUnit.Framework;
 using UnityEngine;

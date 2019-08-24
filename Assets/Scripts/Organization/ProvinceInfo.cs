@@ -1,4 +1,4 @@
-﻿using Assets.Scripts.Map;
+﻿using Assets.Contracts.Map;
 using System;
 
 namespace Assets.Scripts.Organization

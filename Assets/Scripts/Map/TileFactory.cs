@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Assets.Contracts.Map;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Assets.Scripts.Map
