@@ -42,6 +42,10 @@ namespace Assets.Scripts.Map
                 do
                 {
                     var neighbours = region.GetNeighbours(map);
+
+                    if(!neighbours.Any())
+                        throw new InvalidOperationException("No neighbour found!");
+
                     var freeNeighbours = neighbours.Where(n => regions.Contains(n)).ToList();
                     var countryNeighbours = neighbours.Where(n => country.Provinces.Contains(n)).ToList();
 
