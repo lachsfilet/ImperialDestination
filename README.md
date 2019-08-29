@@ -1,5 +1,5 @@
 # Imperial Destination
-Imperial Destination is a turn-based hex field strategy game inspired by Imperialism, realized with Unity3D
+Imperial Destination is a turn-based hex field strategy game inspired by [Imperialism](https://en.wikipedia.org/wiki/Imperialism_(video_game)), realized with Unity3D
 and written in C#.
 
 ## Introduction

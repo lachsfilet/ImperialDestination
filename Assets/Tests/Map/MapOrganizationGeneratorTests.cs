@@ -63,6 +63,38 @@ namespace Tests
             }
         }
 
+        [Test]
+        public void GenerateCountryOnMap_WithThreeProvinces_CreatesInCountryWithProvincesInRow()
+        {
+            var map = new Mock<IHexMap>();
+
+            var country = new Mock<ICountry>();
+            var countryProvinces = new List<IProvince>();
+            country.Setup(c => c.Provinces).Returns(countryProvinces);
+
+            var provinces = GenerateProvinces(5, 5, map.Object);
+            
+            var regions = provinces.Select(p => p.Object).ToList();
+
+            Func<int, int, int> random = (a, b) => {
+                if (a == 2 && b == 23)
+                    return 2;
+                if (a == 0 && b == 5)
+                    return 1;
+                return 0;
+            };
+            var mapOrganizationGenerator = new MapOrganizationGenerator(random);
+
+            mapOrganizationGenerator.GenerateCountryOnMap(country.Object, regions, map.Object, 3, Color.black, 1);
+
+            Assert.AreEqual(3, country.Object.Provinces.Count);
+            Assert.Contains(provinces[2].Object, country.Object.Provinces);
+            Assert.Contains(provinces[3].Object, country.Object.Provinces);
+            Assert.Contains(provinces[4].Object, country.Object.Provinces);
+        }
+
+        // GenerateCountryOnMap_WithEightProvinces_AvoidsEnclosedWaterProvince
+
         private IList<Mock<IProvince>> GenerateProvinces(int count)
         {
             return Enumerable.Range(0, count).Select(
@@ -70,6 +102,46 @@ namespace Tests
                 {
                     Name = $"Province {n}"
                 }).ToList();
+        }
+
+        private IList<Mock<IProvince>> GenerateProvinces(int height, int width, IHexMap map)
+        {
+            var provinces = Enumerable.Range(0, height * width).Select(
+                n => new Mock<IProvince>
+                {
+                    Name = $"Province {n}"
+                }).ToList();
+
+            for (var i=0; i<height; i++)
+            {
+                for(var j=0; j<width; j++)
+                {
+                    var index = j + i * width;
+                    var province = provinces[index];
+                    province.Setup(m => m.GetNeighbours(map)).Returns(() =>
+                    {
+                        var list = new List<IProvince>();
+                        if (index % width > 0 && index >= width)
+                            list.Add(provinces[index - width - 1].Object);
+                        if (index >= width)
+                            list.Add(provinces[index - width].Object);
+                        if (index >= width && index % width < width - 1)
+                            list.Add(provinces[index - width + 1].Object);
+                        if (index % width > 0)
+                            list.Add(provinces[index - 1].Object);
+                        if (index % width < width - 1)
+                            list.Add(provinces[index + 1].Object);
+                        if (index + width < provinces.Count && index % width > 0)
+                            list.Add(provinces[index + width - 1].Object);
+                        if (index + width < provinces.Count)
+                            list.Add(provinces[index + width].Object);
+                        if (index + width < provinces.Count && index % width < width - 1)
+                            list.Add(provinces[index + width + 1].Object);
+                        return list;
+                    });
+                }
+            }
+            return provinces;
         }
     }
 }

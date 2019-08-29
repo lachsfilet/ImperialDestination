@@ -1,20 +1,28 @@
-﻿using Assets.Contracts;
-using Assets.Contracts.Map;
+﻿using Assets.Contracts.Map;
 using Assets.Contracts.Organization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 
 namespace Assets.Scripts.Map
 {
     public class MapOrganizationGenerator : IMapOrganizationGenerator
     {
+        private Func<int, int, int> _random;
+
+        public MapOrganizationGenerator() : this(UnityEngine.Random.Range)
+        {
+        }
+
+        public MapOrganizationGenerator(Func<int, int, int> random)
+        {
+            _random = random;
+        }
+
         public void GenerateCountryOnMap(ICountry country, IList<IProvince> regions, IHexMap map, int regionCount, Color color, float step)
         {
-            var index = UnityEngine.Random.Range(regionCount - 1, regions.Count - (regionCount - 1));
+            var index = _random(regionCount - 1, regions.Count - (regionCount - 1));
             var region = regions[index];
 
             var countryStep = step * (1f / regionCount);
@@ -54,14 +62,14 @@ namespace Assets.Scripts.Map
 
                     if (freeNeighbours.Any())
                     {
-                        var neighbourIndex = UnityEngine.Random.Range(0, freeNeighbours.Count);
+                        var neighbourIndex = _random(0, freeNeighbours.Count);
                         region = freeNeighbours[neighbourIndex];
                         Debug.Log($"Free neighbour province: {region.Name}");
                         found = true;
                     }
                     else
                     {
-                        var neighbourIndex = UnityEngine.Random.Range(0, countryNeighbours.Count);
+                        var neighbourIndex = _random(0, countryNeighbours.Count);
                         region = countryNeighbours[neighbourIndex];
                         Debug.Log($"Neighbour of another province: {region.Name}");
                     }
