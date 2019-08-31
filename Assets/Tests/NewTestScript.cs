@@ -42,6 +42,13 @@ namespace Tests
             //    Assert.AreNotEqual(numbers[i], result[i]);
         }
 
+        [Test]
+        public void TestAll()
+        {
+            Assert.IsTrue(new[] { false, false }.All(f => !f));
+            Assert.IsTrue(Enumerable.Empty<bool>().All(f => !f));
+        }
+
         // A UnityTest behaves like a coroutine in Play Mode. In Edit Mode you can use
         // `yield return null;` to skip a frame.
         [UnityTest]

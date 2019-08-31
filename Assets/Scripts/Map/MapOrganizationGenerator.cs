@@ -29,10 +29,12 @@ namespace Assets.Scripts.Map
 
             for (var i = 0; i < regionCount; i++)
             {
-                country.Provinces.Add(region);
-                region.Owner = country;
                 if (region == null)
                     Debug.LogError($"Invalid index {index} for regions of count {regions.Count}");
+
+                country.Provinces.Add(region);
+                region.Owner = country;
+                region.IsWater = false;
 
                 Debug.Log($"Province: {region.Name}");
 
@@ -51,7 +53,7 @@ namespace Assets.Scripts.Map
                 {
                     var neighbours = region.GetNeighbours(map);
 
-                    if(!neighbours.Any())
+                    if (!neighbours.Any())
                         throw new InvalidOperationException("No neighbour found!");
 
                     var freeNeighbours = neighbours.Where(n => regions.Contains(n)).ToList();
@@ -64,14 +66,23 @@ namespace Assets.Scripts.Map
                     {
                         var neighbourIndex = _random(0, freeNeighbours.Count);
                         region = freeNeighbours[neighbourIndex];
-                        Debug.Log($"Free neighbour province: {region.Name}");
                         found = true;
+                        region.IsWater = false;
+                        Debug.Log($"Free neighbour province: {region.Name} with index {neighbourIndex} and {nameof(region.IsWater)} {region.IsWater}");
+                        if (region.GetNeighbours(map).Any(n => CheckForSurroundedSeaProvince(n, map)))
+                        {
+                            Debug.Log($"Surrounded sea province found for {region.Name}");
+                            found = false;
+                            region.IsWater = true;
+                        }
+                        else
+                            Debug.Log($"No surrounded sea province found for {region.Name}");
                     }
                     else
                     {
                         var neighbourIndex = _random(0, countryNeighbours.Count);
                         region = countryNeighbours[neighbourIndex];
-                        Debug.Log($"Neighbour of another province: {region.Name}");
+                        Debug.Log($"Neighbour of another province: {region.Name} with index {neighbourIndex}");
                     }
                 } while (!found && --tries > 0);
                 if (!found)
@@ -79,6 +90,44 @@ namespace Assets.Scripts.Map
 
                 color = new Color(color.r - countryStep, color.g - countryStep, color.b - countryStep, 1);
             }
+        }
+
+        /// <summary>
+        /// Checks with a flood fill algorithm if any sea provinces are surrounded 
+        /// by land provinces.
+        /// </summary>
+        /// <param name="start"></param>
+        /// <param name="map"></param>
+        /// <returns></returns>
+        public static bool CheckForSurroundedSeaProvince(IProvince start, IHexMap map)
+        {
+            if (!start.IsWater)
+                return false;
+
+            var steps = 10;
+            var provinceStack = new Stack<IProvince>();
+            var checkedSeaProvinces = new List<IProvince>();
+
+            provinceStack.Push(start);
+            
+            while (provinceStack.Count > 0 && steps-- > 0)
+            {
+                var province = provinceStack.Pop();
+
+                if (checkedSeaProvinces.Contains(province))
+                    continue;
+
+                checkedSeaProvinces.Add(province);
+
+                foreach (var neighbour in province.GetNeighbours(map))
+                {
+                    if (neighbour.IsWater)
+                    {
+                        provinceStack.Push(neighbour);
+                    }
+                }
+            }
+            return steps > 0;
         }
     }
 }

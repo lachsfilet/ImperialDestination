@@ -93,7 +93,64 @@ namespace Tests
             Assert.Contains(provinces[4].Object, country.Object.Provinces);
         }
 
-        // GenerateCountryOnMap_WithEightProvinces_AvoidsEnclosedWaterProvince
+        [Test]
+        public void GenerateCountryOnMap_WithEightProvinces_AvoidsEnclosedWaterProvince()
+        {
+            var map = new Mock<IHexMap>();
+
+            var country = new Mock<ICountry>();
+            var countryProvinces = new List<IProvince>();
+            country.Setup(c => c.Provinces).Returns(countryProvinces);
+
+            var provinces = GenerateProvinces(5, 5, map.Object);
+
+            var regions = provinces.Select(p => p.Object).ToList();
+
+            var randomStep = 0;
+            Func<int, int, int> random = (a, b) => {
+                randomStep++;
+                switch(randomStep)
+                {
+                    // First region is at index 6
+                    case 1:
+                        return 6;
+                    // First and second neighbours are the right ones
+                    case 2:
+                        return 4;
+                    case 3:
+                        return 3;
+                    // Third and fourth neighbours are the bottom ones
+                    case 4:
+                        return 5;
+                    case 5:
+                        return 4;
+                    // Fifth and sixth neighbours are the left ones
+                    case 6:
+                    case 7:
+                        return 2;
+                    // Seventh neighbour is the upper one
+                    case 8:
+                        return 1;
+                    case 9:
+                        return 2;
+                    default:
+                        return 0;
+                }                
+            };
+            var mapOrganizationGenerator = new MapOrganizationGenerator(random);
+
+            mapOrganizationGenerator.GenerateCountryOnMap(country.Object, regions, map.Object, 8, Color.black, 1);
+
+            Assert.AreEqual(8, country.Object.Provinces.Count);
+            Assert.Contains(provinces[6].Object, country.Object.Provinces, provinces[6].Object.Name);
+            Assert.Contains(provinces[7].Object, country.Object.Provinces, provinces[7].Object.Name);
+            Assert.Contains(provinces[8].Object, country.Object.Provinces, provinces[8].Object.Name);
+            Assert.Contains(provinces[13].Object, country.Object.Provinces, provinces[13].Object.Name);
+            Assert.Contains(provinces[18].Object, country.Object.Provinces, provinces[18].Object.Name);
+            Assert.Contains(provinces[17].Object, country.Object.Provinces, provinces[17].Object.Name);
+            Assert.Contains(provinces[16].Object, country.Object.Provinces, provinces[16].Object.Name);
+            Assert.Contains(provinces[12].Object, country.Object.Provinces, provinces[12].Object.Name);
+        }
 
         private IList<Mock<IProvince>> GenerateProvinces(int count)
         {
@@ -107,10 +164,8 @@ namespace Tests
         private IList<Mock<IProvince>> GenerateProvinces(int height, int width, IHexMap map)
         {
             var provinces = Enumerable.Range(0, height * width).Select(
-                n => new Mock<IProvince>
-                {
-                    Name = $"Province {n}"
-                }).ToList();
+                n => new Mock<IProvince>())
+                .ToList();
 
             for (var i=0; i<height; i++)
             {
@@ -118,6 +173,9 @@ namespace Tests
                 {
                     var index = j + i * width;
                     var province = provinces[index];
+                    province.Setup(m => m.Name).Returns($"Province {index}");
+                    province.SetupProperty(p => p.IsWater);
+                    province.Object.IsWater = true;
                     province.Setup(m => m.GetNeighbours(map)).Returns(() =>
                     {
                         var list = new List<IProvince>();

@@ -16,5 +16,7 @@ namespace Assets.Contracts.Organization
         IList<IProvince> GetNeighbours(IHexMap map);
 
         IEnumerable<TileBase> HexTiles { get; }
+
+        bool IsWater { get; set; }
     }
 }
