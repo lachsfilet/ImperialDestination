@@ -1,4 +1,5 @@
-﻿using Assets.Contracts.Map;
+﻿using Assets.Contracts;
+using Assets.Contracts.Map;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -7,7 +8,7 @@ using UnityEngine;
 
 namespace Assets.Scripts.Map
 {
-    public class HexMap : IEnumerable<Tile>
+    public class HexMap : IHexMap
     {
         private Dictionary<Direction, Position>[] _directions;
         private Tile[,] _map;
@@ -67,7 +68,7 @@ namespace Assets.Scripts.Map
             }
         }
 
-        public Tile GetNeighbour(Tile hexTile, Direction direction)
+        public TileBase GetNeighbour(TileBase hexTile, Direction direction)
         {
             if (hexTile == null)
                 return null;
@@ -81,13 +82,13 @@ namespace Assets.Scripts.Map
             return _map[neighbour.X, neighbour.Y];
         }
         
-        public TilePair GetPairWithDirection(Tile hexTile, Tile neighbour)
+        public TilePair GetPairWithDirection(TileBase hexTile, TileBase neighbour)
         {
             var neighbours = GetNeighboursWithDirection(hexTile);
             return neighbours.Where(n => n.Neighbour == neighbour).SingleOrDefault();
         }
 
-        public IEnumerable<Tile> GetNeighbours(Tile hexTile, bool reverse = false)
+        public IEnumerable<TileBase> GetNeighbours(TileBase hexTile, bool reverse = false)
         {
             var directions = Enum.GetValues(typeof(Direction)).Cast<Direction>();
             if (reverse)
@@ -100,7 +101,7 @@ namespace Assets.Scripts.Map
             }
         }
 
-        public IEnumerable<TilePair> GetNeighboursWithDirection(Tile hexTile)
+        public IEnumerable<TilePair> GetNeighboursWithDirection(TileBase hexTile)
         {
             var directions = Enum.GetValues(typeof(Direction)).Cast<Direction>();
             foreach (var direction in directions)
@@ -116,7 +117,7 @@ namespace Assets.Scripts.Map
             }
         }
 
-        public Tile GetNextNeighbour(Tile hexTile, Tile currentNeighbour)
+        public TileBase GetNextNeighbour(TileBase hexTile, TileBase currentNeighbour)
         {
             var neighbours = GetNeighbours(hexTile).ToList();
             var index = neighbours.IndexOf(currentNeighbour);
@@ -125,7 +126,7 @@ namespace Assets.Scripts.Map
             return neighbours[0];
         }
         
-        public TilePair GetNextNeighbourWithDirection(Tile hexTile, Tile currentNeighbour)
+        public TilePair GetNextNeighbourWithDirection(TileBase hexTile, TileBase currentNeighbour)
         {
             var neighbours = GetNeighboursWithDirection(hexTile).ToList();
             var index = neighbours.Select(n=>n.Neighbour).ToList().IndexOf(currentNeighbour);
@@ -238,12 +239,12 @@ namespace Assets.Scripts.Map
             return _map.GetEnumerator();
         }
 
-        public IEnumerator<Tile> GetEnumerator()
+        public IEnumerator<TileBase> GetEnumerator()
         {
             var iterator = _map.GetEnumerator();
             while (iterator.MoveNext())
             {
-                yield return (Tile)iterator.Current;
+                yield return (TileBase)iterator.Current;
             }
         }
     }

@@ -6,7 +6,14 @@ using System.Threading.Tasks;
 
 namespace Assets.Contracts.Map
 {
-    public interface IHexMap
+    public interface IHexMap : IEnumerable<TileBase>
     {
+        IEnumerable<TileBase> GetNeighbours(TileBase tile, bool reverse = false);
+
+        IEnumerable<TilePair> GetNeighboursWithDirection(TileBase tile);
+
+        TilePair GetNextNeighbourWithDirection(TileBase hexTile, TileBase currentNeighbour);
+
+        TilePair GetPairWithDirection(TileBase hexTile, TileBase neighbour);
     }
 }

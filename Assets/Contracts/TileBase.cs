@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Assets.Contracts
 {
-    public abstract class TileBase
+    public abstract class TileBase : MonoBehaviour
     {
         public TileTerrainType TileTerrainType;
 
@@ -30,5 +30,11 @@ namespace Assets.Contracts
         public Position Position = new Position();
 
         public abstract void SetColor(Color color);
+
+        public abstract IEnumerable<Vector3> GetVertices(Direction direction, bool relative = false);
+
+        public abstract void Select(Color color);
+
+        public abstract void Deselect();
     }
 }

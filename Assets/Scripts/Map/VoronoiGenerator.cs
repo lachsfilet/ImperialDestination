@@ -1,4 +1,5 @@
-﻿using Assets.Contracts.Map;
+﻿using Assets.Contracts;
+using Assets.Contracts.Map;
 using Assets.Contracts.Organization;
 using Assets.Scripts.Map;
 using Assets.Scripts.Organization;
@@ -52,9 +53,9 @@ public class VoronoiGenerator : MonoBehaviour
 
     private ICollection<Position> _lines;
 
-    private ICollection<Province> _regions;
+    private ICollection<IProvince> _regions;
 
-    private ICollection<Country> _countries;
+    private ICollection<ICountry> _countries;
 
     private int _landRegionCount;
 
@@ -137,7 +138,7 @@ public class VoronoiGenerator : MonoBehaviour
         });
     }
 
-    private ICollection<Province> DetectRegions(ICollection<Point> points) =>
+    private ICollection<IProvince> DetectRegions(ICollection<Point> points) =>
         points.OrderBy(p => p.X * Height.CountDigits() * 10 + p.Y).Select((point, index) =>
             {
                 var tile = _map.GetTile(point.XInt, point.YInt);
@@ -149,14 +150,14 @@ public class VoronoiGenerator : MonoBehaviour
                 FillRegion(province, tile);
                 province.DrawBorder(_map);
                 return province;
-            }).ToList();
+            }).Cast<IProvince>().ToList();
         //.GroupBy(p => p.HexTiles.OrderBy(t => t.Position.X * Height.CountDigits() * 10 + t.Position.Y).First().Position)
         //.OrderBy(p => p.Key.X * Height.CountDigits() * 10 + p.Key.Y)
         //.Select(p => p.Single()).ToList();
     
-    private void FillRegion(Province province, Tile start)
+    private void FillRegion(Province province, TileBase start)
     {
-        var tileStack = new Stack<Tile>();
+        var tileStack = new Stack<TileBase>();
         tileStack.Push(start);
 
         while (tileStack.Count > 0)

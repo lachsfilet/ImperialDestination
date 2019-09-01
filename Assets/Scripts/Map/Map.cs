@@ -12,7 +12,7 @@ namespace Assets.Scripts.Map
     {
         private Tile _lastHovered;
         private Tile _selectedTile;
-        private Country _selectedCountry;
+        private ICountry _selectedCountry;
 
         public MapMode MapMode { get; set; }
 

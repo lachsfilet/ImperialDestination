@@ -5,10 +5,11 @@ using UnityEngine;
 using Assets.Scripts.Game;
 using Assets.Contracts.Map;
 using Assets.Contracts.Organization;
+using Assets.Contracts;
 
 namespace Assets.Scripts.Organization
 {
-    public class Country : MonoBehaviour
+    public class Country : MonoBehaviour, ICountry
     {
         public string Name { get; set; }
 
@@ -18,15 +19,15 @@ namespace Assets.Scripts.Organization
 
         public CountryType CountryType { get; set; }
 
-        public List<Province> Provinces { get; set; }
+        public List<IProvince> Provinces { get; set; }
 
         public Continent Continent { get; set; }
 
-        public Tile Capital { get; private set; }
+        public TileBase Capital { get; private set; }
 
         public Country()
         {
-            Provinces = new List<Province>();
+            Provinces = new List<IProvince>();
         }
 
         public void SetCapital(HexMap map)

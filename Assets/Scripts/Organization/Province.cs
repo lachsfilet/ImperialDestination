@@ -1,34 +1,39 @@
-﻿using Assets.Scripts.Map;
+﻿using Assets.Contracts;
+using Assets.Contracts.Map;
+using Assets.Contracts.Organization;
+using Assets.Scripts.Map;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
 namespace Assets.Scripts.Organization
 {
-    public class Province : MonoBehaviour
+    public class Province : MonoBehaviour, IProvince
     {
-        private List<Tile> _hexTiles;
+        private List<TileBase> _hexTiles;
 
         private List<TilePair> _borderRoute;
 
-        private IList<Province> _neighbours;
+        private IList<IProvince> _neighbours;
 
         public Province()
         {
-            _hexTiles = new List<Tile>();
+            _hexTiles = new List<TileBase>();
         }
 
         public string Name { get; set; }
 
-        public Country Owner { get; set; }
+        public ICountry Owner { get; set; }
 
-        public Tile Capital { get; private set; }
+        public TileBase Capital { get; private set; }
 
         public bool IsCapital { get; set; }
 
-        public IEnumerable<Tile> HexTiles => _hexTiles;
+        public IEnumerable<TileBase> HexTiles => _hexTiles;
 
-        public void AddHexTile(Tile hexTile)
+        public bool IsWater { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+
+        public void AddHexTile(TileBase hexTile)
         {
             if (hexTile == null)
                 return;
@@ -37,7 +42,7 @@ namespace Assets.Scripts.Organization
             hexTile.Province = this;
         }
 
-        public void SetCapital(HexMap map)
+        public void SetCapital(IHexMap map)
         {
             var tiles = HexTiles.ToList();
             var innerTiles = tiles.Where(t => map.GetNeighbours(t).All(n => n.Province == this)).ToList();
@@ -48,7 +53,7 @@ namespace Assets.Scripts.Organization
             Capital = innerTiles[index];
         }
 
-        public IList<Province> GetNeighbours(HexMap map)
+        public IList<IProvince> GetNeighbours(IHexMap map)
         {
             if (_neighbours != null)
                 return _neighbours;
@@ -71,7 +76,7 @@ namespace Assets.Scripts.Organization
             lineRenderer.SetPositions(vectors);
         }
 
-        private void TraceBorder(HexMap map)
+        private void TraceBorder(IHexMap map)
         {
             if (_borderRoute != null)
                 return;
@@ -86,7 +91,7 @@ namespace Assets.Scripts.Organization
             TraceBorder(neighbourPair, _borderRoute, map);
         }
 
-        private void TraceBorder(TilePair tilePair, List<TilePair> borderRoute, HexMap map)
+        private void TraceBorder(TilePair tilePair, List<TilePair> borderRoute, IHexMap map)
         {
             // Abort if current combination is already stored
             if (borderRoute.Any(p => p.Neighbour == tilePair.Neighbour && p.HexTile == tilePair.HexTile))

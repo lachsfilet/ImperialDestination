@@ -9,6 +9,7 @@ using Assets.Scripts.Economy.Resources;
 using Assets.Scripts.Game;
 using Assets.Contracts.Map;
 using Assets.Contracts.Organization;
+using Assets.Contracts;
 
 //[ExecuteInEditMode]
 public class Map : MonoBehaviour {
@@ -317,7 +318,7 @@ public class Map : MonoBehaviour {
             var provinceCount = (majorCountries * ProvincesMajorCountries) + (minorCountries * ProvincesMinorCountries);
             var tileCountProvinces = continentTiles.Count / provinceCount;
             
-            var emptyTiles = continentTiles;
+            var emptyTiles = continentTiles.Cast<TileBase>().ToList();
             var provinces = new List<Province>();
             var count = 0;
             var countryStack = new Stack<Country>(countries);
@@ -363,7 +364,7 @@ public class Map : MonoBehaviour {
             });
 
             // Add remaining tiles to existing provinces
-            emptyTiles = continentTiles.Where(tile => tile.Province == null).ToList();
+            emptyTiles = continentTiles.Where(tile => tile.Province == null).Cast<TileBase>().ToList();
             while (emptyTiles.Any())
             {
                 var hexTile = emptyTiles.First();
@@ -402,15 +403,15 @@ public class Map : MonoBehaviour {
         });
     }
 
-    private List<Tile> CreateProvince(Province province, Tile hexTile, int tileCountProvinces)
+    private List<TileBase> CreateProvince(Province province, TileBase hexTile, int tileCountProvinces)
     {
-        var provinceTiles = new List<Tile>();
+        var provinceTiles = new List<TileBase>();
         var provinceSize = (int)Math.Round(Math.Sqrt(tileCountProvinces));
         provinceTiles.Add(hexTile);
         var count = 1;
         while (count < tileCountProvinces)
         {
-            Tile nextTile = null;
+            TileBase nextTile = null;
             var neighbours = count <= provinceSize ? _map.GetNeighbours(hexTile, true) : _map.GetNeighbours(hexTile);
             foreach (var neighbour in neighbours)
             {
@@ -477,7 +478,7 @@ public class Map : MonoBehaviour {
         });
     }
 
-    private void AddTilesToContinent(Tile hexTile, GameObject continent)
+    private void AddTilesToContinent(TileBase hexTile, GameObject continent)
     {
         hexTile.transform.SetParent(continent.transform);
 

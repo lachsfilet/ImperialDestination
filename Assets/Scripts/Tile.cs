@@ -2,14 +2,15 @@
 using System.Collections.Generic;
 using Assets.Scripts.Economy;
 using Assets.Scripts.Organization;
-using Assets.Scripts.Map;
 using System.Linq;
 using Assets.Contracts.Map;
 using Assets.Contracts.Economy;
 using Assets.Contracts.Infrastructure;
+using Assets.Contracts;
+using Assets.Contracts.Organization;
 
-public class Tile : MonoBehaviour {
-
+public class Tile : TileBase
+{
     public TileTerrainType TileTerrainType;
 
     public bool IsSelected = false;
@@ -24,9 +25,9 @@ public class Tile : MonoBehaviour {
 
     public List<IBuilding> Buildings;
 
-    public Country Owner;
+    public ICountry Owner;
 
-    public Province Province;
+    public IProvince Province;
 
     public Position Position = new Position();
 
@@ -106,14 +107,14 @@ public class Tile : MonoBehaviour {
     }
 
 
-    public void Select(Color color)
+    public override void Select(Color color)
     {
         IsSelected = true;
         SelectionColor = color;
         _renderer.material.color = color;
     }
 
-    public void Deselect()
+    public override void Deselect()
     {
         IsSelected = false;
         _renderer.material.color = _color;
@@ -129,7 +130,7 @@ public class Tile : MonoBehaviour {
         _renderer.material.color = IsSelected ? SelectionColor : _color;
     }
 
-    public void SetColor(Color color)
+    public override void SetColor(Color color)
     {
         if(_renderer == null)
             _renderer = GetComponent<Renderer>();
@@ -142,7 +143,7 @@ public class Tile : MonoBehaviour {
         return directions.SelectMany(d => _edges[d]).Distinct();
     }
 
-    public IEnumerable<Vector3> GetVertices(Direction direction, bool relative = false)
+    public override IEnumerable<Vector3> GetVertices(Direction direction, bool relative = false)
     {
         var pair = _edges[direction];
         foreach (var vector in pair)
