@@ -11,25 +11,25 @@ using Assets.Contracts.Organization;
 
 public class Tile : TileBase
 {
-    public TileTerrainType TileTerrainType;
+    //public TileTerrainType TileTerrainType;
 
-    public bool IsSelected = false;
+    //public bool IsSelected = false;
 
-    public Color DefaultSelectionColor = Color.yellow;
+    //public Color DefaultSelectionColor = Color.yellow;
 
-    public Color SelectionColor = Color.yellow;
+    //public Color SelectionColor = Color.yellow;
 
-    public Color HoverColor = Color.red;
+    //public Color HoverColor = Color.red;
     
-    public List<IResource> Resources;
+    //public List<IResource> Resources;
 
-    public List<IBuilding> Buildings;
+    //public List<IBuilding> Buildings;
 
-    public ICountry Owner;
+    //public ICountry Owner;
 
-    public IProvince Province;
+    //public IProvince Province;
 
-    public Position Position = new Position();
+    //public Position Position = new Position();
 
     private Color _color;
 

@@ -11,7 +11,7 @@ namespace Assets.Scripts.Map
     public class HexMap : IHexMap
     {
         private Dictionary<Direction, Position>[] _directions;
-        private Tile[,] _map;
+        private TileBase[,] _map;
         
         public int Height { get; private set; }
         public int Width { get; private set; }
@@ -21,7 +21,7 @@ namespace Assets.Scripts.Map
         {
             Height = height;
             Width = width;
-            _map = new Tile[width,height];
+            _map = new TileBase[width,height];
             _directions = new Dictionary<Direction, Position>[] {
                 new Dictionary<Direction, Position> {
                     { Direction.Northeast, new Position (0, -1) },
@@ -48,14 +48,14 @@ namespace Assets.Scripts.Map
                 _map[x, y] = tile;
         }
 
-        public Tile GetTile(int x, int y)
+        public TileBase GetTile(int x, int y)
         {
             if (x < _map.GetLength(0) && y < _map.GetLength(1))
                 return _map[x, y];
             return null;
         }
 
-        public IEnumerable<Tile> GetTilesOfTerrainType(TileTerrainType terrainType)
+        public IEnumerable<TileBase> GetTilesOfTerrainType(TileTerrainType terrainType)
         {
             for(var i = 0; i < _map.GetLength(0); i++)
             {
