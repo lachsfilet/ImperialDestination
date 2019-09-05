@@ -131,8 +131,6 @@ namespace Tests
                     // Seventh neighbour is the upper one
                     case 8:
                         return 1;
-                    case 9:
-                        return 2;
                     default:
                         return 0;
                 }                
@@ -150,6 +148,80 @@ namespace Tests
             Assert.Contains(provinces[17].Object, country.Object.Provinces, provinces[17].Object.Name);
             Assert.Contains(provinces[16].Object, country.Object.Provinces, provinces[16].Object.Name);
             Assert.Contains(provinces[12].Object, country.Object.Provinces, provinces[12].Object.Name);
+        }
+
+        [Test]
+        public void GenerateCountryOnMap_WithTenProvinces_AvoidsEnclosedWaterProvince()
+        {
+            var map = new Mock<IHexMap>();
+
+            var country = new Mock<ICountry>();
+            var countryProvinces = new List<IProvince>();
+            country.Setup(c => c.Provinces).Returns(countryProvinces);
+
+            var provinces = GenerateProvinces(6, 6, map.Object);
+
+            var regions = provinces.Select(p => p.Object).ToList();
+
+            var randomStep = 0;
+            Func<int, int, int> random = (a, b) => {
+                randomStep++;
+                switch (randomStep)
+                {
+                    // First region is at index 8
+                    case 1:
+                        return 8;
+                    // First, second and third neighbours are the right ones
+                    // Index 9
+                    case 2:
+                        return 4;
+                    // Index 10
+                    case 3:
+                    // Index 11
+                    case 4:
+                        return 3;
+                    // Fourth and fifth neighbours are the bottom ones
+                    // Index 17
+                    case 5:
+                        return 3;
+                    // Index 23
+                    case 6:
+                        return 2;
+                    // Sixth, seventh and eighth neighbours are the left ones
+                    // Index 22
+                    case 7:
+                        return 1;
+                    // Index 21
+                    case 8:
+                        return 2;
+                    // Index 20
+                    case 9:
+                        return 3;
+                    // Index 14 -> Enclosing water
+                    case 10:
+                        return 1;
+                    // Index 19
+                    case 11:
+                        return 3;
+                    default:
+                        return 0;
+                }
+            };
+            var mapOrganizationGenerator = new MapOrganizationGenerator(random);
+
+            mapOrganizationGenerator.GenerateCountryOnMap(country.Object, regions, map.Object, 10, Color.black, 1);
+
+            Assert.AreEqual(10, country.Object.Provinces.Count);
+            Assert.Contains(provinces[8].Object, country.Object.Provinces, provinces[6].Object.Name);
+            Assert.Contains(provinces[9].Object, country.Object.Provinces, provinces[9].Object.Name);
+            Assert.Contains(provinces[10].Object, country.Object.Provinces, provinces[10].Object.Name);
+            Assert.Contains(provinces[11].Object, country.Object.Provinces, provinces[11].Object.Name);
+            Assert.Contains(provinces[17].Object, country.Object.Provinces, provinces[17].Object.Name);
+            Assert.Contains(provinces[23].Object, country.Object.Provinces, provinces[23].Object.Name);
+            Assert.Contains(provinces[22].Object, country.Object.Provinces, provinces[22].Object.Name);
+            Assert.Contains(provinces[21].Object, country.Object.Provinces, provinces[21].Object.Name);
+            Assert.Contains(provinces[20].Object, country.Object.Provinces, provinces[20].Object.Name);
+            Assert.Contains(provinces[19].Object, country.Object.Provinces, provinces[19].Object.Name);
         }
 
         private IList<Mock<IProvince>> GenerateProvinces(int count)
@@ -179,20 +251,28 @@ namespace Tests
                     province.Setup(m => m.GetNeighbours(map)).Returns(() =>
                     {
                         var list = new List<IProvince>();
+                        // Top left -> 0
                         if (index % width > 0 && index >= width)
                             list.Add(provinces[index - width - 1].Object);
+                        // Top -> 1
                         if (index >= width)
                             list.Add(provinces[index - width].Object);
+                        // Top right -> 2
                         if (index >= width && index % width < width - 1)
                             list.Add(provinces[index - width + 1].Object);
+                        // Left -> 3
                         if (index % width > 0)
                             list.Add(provinces[index - 1].Object);
+                        // Right -> 4
                         if (index % width < width - 1)
                             list.Add(provinces[index + 1].Object);
+                        // Bottom left -> 5
                         if (index + width < provinces.Count && index % width > 0)
                             list.Add(provinces[index + width - 1].Object);
+                        // Bottom -> 6
                         if (index + width < provinces.Count)
                             list.Add(provinces[index + width].Object);
+                        // Bottom right -> 7
                         if (index + width < provinces.Count && index % width < width - 1)
                             list.Add(provinces[index + width + 1].Object);
                         return list;

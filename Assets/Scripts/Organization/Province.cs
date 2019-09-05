@@ -31,7 +31,7 @@ namespace Assets.Scripts.Organization
 
         public IEnumerable<TileBase> HexTiles => _hexTiles;
 
-        public bool IsWater { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
+        public bool IsWater { get; set; }
 
         public void AddHexTile(TileBase hexTile)
         {
@@ -45,7 +45,7 @@ namespace Assets.Scripts.Organization
         public void SetCapital(IHexMap map)
         {
             var tiles = HexTiles.ToList();
-            var innerTiles = tiles.Where(t => map.GetNeighbours(t).All(n => n.Province == this)).ToList();
+            var innerTiles = tiles.Where(t => map.GetNeighbours(t).All(n => (Province)n.Province == this)).ToList();
             if (!innerTiles.Any())
                 innerTiles = tiles;
             var rand = new System.Random();
@@ -83,9 +83,9 @@ namespace Assets.Scripts.Organization
 
             // Get first tile with any neighbour of another province
             var tiles = HexTiles.ToList();
-            var firstBorderTile = tiles.Where(t => map.GetNeighbours(t).Where(n => n.Province != this).Any()).First();
+            var firstBorderTile = tiles.Where(t => map.GetNeighbours(t).Where(n => (Province)n.Province != this).Any()).First();
             var neighbourPairs = map.GetNeighboursWithDirection(firstBorderTile).ToList();
-            var neighbourPair = neighbourPairs.Where(n => n.Neighbour.Province != this).First();
+            var neighbourPair = neighbourPairs.Where(n => (Province)n.Neighbour.Province != this).First();
             _borderRoute = new List<TilePair>();
 
             TraceBorder(neighbourPair, _borderRoute, map);

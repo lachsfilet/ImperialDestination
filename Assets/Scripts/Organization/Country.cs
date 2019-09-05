@@ -47,9 +47,9 @@ namespace Assets.Scripts.Organization
         {
             // Get first tile with any neighbour of another province
             var tiles = Provinces.SelectMany(p => p.HexTiles).ToList();
-            var firstBorderTile = tiles.Where(t => map.GetNeighbours(t).Where(n => n.Province == null || n.Province.Owner != this).Any()).First();
+            var firstBorderTile = tiles.Where(t => map.GetNeighbours(t).Where(n => n.Province == null || (Country)n.Province.Owner != this).Any()).First();
             var neighbourPairs = map.GetNeighboursWithDirection(firstBorderTile).ToList();
-            var neighbourPair = neighbourPairs.Where(n => n.Neighbour.Province == null || n.Neighbour.Province.Owner != this).First();
+            var neighbourPair = neighbourPairs.Where(n => n.Neighbour.Province == null || (Country)n.Neighbour.Province.Owner != this).First();
             var borderRoute = new List<TilePair>();
 
             TraceBorder(neighbourPair, borderRoute, map);

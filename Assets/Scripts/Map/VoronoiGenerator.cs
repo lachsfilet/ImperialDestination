@@ -57,6 +57,8 @@ public class VoronoiGenerator : MonoBehaviour
 
     private ICollection<ICountry> _countries;
 
+    private IMapOrganizationGenerator _mapOrganizationGenerator;
+
     private int _landRegionCount;
 
     // Start is called before the first frame update
@@ -66,11 +68,12 @@ public class VoronoiGenerator : MonoBehaviour
         _hexGrid = new HexGrid(Height, Width, HexTile);
         _map = new HexMap(Height, Width);
         _landRegionCount = MajorCountries * ProvincesMajorCountries + MinorCountries * ProvincesMinorCountries;
+        _mapOrganizationGenerator = new MapOrganizationGenerator();
 
         var voronoiMap = GenerateMap();
         var points = voronoiMap.Where(g => g is Site).Select(s => s.Point).ToList();
         _regions = DetectRegions(points);
-        SetContinents();
+        GenerateCountries();
         SkinMap();
     }
 
@@ -187,6 +190,35 @@ public class VoronoiGenerator : MonoBehaviour
                 }
             }
         }
+    }
+
+    private void GenerateCountries()
+    {
+        var color = new Color(1, 1, 1, 1);
+
+        var regions = _regions.Where(p => !p.HexTiles.Any(h => h.Position.X == 0 || h.Position.Y == 0 || h.Position.X == Width - 1 || h.Position.Y == Height - 1)).ToList();
+
+        var majorCountries = Enumerable.Range(1, MajorCountries).Select(n => new { number = n, isMajor = true });
+        var minorCountries = Enumerable.Range(1, MinorCountries).Select(n => new { number = n, isMajor = false });
+        var countries = majorCountries.Concat(minorCountries).Shuffle().ToList();
+        var step = 1f / countries.Count;
+
+        var count = 0;
+        foreach (var countryInfo in countries)
+        {
+            var regionCount = countryInfo.isMajor ? ProvincesMajorCountries : ProvincesMinorCountries;
+            var prefix = countryInfo.isMajor ? "Major" : "Minor";
+            var countryContainer = Instantiate(Country);
+            var country = OrganisationFactory.Instance.CreateCountry(
+                countryContainer,
+                $"{prefix} Country {count}",
+                countryInfo.isMajor ? CountryType.Major : CountryType.Minor,
+                color);
+
+            _mapOrganizationGenerator.GenerateCountryOnMap(country, regions, _map, regionCount, color, step);
+        }
+        color = new Color(color.r - step, color.g - step, color.b - step, 1);
+        count++;
     }
 
     private void SetContinents()

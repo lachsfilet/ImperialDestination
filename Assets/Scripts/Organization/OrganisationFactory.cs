@@ -3,8 +3,8 @@ using UnityEngine;
 
 namespace Assets.Scripts.Organization
 {
-    public class OrganisationFactory : MonoBehaviour
-    {
+    public class OrganisationFactory
+    { 
         private static OrganisationFactory _instance;
 
         private OrganisationFactory()
