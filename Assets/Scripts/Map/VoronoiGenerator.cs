@@ -152,6 +152,8 @@ public class VoronoiGenerator : MonoBehaviour
                 province.Name = $"Region {index}";
                 FillRegion(province, tile);
                 province.DrawBorder(_map);
+                province.ArrangePosition();
+                province.IsWater = true;
                 return province;
             }).Cast<IProvince>().ToList();
         //.GroupBy(p => p.HexTiles.OrderBy(t => t.Position.X * Height.CountDigits() * 10 + t.Position.Y).First().Position)

@@ -21,7 +21,16 @@ namespace Assets.Scripts.Organization
             _hexTiles = new List<TileBase>();
         }
 
-        public string Name { get; set; }
+        private string _name;
+        public string Name {
+            get => _name;
+            set
+            {
+                _name = value;
+                var textMesh = GetComponent<TextMesh>();
+                textMesh.text = _name;
+            }
+        }
 
         public ICountry Owner { get; set; }
 
@@ -60,8 +69,22 @@ namespace Assets.Scripts.Organization
 
             TraceBorder(map);
 
-            _neighbours = _borderRoute.Select(b=>b.Neighbour.Province).Distinct().ToList();
+            _neighbours = _borderRoute.Select(b => b.Neighbour.Province).Where(p => p != null).Distinct().ToList();
             return _neighbours;
+        }
+
+        public void ArrangePosition()
+        {
+            var positions = _hexTiles.Select(h => h.transform.position).ToList();
+            var minX = positions.Min(p => p.x);
+            var minZ = positions.Min(p => p.z);
+            var maxX = positions.Max(p => p.x);
+            var maxZ = positions.Max(p => p.z);
+
+            var x = (maxX + minX) / 2f;
+            var z = (maxZ + minZ) / 2f;
+
+            this.transform.position = new Vector3(x, 0, z);
         }
 
         public void DrawBorder(HexMap map)

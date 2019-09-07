@@ -29,6 +29,13 @@ namespace Assets.Scripts.Organization
         {
             Provinces = new List<IProvince>();
         }
+        
+        public void AddProvince(IProvince province)
+        {
+            Provinces.Add(province);
+            var provinceObject = (Province)province;
+            provinceObject.transform.parent = this.transform;
+        }
 
         public void SetCapital(HexMap map)
         {

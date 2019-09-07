@@ -19,6 +19,7 @@ namespace Tests
             var country = new Mock<ICountry>();
             var countryProvinces = new List<IProvince>();
             country.Setup(c => c.Provinces).Returns(countryProvinces);
+            country.Setup(c => c.AddProvince(It.IsAny<IProvince>())).Callback((IProvince p) => countryProvinces.Add(p));
             var province = new Mock<IProvince>();
             province.Setup(p => p.GetNeighbours(map.Object)).Returns(new List<IProvince>());
             var regions = new List<IProvince>
@@ -39,6 +40,7 @@ namespace Tests
             var country = new Mock<ICountry>();
             var countryProvinces = new List<IProvince>();
             country.Setup(c => c.Provinces).Returns(countryProvinces);
+            country.Setup(c => c.AddProvince(It.IsAny<IProvince>())).Callback((IProvince p) => countryProvinces.Add(p));
 
             var provinces = GenerateProvinces(4);
 
@@ -71,6 +73,7 @@ namespace Tests
             var country = new Mock<ICountry>();
             var countryProvinces = new List<IProvince>();
             country.Setup(c => c.Provinces).Returns(countryProvinces);
+            country.Setup(c => c.AddProvince(It.IsAny<IProvince>())).Callback((IProvince p) => countryProvinces.Add(p));
 
             var provinces = GenerateProvinces(5, 5, map.Object);
             
@@ -101,6 +104,7 @@ namespace Tests
             var country = new Mock<ICountry>();
             var countryProvinces = new List<IProvince>();
             country.Setup(c => c.Provinces).Returns(countryProvinces);
+            country.Setup(c => c.AddProvince(It.IsAny<IProvince>())).Callback((IProvince p) => countryProvinces.Add(p));
 
             var provinces = GenerateProvinces(5, 5, map.Object);
 
@@ -131,6 +135,8 @@ namespace Tests
                     // Seventh neighbour is the upper one
                     case 8:
                         return 1;
+                    case 9:
+                        return 2;
                     default:
                         return 0;
                 }                
@@ -147,7 +153,7 @@ namespace Tests
             Assert.Contains(provinces[18].Object, country.Object.Provinces, provinces[18].Object.Name);
             Assert.Contains(provinces[17].Object, country.Object.Provinces, provinces[17].Object.Name);
             Assert.Contains(provinces[16].Object, country.Object.Provinces, provinces[16].Object.Name);
-            Assert.Contains(provinces[12].Object, country.Object.Provinces, provinces[12].Object.Name);
+            Assert.Contains(provinces[12].Object, country.Object.Provinces, $"{provinces[12].Object.Name} {string.Join(",", countryProvinces.Select(p => p.Name))}");
         }
 
         [Test]
@@ -158,6 +164,7 @@ namespace Tests
             var country = new Mock<ICountry>();
             var countryProvinces = new List<IProvince>();
             country.Setup(c => c.Provinces).Returns(countryProvinces);
+            country.Setup(c => c.AddProvince(It.IsAny<IProvince>())).Callback((IProvince p) => countryProvinces.Add(p));
 
             var provinces = GenerateProvinces(6, 6, map.Object);
 

@@ -12,5 +12,7 @@ namespace Assets.Contracts.Organization
         List<IProvince> Provinces { get; set; }
 
         Color Color { get; set; }
+
+        void AddProvince(IProvince province);
     }
 }

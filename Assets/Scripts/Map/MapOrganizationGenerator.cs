@@ -32,7 +32,7 @@ namespace Assets.Scripts.Map
                 if (region == null)
                     Debug.LogError($"Invalid index {index} for regions of count {regions.Count}");
 
-                country.Provinces.Add(region);
+                country.AddProvince(region);
                 region.Owner = country;
                 region.IsWater = false;
 
@@ -71,12 +71,10 @@ namespace Assets.Scripts.Map
                         Debug.Log($"Free neighbour province: {region.Name} with index {neighbourIndex} and {nameof(region.IsWater)} {region.IsWater}");
                         if (region.GetNeighbours(map).Any(n => CheckForSurroundedSeaProvince(n, map)))
                         {
-                            Debug.Log($"Surrounded sea province found for {region.Name}");
+                            Debug.LogWarning($"Surrounded sea province found for {region.Name}");
                             found = false;
                             region.IsWater = true;
                         }
-                        else
-                            Debug.Log($"No surrounded sea province found for {region.Name}");
                     }
                     else
                     {
