@@ -12,6 +12,7 @@ using UnityEngine;
 using VoronoiEngine;
 using VoronoiEngine.Elements;
 using VoronoiEngine.Structures;
+using VoronoiEngine.Utilities;
 
 public class VoronoiGenerator : MonoBehaviour
 {
@@ -90,7 +91,7 @@ public class VoronoiGenerator : MonoBehaviour
         }
         CreateMap();
 
-        var voronoiFactory = new VoronoiFactory();
+        var voronoiFactory = new VoronoiFactory(new EvenlySpreadSiteGenerator());
         var voronoiMap = voronoiFactory.CreateVoronoiMap(Height - 1, Width - 1, Regions);
         _lines = voronoiMap.Where(g => g is HalfEdge).Cast<HalfEdge>().SelectMany(
             edge =>
