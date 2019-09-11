@@ -1,6 +1,7 @@
 ﻿using Assets.Contracts;
 using Assets.Contracts.Map;
 using Assets.Contracts.Organization;
+using Assets.Scripts;
 using Assets.Scripts.Map;
 using Assets.Scripts.Organization;
 using Assets.Scripts.Utilities;
@@ -123,12 +124,7 @@ public class VoronoiGenerator : MonoBehaviour
 
     private GameObject CreateTile(TileTerrainType type, Vector3 position, int x, int y)
     {
-        var hexTile = Instantiate(HexTile, position, MapStartPoint.transform.rotation);
-        var tile = hexTile.GetComponent<Tile>();
-        tile.TileTerrainType = type;
-        tile.Position.X = x;
-        tile.Position.Y = y;
-        _map.AddTile(x, y, tile);
+        var hexTile = TileFactory.Instance.CreateTile(Instantiate, HexTile, type, position, MapStartPoint.transform.rotation, x, y, _map);
         return hexTile;
     }
 
@@ -157,9 +153,6 @@ public class VoronoiGenerator : MonoBehaviour
                 province.IsWater = true;
                 return province;
             }).Cast<IProvince>().ToList();
-        //.GroupBy(p => p.HexTiles.OrderBy(t => t.Position.X * Height.CountDigits() * 10 + t.Position.Y).First().Position)
-        //.OrderBy(p => p.Key.X * Height.CountDigits() * 10 + p.Key.Y)
-        //.Select(p => p.Single()).ToList();
     
     private void FillRegion(Province province, TileBase start)
     {
@@ -219,87 +212,7 @@ public class VoronoiGenerator : MonoBehaviour
                 color);
 
             _mapOrganizationGenerator.GenerateCountryOnMap(country, regions, _map, regionCount, color, step);
-        }
-        color = new Color(color.r - step, color.g - step, color.b - step, 1);
-        count++;
-    }
 
-    private void SetContinents()
-    {
-        var color = new Color(1, 1, 1, 1);
-
-        var regions = _regions.Where(p => !p.HexTiles.Any(h => h.Position.X == 0 || h.Position.Y == 0 || h.Position.X == Width - 1 || h.Position.Y == Height - 1)).ToList();
-
-        var majorCountries = Enumerable.Range(1, MajorCountries).Select(n => new { number = n, isMajor = true });
-        var minorCountries = Enumerable.Range(1, MinorCountries).Select(n => new { number = n, isMajor = false });
-        var countries = majorCountries.Concat(minorCountries).Shuffle().ToList();
-        var step = 1f / countries.Count;
-
-        var count = 0;
-        foreach (var countryInfo in countries)
-        {
-            var regionCount = countryInfo.isMajor ? ProvincesMajorCountries : ProvincesMinorCountries;
-            var index = UnityEngine.Random.Range(regionCount - 1, regions.Count - (regionCount - 1));
-            var countryStep = step * (1f / regionCount);
-
-            var prefix = countryInfo.isMajor ? "Major" : "Minor";
-            var countryContainer = Instantiate(Country);
-            var country = OrganisationFactory.Instance.CreateCountry(
-                countryContainer,
-                $"{prefix} Country {count}",
-                countryInfo.isMajor ? CountryType.Major : CountryType.Minor,
-                color);
-
-            var region = regions[index];
-            
-            for (var i = 0; i < regionCount; i++)
-            {
-                country.Provinces.Add(region);
-                region.Owner = country;
-                if (region == null)
-                    Debug.LogError($"Invalid index {index} for regions of count {regions.Count}");
-
-                Debug.Log($"Province: {region.Name}");
-                
-                foreach (var tile in region.HexTiles)
-                {
-                    tile.TileTerrainType = TileTerrainType.Plain;
-                    tile.SetColor(color);
-                }
-                regions.Remove(region);
-
-                Debug.Log($"Remaining provinces: {string.Join(", ", regions.Select(r => r.Name).OrderBy(n => n))}");
-
-                var found = false;
-                var tries = 20;
-                do
-                {
-                    var neighbours = region.GetNeighbours(_map);
-                    var freeNeighbours = neighbours.Where(n => regions.Contains(n)).ToList();
-                    var countryNeighbours = neighbours.Where(n => country.Provinces.Contains(n)).ToList();
-
-                    Debug.Log($"Remaining free provinces: {string.Join(", ", freeNeighbours.Select(r => r.Name).OrderBy(n => n))}");
-                    Debug.Log($"Remaining country neighbours: {string.Join(", ", countryNeighbours.Select(r => r.Name).OrderBy(n => n))}");
-
-                    if (freeNeighbours.Any())
-                    {
-                        var neighbourIndex = UnityEngine.Random.Range(0, freeNeighbours.Count);
-                        region = freeNeighbours[neighbourIndex];
-                        Debug.Log($"Free neighbour province: {region.Name}");
-                        found = true;
-                    }
-                    else
-                    {
-                        var neighbourIndex = UnityEngine.Random.Range(0, countryNeighbours.Count);
-                        region = countryNeighbours[neighbourIndex];
-                        Debug.Log($"Neighbour of another province: {region.Name}");
-                    }
-                } while (!found && --tries > 0);
-                if (!found)
-                    throw new InvalidOperationException("No unset neighbour found!");
-
-                color = new Color(color.r - countryStep, color.g - countryStep, color.b - countryStep, 1);
-            }
             color = new Color(color.r - step, color.g - step, color.b - step, 1);
             count++;
         }

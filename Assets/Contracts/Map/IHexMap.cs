@@ -15,5 +15,7 @@ namespace Assets.Contracts.Map
         TilePair GetNextNeighbourWithDirection(TileBase hexTile, TileBase currentNeighbour);
 
         TilePair GetPairWithDirection(TileBase hexTile, TileBase neighbour);
+
+        void AddTile(int x, int y, TileBase tile);
     }
 }

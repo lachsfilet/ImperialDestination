@@ -42,7 +42,7 @@ namespace Assets.Scripts.Map
             };
         }
 
-        public void AddTile(int x, int y, Tile tile)
+        public void AddTile(int x, int y, TileBase tile)
         {
             if(x < _map.GetLength(0) && y < _map.GetLength(1))
                 _map[x, y] = tile;
