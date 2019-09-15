@@ -1,5 +1,6 @@
 ﻿using Assets.Contracts.Map;
 using Assets.Contracts.Organization;
+using Assets.Scripts.Organization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -85,9 +86,10 @@ namespace Assets.Scripts.Map
                 } while (!found && --tries > 0);
                 if (!found)
                     throw new InvalidOperationException("No unset neighbour found!");
-
+                                
                 color = new Color(color.r - countryStep, color.g - countryStep, color.b - countryStep, 1);
             }
+            country.DrawBorder(map);
         }
 
         /// <summary>
@@ -97,7 +99,7 @@ namespace Assets.Scripts.Map
         /// <param name="start"></param>
         /// <param name="map"></param>
         /// <returns></returns>
-        public static bool CheckForSurroundedSeaProvince(IProvince start, IHexMap map)
+        private static bool CheckForSurroundedSeaProvince(IProvince start, IHexMap map)
         {
             if (!start.IsWater)
                 return false;
@@ -126,6 +128,41 @@ namespace Assets.Scripts.Map
                 }
             }
             return steps > 0;
+        }
+
+        public ICollection<GameObject> GenerateContinentsList(ICollection<IProvince> provinces, IHexMap map, GameObject parent)
+        {
+            var continents = new List<GameObject>();
+            var landProvinces = provinces.Where(p => !p.IsWater && p.Owner != null).ToList();
+
+            var count = 0;
+            while (landProvinces.Any())
+            {
+                var provinceQueue = new Queue<IProvince>();
+                provinceQueue.Enqueue(landProvinces.First());
+
+                var continent = OrganisationFactory.Instance.CreateContinent($"Continent {count++}", parent);
+                continents.Add(continent);
+
+                while (provinceQueue.Any())
+                {
+                    var province = provinceQueue.Dequeue();
+                    var countryParent = province.Owner.GetParent();
+                    if (countryParent == null)
+                        province.Owner.SetParent(continent.transform);
+
+                    landProvinces.Remove(province);
+
+                    foreach (var neighbour in province.GetNeighbours(map).Where(n => !n.IsWater 
+                    && !provinceQueue.Contains(n) 
+                    && landProvinces.Contains(n)))
+                    {
+
+                        provinceQueue.Enqueue(neighbour);
+                    }
+                }
+            }
+            return continents;
         }
     }
 }

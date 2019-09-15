@@ -5,8 +5,6 @@ using Assets.Scripts;
 using Assets.Scripts.Map;
 using Assets.Scripts.Organization;
 using Assets.Scripts.Utilities;
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -43,7 +41,7 @@ public class VoronoiGenerator : MonoBehaviour
     public int ProvincesMinorCountries = 4;
 
     public List<Color> TerrainColorMapping;
-    
+
     // Private fields
     private GameObject _mapObject;
 
@@ -64,7 +62,7 @@ public class VoronoiGenerator : MonoBehaviour
     private int _landRegionCount;
 
     // Start is called before the first frame update
-    void Start()
+    private void Start()
     {
         _mapObject = new GameObject("Map");
         _hexGrid = new HexGrid(Height, Width, HexTile);
@@ -76,6 +74,7 @@ public class VoronoiGenerator : MonoBehaviour
         var points = voronoiMap.Where(g => g is Site).Select(s => s.Point).ToList();
         _regions = DetectRegions(points);
         GenerateCountries();
+        _mapOrganizationGenerator.GenerateContinentsList(_regions, _map, _mapObject);
         SkinMap();
     }
 
@@ -130,9 +129,9 @@ public class VoronoiGenerator : MonoBehaviour
 
     private void SkinMap()
     {
-        var tiles = _mapObject.transform.GetComponentsInChildren<Tile>().Where(t=>t.TileTerrainType == TileTerrainType.Water).ToList();
+        var tiles = _mapObject.transform.GetComponentsInChildren<Tile>().Where(t => t.TileTerrainType == TileTerrainType.Water).ToList();
         tiles.ForEach(t =>
-        {            
+        {
             t.SetColor(TerrainColorMapping[(int)t.TileTerrainType]);
             t.ResetSelectionColor();
         });
@@ -153,7 +152,7 @@ public class VoronoiGenerator : MonoBehaviour
                 province.IsWater = true;
                 return province;
             }).Cast<IProvince>().ToList();
-    
+
     private void FillRegion(Province province, TileBase start)
     {
         var tileStack = new Stack<TileBase>();
@@ -177,7 +176,7 @@ public class VoronoiGenerator : MonoBehaviour
 
             foreach (var neighbour in _map.GetNeighboursWithDirection(tile))
             {
-                if(neighbour.Neighbour == null)
+                if (neighbour.Neighbour == null)
                     Debug.LogError($"Neighbour is null, tile is {tile}, tileStack.Count is {tileStack.Count}, province is {province.Name}");
 
                 if (neighbour.Neighbour.Province == null)

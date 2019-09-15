@@ -1,21 +1,27 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using Assets.Scripts.Organization;
+using Assets.Contracts.Organization;
 
-public class Continent : MonoBehaviour {
-    public string Name;
+public class Continent : MonoBehaviour, IContinent {
 
-    public int TileCount;
+    public string Name { get; set; }
 
-    public List<Country> Countries;
+    public int TileCount { get; set; }
 
-    // Use this for initialization
-	void Start () {
-	
-	}
-	
-	// Update is called once per frame
-	void Update () {
-	
-	}
+    public ICollection<ICountry> Countries { get; set; }
+
+    public Continent()
+    {
+        Countries = new List<ICountry>();
+    }
+
+    public void AddCountry(ICountry country)
+    {
+        if (Countries.Contains(country))
+            return;
+
+        Countries.Add(country);
+        country.Continent = this;
+    }
 }

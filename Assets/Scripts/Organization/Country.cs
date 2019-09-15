@@ -21,7 +21,7 @@ namespace Assets.Scripts.Organization
 
         public List<IProvince> Provinces { get; set; }
 
-        public Continent Continent { get; set; }
+        public IContinent Continent { get; set; }
 
         public TileBase Capital { get; private set; }
 
@@ -34,7 +34,7 @@ namespace Assets.Scripts.Organization
         {
             Provinces.Add(province);
             var provinceObject = (Province)province;
-            provinceObject.transform.parent = this.transform;
+            provinceObject.transform.SetParent(this.transform);
         }
 
         public void SetCapital(HexMap map)
@@ -50,7 +50,7 @@ namespace Assets.Scripts.Organization
             Capital.Province.IsCapital = true;
         }
 
-        public void DrawBorder(HexMap map)
+        public void DrawBorder(IHexMap map)
         {
             // Get first tile with any neighbour of another province
             var tiles = Provinces.SelectMany(p => p.HexTiles).ToList();
@@ -68,7 +68,7 @@ namespace Assets.Scripts.Organization
             lineRenderer.SetPositions(vectors);
         }
 
-        private void TraceBorder(TilePair tilePair, List<TilePair> borderRoute, HexMap map)
+        private void TraceBorder(TilePair tilePair, List<TilePair> borderRoute, IHexMap map)
         {
             // Abort if current combination is already stored
             if (borderRoute.Any(p => p.Neighbour == tilePair.Neighbour && p.HexTile == tilePair.HexTile))
@@ -92,6 +92,13 @@ namespace Assets.Scripts.Organization
             if (newPair == null)
                 return;
             TraceBorder(newPair, borderRoute, map);
+        }
+
+        public Transform GetParent() => this.transform.parent;
+
+        public void SetParent(Transform transform)
+        {
+            this.transform.parent = transform;
         }
     }
 }

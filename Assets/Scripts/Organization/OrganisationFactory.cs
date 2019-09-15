@@ -28,5 +28,12 @@ namespace Assets.Scripts.Organization
             province.Name = name;
             return province;
         }
+
+        public GameObject CreateContinent(string name, GameObject parent)
+        {
+            var continent = new GameObject(name);
+            continent.transform.SetParent(parent.transform);
+            return continent;
+        }
     }
 }

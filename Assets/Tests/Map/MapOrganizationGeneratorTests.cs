@@ -231,6 +231,53 @@ namespace Tests
             Assert.Contains(provinces[19].Object, country.Object.Provinces, provinces[19].Object.Name);
         }
 
+        [Test]
+        public void GenerateContinentsList_WithProvinces_Returns_TwoContinents()
+        {
+            var hexMap = new Mock<IHexMap>();
+
+            var provinces = GenerateProvinces(10, 10, hexMap.Object);
+            var provinceObjects = provinces.Select(p => p.Object).ToList();
+
+            var countries = GenerateCountries(3);
+
+            provinceObjects[12].IsWater = false;
+            provinceObjects[12].Owner = countries[0].Object;
+            provinceObjects[13].IsWater = false;
+            provinceObjects[13].Owner = countries[0].Object;
+            provinceObjects[14].IsWater = false;
+            provinceObjects[14].Owner = countries[1].Object;
+            provinceObjects[22].IsWater = false;
+            provinceObjects[22].Owner = countries[0].Object;
+            provinceObjects[23].IsWater = false;
+            provinceObjects[23].Owner = countries[0].Object;
+            provinceObjects[33].IsWater = false;
+            provinceObjects[33].Owner = countries[0].Object;
+            provinceObjects[34].IsWater = false;
+            provinceObjects[34].Owner = countries[1].Object;
+            provinceObjects[42].IsWater = false;
+            provinceObjects[42].Owner = countries[0].Object;
+            provinceObjects[43].IsWater = false;
+            provinceObjects[43].Owner = countries[0].Object;
+            provinceObjects[44].IsWater = false;
+            provinceObjects[44].Owner = countries[1].Object;
+
+            provinceObjects[64].IsWater = false;
+            provinceObjects[64].Owner = countries[2].Object;
+            provinceObjects[65].IsWater = false;
+            provinceObjects[65].Owner = countries[2].Object;
+            provinceObjects[74].IsWater = false;
+            provinceObjects[74].Owner = countries[2].Object;
+
+            var parent = new GameObject();
+
+            var mapOrganizationGenerator = new MapOrganizationGenerator((a, b) => 0);
+
+            var result = mapOrganizationGenerator.GenerateContinentsList(provinceObjects, hexMap.Object, parent);
+
+            Assert.AreEqual(2, result.Count);
+        }
+
         private IList<Mock<IProvince>> GenerateProvinces(int count)
         {
             return Enumerable.Range(0, count).Select(
@@ -255,6 +302,7 @@ namespace Tests
                     province.Setup(m => m.Name).Returns($"Province {index}");
                     province.SetupProperty(p => p.IsWater);
                     province.Object.IsWater = true;
+                    province.SetupProperty(p => p.Owner);
                     province.Setup(m => m.GetNeighbours(map)).Returns(() =>
                     {
                         var list = new List<IProvince>();
@@ -288,5 +336,16 @@ namespace Tests
             }
             return provinces;
         }
+
+        private IList<Mock<ICountry>> GenerateCountries(int count) =>
+           Enumerable.Range(0, 3).Select(i =>
+           {
+               var country = new Mock<ICountry>();
+
+               Transform parent = null;
+               country.Setup(c => c.GetParent()).Returns(parent);
+               country.Setup(c => c.SetParent(It.IsAny<Transform>())).Callback<Transform>(t => parent = t);
+               return country;
+           }).ToList();
     }
 }
