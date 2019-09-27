@@ -34,7 +34,6 @@ namespace Assets.Scripts.Map
                     Debug.LogError($"Invalid index {index} for regions of count {regions.Count}");
 
                 country.AddProvince(region);
-                region.Owner = country;
                 region.IsWater = false;
 
                 Debug.Log($"Province: {region.Name}");
@@ -157,7 +156,6 @@ namespace Assets.Scripts.Map
                     && !provinceQueue.Contains(n) 
                     && landProvinces.Contains(n)))
                     {
-
                         provinceQueue.Enqueue(neighbour);
                     }
                 }

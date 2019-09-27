@@ -35,6 +35,7 @@ namespace Assets.Scripts.Organization
             Provinces.Add(province);
             var provinceObject = (Province)province;
             provinceObject.transform.SetParent(this.transform);
+            province.Owner = this;
         }
 
         public void SetCapital(HexMap map)
