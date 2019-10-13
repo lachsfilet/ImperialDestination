@@ -8,6 +8,12 @@ namespace Assets.Contracts.Map
 {
     public interface IHexMap : IEnumerable<TileBase>
     {
+        int Height { get; }
+
+        int Width { get; }
+
+        TileBase GetTile(Position position);
+
         IEnumerable<TileBase> GetNeighbours(TileBase tile, bool reverse = false);
 
         IEnumerable<TilePair> GetNeighboursWithDirection(TileBase tile);
@@ -17,5 +23,7 @@ namespace Assets.Contracts.Map
         TilePair GetPairWithDirection(TileBase hexTile, TileBase neighbour);
 
         void AddTile(int x, int y, TileBase tile);
+
+        IEnumerable<Position> DrawLine(Position start, Position end);
     }
 }

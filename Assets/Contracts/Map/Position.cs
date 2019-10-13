@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Assets.Contracts.Utilities;
+using System;
+using System.Collections.Generic;
 
 namespace Assets.Contracts.Map
 {
@@ -42,6 +44,6 @@ namespace Assets.Contracts.Map
             return new Position(x, y);
         }
 
-        public override string ToString() => $"Position X: {X}, Y: {Y}";
+        public override string ToString() => $"Position X: {X}, Y: {Y}";        
     }
 }

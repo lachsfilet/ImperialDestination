@@ -1,11 +1,8 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using Assets.Contracts.Map;
+﻿using Assets.Contracts.Map;
 using Assets.Scripts.Map;
 using NUnit.Framework;
+using System.Linq;
 using UnityEngine;
-using UnityEngine.TestTools;
 
 namespace Tests
 {
@@ -39,7 +36,7 @@ namespace Tests
             var hexMap = new HexMap(1, 1);
             var tile = TileBuilder.Create().Build();
             Assert.IsNotNull(tile);
-            hexMap.AddTile(0, 0,tile);
+            hexMap.AddTile(0, 0, tile);
 
             var result = hexMap.GetTile(0, 0);
 
@@ -68,7 +65,7 @@ namespace Tests
             var a = hexMap.GetTile(0, 0);
             var b = hexMap.GetTile(1, 2);
             var distance = hexMap.GetDistance(a.Position, b.Position);
-                        
+
             Assert.AreEqual(2, distance);
         }
 
@@ -79,7 +76,7 @@ namespace Tests
             var a = hexMap.GetTile(0, 0);
             var b = hexMap.GetTile(1, 2);
             var line = hexMap.DrawLine(a.Position, b.Position).ToList();
-                        
+
             Assert.IsNotNull(line);
             Assert.AreEqual(3, line.Count);
             Assert.AreEqual(new Position(0, 0), line[0]);

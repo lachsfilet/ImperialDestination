@@ -1,10 +1,10 @@
 ﻿using Assets.Contracts;
 using Assets.Contracts.Map;
 using Assets.Contracts.Organization;
+using Assets.Contracts.Utilities;
 using Assets.Scripts;
 using Assets.Scripts.Map;
 using Assets.Scripts.Organization;
-using Assets.Scripts.Utilities;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -39,6 +39,10 @@ public class VoronoiGenerator : MonoBehaviour
     public int ProvincesMajorCountries = 8;
 
     public int ProvincesMinorCountries = 4;
+
+    public int DesertBelt = 10;
+
+    public int PoleBelt = 5;
 
     public List<Color> TerrainColorMapping;
 

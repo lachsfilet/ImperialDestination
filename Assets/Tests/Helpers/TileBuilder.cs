@@ -1,4 +1,5 @@
 ﻿using Assets.Contracts.Map;
+using Assets.Contracts.Organization;
 using UnityEngine;
 
 namespace Tests
@@ -7,6 +8,7 @@ namespace Tests
     {
         private TileTerrainType _type;
         private Position _position;
+        private IProvince _province;
 
         private TileBuilder()
         {
@@ -28,12 +30,19 @@ namespace Tests
             return this;
         }
 
+        public TileBuilder WithProvince(IProvince province)
+        {
+            _province = province;
+            return this;
+        }
+
         public Tile Build()
         {
             var hexTile = new GameObject();            
             var tile = hexTile.AddComponent<Tile>();
             tile.TileTerrainType = _type;
             tile.Position = _position;
+            tile.Province = _province;
             return tile;
         }
     }

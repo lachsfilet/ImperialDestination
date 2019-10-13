@@ -14,7 +14,9 @@ namespace Assets.Scripts.Map
         private TileBase[,] _map;
         
         public int Height { get; private set; }
+
         public int Width { get; private set; }
+
         public GameObject HexTile { get; private set; }
 
         public HexMap(int height, int width)
@@ -55,6 +57,14 @@ namespace Assets.Scripts.Map
             return null;
         }
 
+        public TileBase GetTile(Position position)
+        {
+            if (position is null)            
+                throw new ArgumentNullException(nameof(position));            
+
+            return _map[position.X, position.Y];
+        }
+        
         public IEnumerable<TileBase> GetTilesOfTerrainType(TileTerrainType terrainType)
         {
             for(var i = 0; i < _map.GetLength(0); i++)

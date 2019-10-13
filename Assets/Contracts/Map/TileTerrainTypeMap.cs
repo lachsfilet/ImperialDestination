@@ -1,8 +1,7 @@
-﻿using Assets.Contracts.Map;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 
-namespace Assets.Scripts.Map
+namespace Assets.Contracts.Map
 {
     public class TileTerrainTypeMap : IEnumerable<TileTerrainType>
     {

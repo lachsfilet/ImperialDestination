@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Assets.Scripts.Utilities
+namespace Assets.Contracts.Utilities
 {
     public static class IntExtensions
     {

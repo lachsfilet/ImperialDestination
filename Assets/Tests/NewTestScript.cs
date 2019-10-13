@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Assets.Scripts.Utilities;
+using Assets.Contracts.Utilities;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
