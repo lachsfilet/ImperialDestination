@@ -43,7 +43,7 @@ namespace Tests
             {
                 for (var j = 0; j < _width; j++)
                 {
-                    map.AddTile(i, j, _tileBuilder.WithPosition(new Position(i, j)).Build());
+                    map.AddTile(j, i, _tileBuilder.WithPosition(new Position(j, i)).Build());
                 }
             }
             return map;

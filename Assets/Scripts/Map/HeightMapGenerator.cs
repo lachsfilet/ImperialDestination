@@ -5,6 +5,7 @@ using Assets.Contracts.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace Assets.Scripts.Map
 {
@@ -24,13 +25,13 @@ namespace Assets.Scripts.Map
         public void GenerateHeightMap(IHexMap hexMap, int ratio)
         {
             var heightMap = new Dictionary<TileBase, TileTerrainType>();
-            var continents = hexMap.Where(t => t.TileTerrainType == TileTerrainType.Water).Select(t => t.Province.Owner.Continent).Distinct();
+            var continents = hexMap.Where(t => t.TileTerrainType != TileTerrainType.Water).Select(t => t.Province.Owner.Continent).Distinct();
 
             foreach (var continent in continents)
             {
                 var sectors = SliceContinentSectors(continent);
 
-                 var index = _random(0, 4);
+                var index = _random(0, 4);
                 var startSector = sectors[index];
                 sectors.Remove(startSector);
 
@@ -89,6 +90,9 @@ namespace Assets.Scripts.Map
 
             foreach (var mountain in mountains)
             {
+                var subresult = new List<TileBase>();
+                Debug.Log($"Mountain at {mountain.Position}");
+
                 var fringes = new List<List<TileBase>>
                 {
                     new List<TileBase> { mountain }
@@ -98,39 +102,25 @@ namespace Assets.Scripts.Map
                 {
                     foreach (var tile in fringes[i - 1])
                     {
-                        fringes.Add(new List<TileBase>());
+                        Debug.Log($"Fringe {i - 1}, Tile: {tile.TileTerrainType} at {tile.Position}");
 
-                        foreach (var neighbour in map.GetNeighbours(tile)
-                            .Where(n => n.TileTerrainType != TileTerrainType.Water
+                        fringes.Add(new List<TileBase>());
+                        var neighbours = map.GetNeighbours(tile).ToList();
+                        foreach (var neighbour in neighbours
+                            .Where(n => n.TileTerrainType != TileTerrainType.Water                                
                                 && !mountains.Contains(n)
-                                && !result.Contains(n)))
+                                && !subresult.Contains(n)))
                         {
-                            result.Add(neighbour);
+                            subresult.Add(neighbour);
+
+                            Debug.Log($"Fringe {i}, Add tile: {neighbour.TileTerrainType} at {neighbour.Position}");
                             fringes[i].Add(neighbour);
                         }
                     }
                 }
+                result.AddRange(subresult.Where(t => !result.Contains(t)));
             }
             return result;
         }
-
-        /*
-            function hex_reachable(start, movement):
-            var visited = set() # set of hexes
-            add start to visited
-            var fringes = [] # array of arrays of hexes
-            fringes.append([start])
-
-            for each 1 < k ≤ movement:
-                fringes.append([])
-                for each hex in fringes[k-1]:
-                    for each 0 ≤ dir < 6:
-                        var neighbor = hex_neighbor(hex, dir)
-                        if neighbor not in visited and not blocked:
-                            add neighbor to visited
-                            fringes[k].append(neighbor)
-
-            return visited
-         */
     }
 }

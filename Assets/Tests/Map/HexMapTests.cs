@@ -1,4 +1,5 @@
 ﻿using Assets.Contracts.Map;
+using Assets.Contracts.Utilities;
 using Assets.Scripts.Map;
 using NUnit.Framework;
 using System.Linq;
@@ -18,16 +19,79 @@ namespace Tests
         }
 
         [Test]
-        public void GetNeighbour_WithDirection_ReturnsCorrectNeigbour()
+        [TestCase(Direction.Northwest, 1, 0)]
+        [TestCase(Direction.Northeast, 2, 0)]
+        [TestCase(Direction.East, 2, 1)]
+        [TestCase(Direction.Southeast, 2, 2)]
+        [TestCase(Direction.Southwest, 1, 2)]
+        [TestCase(Direction.West, 0, 1)]
+        public void GetNeighbours_WithOddTile_ReturnsCorrectNeigbour(Direction direction, int x, int y)
         {
             var hexMap = HexMapBuilder.Create().WithHeight(3).WithWidth(3).Build();
             var tile = hexMap.GetTile(1, 1);
-            Assert.IsNotNull(tile);
-            var expected = hexMap.GetTile(1, 0);
+            
+            var expected = hexMap.GetTile(x, y);
+            Assert.IsNotNull(expected);
 
-            var neigbour = hexMap.GetNeighbour(tile, Direction.Northwest);
+            var neigbour = hexMap.GetNeighbour(tile, direction);
 
             Assert.AreSame(expected, neigbour);
+        }
+
+        [Test]
+        [TestCase(Direction.Northwest, 0, 1)]
+        [TestCase(Direction.Northeast, 1, 1)]
+        [TestCase(Direction.East, 2, 2)]
+        [TestCase(Direction.Southeast, 1, 3)]
+        [TestCase(Direction.Southwest, 0, 3)]
+        [TestCase(Direction.West, 0, 2)]
+        public void GetNeighbours_WithEvenTile_ReturnsCorrectNeigbour(Direction direction, int x, int y)
+        {
+            var hexMap = HexMapBuilder.Create().WithHeight(4).WithWidth(3).Build();
+            var tile = hexMap.GetTile(1, 2);
+
+            var expected = hexMap.GetTile(x, y);
+            Assert.IsNotNull(expected);
+
+            var neigbour = hexMap.GetNeighbour(tile, direction);
+
+            Assert.AreSame(expected, neigbour);
+        }
+
+        [Test]
+        public void GetNeighbours_WithOddTile_ReturnsAllNeighbours()
+        {
+            var hexMap = HexMapBuilder.Create().WithHeight(3).WithWidth(3).Build();
+            var tile = hexMap.GetTile(1, 1);
+
+            var neighbours = hexMap.GetNeighbours(tile).ToList();
+
+            Assert.AreEqual(6, neighbours.Count);
+
+            Assert.IsTrue(neighbours.Any(n => n.Position.Equals(new Position(1, 0))), $"Neighbours are {string.Join(", ", neighbours.Select(n=>n.Position))}");
+            Assert.IsTrue(neighbours.Any(n => n.Position.Equals(new Position(2, 0))), $"Neighbours are {string.Join(", ", neighbours.Select(n=>n.Position))}");
+            Assert.IsTrue(neighbours.Any(n => n.Position.Equals(new Position(2, 1))), $"Neighbours are {string.Join(", ", neighbours.Select(n=>n.Position))}");
+            Assert.IsTrue(neighbours.Any(n => n.Position.Equals(new Position(2, 2))), $"Neighbours are {string.Join(", ", neighbours.Select(n=>n.Position))}");
+            Assert.IsTrue(neighbours.Any(n => n.Position.Equals(new Position(1, 2))), $"Neighbours are {string.Join(", ", neighbours.Select(n=>n.Position))}");
+            Assert.IsTrue(neighbours.Any(n => n.Position.Equals(new Position(0, 1))), $"Neighbours are {string.Join(", ", neighbours.Select(n => n.Position))}");
+        }
+
+        [Test]
+        public void GetNeighbours_WithEvenTile_ReturnsAllNeighbours()
+        {
+            var hexMap = HexMapBuilder.Create().WithHeight(8).WithWidth(8).Build();
+            var tile = hexMap.GetTile(3, 4);
+
+            var neighbours = hexMap.GetNeighbours(tile).ToList();
+
+            Assert.AreEqual(6, neighbours.Count);
+
+            Assert.IsTrue(neighbours.Any(n => n.Position.Equals(new Position(2, 3))), $"Neighbours are {string.Join(", ", neighbours.Select(n => n.Position))}");
+            Assert.IsTrue(neighbours.Any(n => n.Position.Equals(new Position(3, 3))), $"Neighbours are {string.Join(", ", neighbours.Select(n=>n.Position))}");
+            Assert.IsTrue(neighbours.Any(n => n.Position.Equals(new Position(2, 4))), $"Neighbours are {string.Join(", ", neighbours.Select(n => n.Position))}");
+            Assert.IsTrue(neighbours.Any(n => n.Position.Equals(new Position(4, 4))), $"Neighbours are {string.Join(", ", neighbours.Select(n => n.Position))}");
+            Assert.IsTrue(neighbours.Any(n => n.Position.Equals(new Position(2, 5))), $"Neighbours are {string.Join(", ", neighbours.Select(n => n.Position))}");
+            Assert.IsTrue(neighbours.Any(n => n.Position.Equals(new Position(3, 5))), $"Neighbours are {string.Join(", ", neighbours.Select(n => n.Position))}");
         }
 
         [Test]
