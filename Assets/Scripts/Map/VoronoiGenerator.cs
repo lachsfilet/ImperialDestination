@@ -26,6 +26,8 @@ public class VoronoiGenerator : MonoBehaviour
 
     public GameObject Country;
 
+    public GameObject Continent;
+
     public int Height = 1;
 
     public int Width = 1;
@@ -63,7 +65,9 @@ public class VoronoiGenerator : MonoBehaviour
 
     private IMapOrganizationGenerator _mapOrganizationGenerator;
 
-    private int _landRegionCount;
+    private ITerrainGenerator _terrainGenerator;
+
+    private IOrganisationFactory _organisationFactory;
 
     // Start is called before the first frame update
     private void Start()
@@ -71,14 +75,19 @@ public class VoronoiGenerator : MonoBehaviour
         _mapObject = new GameObject("Map");
         _hexGrid = new HexGrid(Height, Width, HexTile);
         _map = new HexMap(Height, Width);
-        _landRegionCount = MajorCountries * ProvincesMajorCountries + MinorCountries * ProvincesMinorCountries;
-        _mapOrganizationGenerator = new MapOrganizationGenerator();
+        _organisationFactory = new OrganisationFactory();
+        _mapOrganizationGenerator = new MapOrganizationGenerator(_organisationFactory);
+
+        var heightMapGenerator = new HeightMapGenerator();
+        _terrainGenerator = new TerrainGenerator(heightMapGenerator);
 
         var voronoiMap = GenerateMap();
         var points = voronoiMap.Where(g => g is Site).Select(s => s.Point).ToList();
         _regions = DetectRegions(points);
         GenerateCountries();
-        _mapOrganizationGenerator.GenerateContinentsList(_regions, _map, _mapObject);
+        _mapOrganizationGenerator.GenerateContinentsList(Instantiate<GameObject>, Continent, _regions, _map, _mapObject);
+
+        _terrainGenerator.CreateMap(_map);
         SkinMap();
     }
 
@@ -133,7 +142,7 @@ public class VoronoiGenerator : MonoBehaviour
 
     private void SkinMap()
     {
-        var tiles = _mapObject.transform.GetComponentsInChildren<Tile>().Where(t => t.TileTerrainType == TileTerrainType.Water).ToList();
+        var tiles = _mapObject.transform.GetComponentsInChildren<Tile>().ToList();//.Where(t => t.TileTerrainType == TileTerrainType.Water).ToList();
         tiles.ForEach(t =>
         {
             t.SetColor(TerrainColorMapping[(int)t.TileTerrainType]);
@@ -208,7 +217,7 @@ public class VoronoiGenerator : MonoBehaviour
             var regionCount = countryInfo.isMajor ? ProvincesMajorCountries : ProvincesMinorCountries;
             var prefix = countryInfo.isMajor ? "Major" : "Minor";
             var countryContainer = Instantiate(Country);
-            var country = OrganisationFactory.Instance.CreateCountry(
+            var country = _organisationFactory.CreateCountry(
                 countryContainer,
                 $"{prefix} Country {count}",
                 countryInfo.isMajor ? CountryType.Major : CountryType.Minor,

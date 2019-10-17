@@ -8,6 +8,6 @@ namespace Assets.Contracts.Map
 {
     public interface ITerrainGenerator
     {
-        
+        TileTerrainTypeMap CreateMap(IHexMap hexMap);
     }
 }

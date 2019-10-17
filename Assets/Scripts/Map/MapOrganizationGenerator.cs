@@ -12,12 +12,15 @@ namespace Assets.Scripts.Map
     {
         private Func<int, int, int> _random;
 
-        public MapOrganizationGenerator() : this(UnityEngine.Random.Range)
+        private IOrganisationFactory _organisationFactory;
+
+        public MapOrganizationGenerator(IOrganisationFactory organisationFactory) : this(organisationFactory, UnityEngine.Random.Range)
         {
         }
 
-        public MapOrganizationGenerator(Func<int, int, int> random)
+        public MapOrganizationGenerator(IOrganisationFactory organisationFactory, Func<int, int, int> random)
         {
+            _organisationFactory = organisationFactory;
             _random = random;
         }
 
@@ -129,9 +132,9 @@ namespace Assets.Scripts.Map
             return steps > 0;
         }
 
-        public ICollection<GameObject> GenerateContinentsList(ICollection<IProvince> provinces, IHexMap map, GameObject parent)
+        public ICollection<IContinent> GenerateContinentsList(Func<GameObject, GameObject> instantiate, GameObject original, ICollection<IProvince> provinces, IHexMap map, GameObject parent)
         {
-            var continents = new List<GameObject>();
+            var continents = new List<IContinent>();
             var landProvinces = provinces.Where(p => !p.IsWater && p.Owner != null).ToList();
 
             var count = 0;
@@ -140,7 +143,7 @@ namespace Assets.Scripts.Map
                 var provinceQueue = new Queue<IProvince>();
                 provinceQueue.Enqueue(landProvinces.First());
 
-                var continent = OrganisationFactory.Instance.CreateContinent($"Continent {count++}", parent);
+                var continent = _organisationFactory.CreateContinent(instantiate(original), $"Continent {count++}", parent);
                 continents.Add(continent);
 
                 while (provinceQueue.Any())
@@ -148,7 +151,7 @@ namespace Assets.Scripts.Map
                     var province = provinceQueue.Dequeue();
                     var countryParent = province.Owner.GetParent();
                     if (countryParent == null)
-                        province.Owner.SetParent(continent.transform);
+                        continent.AddCountry(province.Owner);                        
 
                     landProvinces.Remove(province);
 

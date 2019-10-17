@@ -27,7 +27,9 @@ namespace Tests
                 province.Object
             };
 
-            var mapOrganizationGenerator = new MapOrganizationGenerator();
+            var organisationFactory = new Mock<IOrganisationFactory>();
+
+            var mapOrganizationGenerator = new MapOrganizationGenerator(organisationFactory.Object);
 
             Assert.Throws<InvalidOperationException>(() => mapOrganizationGenerator.GenerateCountryOnMap(country.Object, regions, map.Object, 1, Color.black, 1));
         }
@@ -51,7 +53,9 @@ namespace Tests
 
             var regions = provinces.Select(p => p.Object).ToList();
 
-            var mapOrganizationGenerator = new MapOrganizationGenerator();
+            var organisationFactory = new Mock<IOrganisationFactory>();
+
+            var mapOrganizationGenerator = new MapOrganizationGenerator(organisationFactory.Object);
 
             mapOrganizationGenerator.GenerateCountryOnMap(country.Object, regions, map.Object, 2, Color.black, 1);
 
@@ -86,7 +90,10 @@ namespace Tests
                     return 1;
                 return 0;
             };
-            var mapOrganizationGenerator = new MapOrganizationGenerator(random);
+
+            var organisationFactory = new Mock<IOrganisationFactory>();
+
+            var mapOrganizationGenerator = new MapOrganizationGenerator(organisationFactory.Object, random);
 
             mapOrganizationGenerator.GenerateCountryOnMap(country.Object, regions, map.Object, 3, Color.black, 1);
 
@@ -141,7 +148,10 @@ namespace Tests
                         return 0;
                 }                
             };
-            var mapOrganizationGenerator = new MapOrganizationGenerator(random);
+            
+            var organisationFactory = new Mock<IOrganisationFactory>();
+
+            var mapOrganizationGenerator = new MapOrganizationGenerator(organisationFactory.Object, random);
 
             mapOrganizationGenerator.GenerateCountryOnMap(country.Object, regions, map.Object, 8, Color.black, 1);
 
@@ -214,7 +224,10 @@ namespace Tests
                         return 0;
                 }
             };
-            var mapOrganizationGenerator = new MapOrganizationGenerator(random);
+
+            var organisationFactory = new Mock<IOrganisationFactory>();
+
+            var mapOrganizationGenerator = new MapOrganizationGenerator(organisationFactory.Object, random);
 
             mapOrganizationGenerator.GenerateCountryOnMap(country.Object, regions, map.Object, 10, Color.black, 1);
 
@@ -239,7 +252,7 @@ namespace Tests
             var provinces = GenerateProvinces(10, 10, hexMap.Object);
             var provinceObjects = provinces.Select(p => p.Object).ToList();
 
-            var countries = GenerateCountries(3);
+            var countries = GenerateCountries(3);                      
 
             provinceObjects[12].IsWater = false;
             provinceObjects[12].Owner = countries[0].Object;
@@ -271,9 +284,15 @@ namespace Tests
 
             var parent = new GameObject();
 
-            var mapOrganizationGenerator = new MapOrganizationGenerator((a, b) => 0);
+            var continent = new Mock<IContinent>();
+            continent.Setup(c => c.AddCountry(It.IsAny<ICountry>()));
+            var container = new GameObject();
+            var organisationFactory = new Mock<IOrganisationFactory>();
+            organisationFactory.Setup(o => o.CreateContinent(container, It.IsAny<string>(), parent)).Returns(continent.Object);
 
-            var result = mapOrganizationGenerator.GenerateContinentsList(provinceObjects, hexMap.Object, parent);
+            var mapOrganizationGenerator = new MapOrganizationGenerator(organisationFactory.Object, (a, b) => 0);
+
+            var result = mapOrganizationGenerator.GenerateContinentsList(foo => container, new GameObject(), provinceObjects, hexMap.Object, parent);
 
             Assert.AreEqual(2, result.Count);
         }
@@ -338,7 +357,7 @@ namespace Tests
         }
 
         private IList<Mock<ICountry>> GenerateCountries(int count) =>
-           Enumerable.Range(0, 3).Select(i =>
+           Enumerable.Range(0, count).Select(i =>
            {
                var country = new Mock<ICountry>();
 

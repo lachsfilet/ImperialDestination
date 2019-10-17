@@ -1,10 +1,9 @@
-﻿using UnityEngine;
+﻿using Assets.Contracts.Organization;
 using System.Collections.Generic;
-using Assets.Scripts.Organization;
-using Assets.Contracts.Organization;
+using UnityEngine;
 
-public class Continent : MonoBehaviour, IContinent {
-
+public class Continent : MonoBehaviour, IContinent
+{
     public string Name { get; set; }
 
     public int TileCount { get; set; }
@@ -23,5 +22,6 @@ public class Continent : MonoBehaviour, IContinent {
 
         Countries.Add(country);
         country.Continent = this;
+        country.SetParent(transform);
     }
 }

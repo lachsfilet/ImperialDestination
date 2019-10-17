@@ -3,35 +3,28 @@ using UnityEngine;
 
 namespace Assets.Scripts.Organization
 {
-    public class OrganisationFactory
-    { 
-        private static OrganisationFactory _instance;
-
-        private OrganisationFactory()
+    public class OrganisationFactory : IOrganisationFactory
+    {                   
+        public ICountry CreateCountry(GameObject countryContainer, string name, CountryType countryType, Color color)
         {
-        }
-
-        public static OrganisationFactory Instance => _instance ?? (_instance = new OrganisationFactory());
-
-        public Country CreateCountry(GameObject countryContainer, string name, CountryType countryType, Color color)
-        {
-            var country = countryContainer.GetComponent<Country>(); 
+            var country = countryContainer.GetComponent<Country>();
             country.Name = name;
             country.CountryType = countryType;
             country.Color = color;
             return country;
         }
 
-        public Province CreateProvince(GameObject provinceContainer, string name)
+        public IProvince CreateProvince(GameObject provinceContainer, string name)
         {
             var province = provinceContainer.GetComponent<Province>();
             province.Name = name;
             return province;
         }
 
-        public GameObject CreateContinent(string name, GameObject parent)
+        public IContinent CreateContinent(GameObject continentContainer, string name, GameObject parent)
         {
-            var continent = new GameObject(name);
+            var continent = continentContainer.GetComponent<Continent>();
+            continent.Name = name;
             continent.transform.SetParent(parent.transform);
             return continent;
         }

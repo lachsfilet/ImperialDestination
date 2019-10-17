@@ -9,5 +9,7 @@ namespace Assets.Contracts.Organization
         int TileCount { get; set; }
 
         ICollection<ICountry> Countries { get; set; }
+
+        void AddCountry(ICountry country);
     }
 }

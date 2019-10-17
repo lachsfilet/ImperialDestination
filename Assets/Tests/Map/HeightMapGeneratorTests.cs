@@ -1,17 +1,15 @@
 ﻿using Assets.Contracts.Map;
-using Assets.Scripts.Map;
-using NUnit.Framework;
-using Moq;
-using System.Linq;
-using UnityEngine;
-using System;
 using Assets.Contracts.Organization;
-using System.Collections.Generic;
 using Assets.Contracts.Utilities;
+using Assets.Scripts.Map;
+using Moq;
+using NUnit.Framework;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Tests
 {
-    
     public class HeightMapGeneratorTests
     {
         [Test]
@@ -35,13 +33,15 @@ namespace Tests
             province.Setup(p => p.HexTiles).Returns(hexMap.ToList());
 
             Assert.IsTrue(hexMap.All(t => t.TileTerrainType == TileTerrainType.Plain));
-            
+
             var counter = 0;
-            Func<int, int, int> random = (start, end) => {
-                switch(counter++)
+            Func<int, int, int> random = (start, end) =>
+            {
+                switch (counter++)
                 {
                     case 2:
                         return 3;
+
                     default:
                         return 0;
                 }
@@ -74,12 +74,11 @@ namespace Tests
             Assert.IsTrue(hills.Any(h => h.Position.Equals(new Position(2, 5))));
             Assert.IsTrue(hills.Any(h => h.Position.Equals(new Position(3, 5))));
             Assert.IsTrue(hills.Any(h => h.Position.Equals(new Position(4, 5))));
-            Assert.IsTrue(hills.Any(h => h.Position.Equals(new Position(5, 5))));            
+            Assert.IsTrue(hills.Any(h => h.Position.Equals(new Position(5, 5))));
             Assert.IsTrue(hills.Any(h => h.Position.Equals(new Position(2, 6))));
             Assert.IsTrue(hills.Any(h => h.Position.Equals(new Position(3, 6))));
             Assert.IsTrue(hills.Any(h => h.Position.Equals(new Position(4, 6))));
             //Assert.IsTrue(hills.Any(h => h.Position.Equals(new Position(5, 6))));
-
 
             var comparer = new PositionComparer(hills.Count);
             Assert.AreEqual(22, hills.Count, $"The following tiles are hills: {string.Join(",", hills.OrderBy(h => h.Position, comparer).Select(h => h.Position.ToString()))}");
@@ -108,13 +107,16 @@ namespace Tests
             Assert.IsTrue(hexMap.All(t => t.TileTerrainType == TileTerrainType.Plain));
 
             var counter = 0;
-            Func<int, int, int> random = (start, end) => {
+            Func<int, int, int> random = (start, end) =>
+            {
                 switch (counter++)
                 {
                     case 2:
                         return 2;
+
                     case 3:
                         return 1;
+
                     default:
                         return 0;
                 }
