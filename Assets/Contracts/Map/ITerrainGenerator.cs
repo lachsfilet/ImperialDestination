@@ -8,6 +8,9 @@ namespace Assets.Contracts.Map
 {
     public interface ITerrainGenerator
     {
-        TileTerrainTypeMap CreateMap(IHexMap hexMap);
+        int DesertBelt { get; set; }
+        int PoleBelt { get; set; }
+
+        void GenerateTerrain(IHexMap hexMap);
     }
 }

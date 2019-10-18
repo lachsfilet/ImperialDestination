@@ -80,14 +80,16 @@ public class VoronoiGenerator : MonoBehaviour
 
         var heightMapGenerator = new HeightMapGenerator();
         _terrainGenerator = new TerrainGenerator(heightMapGenerator);
+        _terrainGenerator.DesertBelt = DesertBelt;
+        _terrainGenerator.PoleBelt = PoleBelt;
 
         var voronoiMap = GenerateMap();
         var points = voronoiMap.Where(g => g is Site).Select(s => s.Point).ToList();
         _regions = DetectRegions(points);
         GenerateCountries();
-        _mapOrganizationGenerator.GenerateContinentsList(Instantiate<GameObject>, Continent, _regions, _map, _mapObject);
+        _mapOrganizationGenerator.GenerateContinentsList(Instantiate, Continent, _regions, _map, _mapObject);
 
-        _terrainGenerator.CreateMap(_map);
+        _terrainGenerator.GenerateTerrain(_map);
         SkinMap();
     }
 

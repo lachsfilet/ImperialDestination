@@ -7,7 +7,8 @@ namespace Assets.Scripts.Map
 {
     public class TerrainGenerator : ITerrainGenerator
     {
-        private int _equator;
+        private int _desertBeltUpper;
+        private int _desertBeltLower;
 
         private readonly IHeightMapGenerator _heightMapGenerator;
 
@@ -26,79 +27,81 @@ namespace Assets.Scripts.Map
             _heightMapGenerator = heightMapGenerator;
         }
                 
-        public TileTerrainTypeMap CreateMap(IHexMap hexMap)
+        public void GenerateTerrain(IHexMap hexMap)
         {
-            _equator = (int)Math.Round(hexMap.Height / 2m);
-                        
-            var terrainMap = new TileTerrainTypeMap(hexMap.Width, hexMap.Height);
-            
-            var terrainTypes = new Dictionary<TileTerrainType, double>
+            CalculateDesertArea(hexMap);
+
+            var terrainTypes = new Dictionary<TileTerrainType, int>
             {
-                { TileTerrainType.Bosk, 0.1 },
-                { TileTerrainType.Forest, 0.1 },
-                { TileTerrainType.Marsh, 0.02 },
-                { TileTerrainType.GrainField, 0.2 },
-                { TileTerrainType.Orchard, 0.05 },
-                { TileTerrainType.CattleMeadows, 0.05 },
-                { TileTerrainType.CottonField, 0.05 },
-                { TileTerrainType.SheepMeadows, 0.05 },
-                { TileTerrainType.StudFarm, 0.01 }
+                { TileTerrainType.Bosk, 10 },
+                { TileTerrainType.Forest, 10 },
+                { TileTerrainType.Marsh, 2 },
+                { TileTerrainType.GrainField, 2 },
+                { TileTerrainType.Orchard, 5 },
+                { TileTerrainType.CattleMeadows, 5 },
+                { TileTerrainType.CottonField, 5 },
+                { TileTerrainType.SheepMeadows, 5 },
+                { TileTerrainType.StudFarm, 1 }
             };
 
             _heightMapGenerator.GenerateHeightMap(hexMap, 5);
 
-            var random = new Random();
-
             foreach(var tile in hexMap)
             {
-                var x = tile.Position.X;
                 var y = tile.Position.Y;
                 
                 if (tile.Province.IsWater)
                 {
-                    terrainMap.Add(TileTerrainType.Water, x, y);
+                    tile.TileTerrainType = TileTerrainType.Water;
                     continue;
                 }
 
+                if (tile.TileTerrainType == TileTerrainType.Mountains || tile.TileTerrainType == TileTerrainType.Hills)
+                    continue;
+
                 if (IsWithinDesertBelt(y))
                 {
-                    terrainMap.Add(TileTerrainType.Desert, x, y);
+                    tile.TileTerrainType = TileTerrainType.Desert;
                     continue;
                 }
 
                 if (IsWithinPoleBelt(y, hexMap.Height))
                 {
-                    terrainMap.Add(TileTerrainType.Tundra, x, y);
+                    tile.TileTerrainType = TileTerrainType.Tundra;
                     continue;
                 }
-
-                var plainTerrain = TileTerrainType.Plain;
-
-                // Generate busk, forest and agriculture tiles 
-                foreach (var terrainType in terrainTypes.Keys)
-                {
-                    var randomValue = random.NextDouble();
-                    if (randomValue > terrainTypes[terrainType])
-                        continue;
-
-                    plainTerrain = terrainType;
-                    break;
-                }                
-                terrainMap.Add(plainTerrain, x, y);
+                        
+                tile.TileTerrainType = RandomizeTerrain(terrainTypes);
             }
-            return terrainMap;
         }            
 
-        private bool IsWithinDesertBelt(int y)
+        private void CalculateDesertArea(IHexMap hexMap)
         {
-            var upper = _equator + DesertBelt / 2;
-            var lower = _equator - DesertBelt / 2;
-            return (y < upper && y > lower);
+            var equator = (int)Math.Round(hexMap.Height / 2m);
+
+            _desertBeltUpper = equator + DesertBelt / 2;
+            _desertBeltLower = equator - DesertBelt / 2;
         }
+
+        private bool IsWithinDesertBelt(int y) 
+            => DesertBelt == 0 ? false : y <= _desertBeltUpper && y >= _desertBeltLower;
 
         private bool IsWithinPoleBelt(int y, int height)
         {
             return (y < PoleBelt || y >= height - PoleBelt);
-        }      
+        }
+        
+        private TileTerrainType RandomizeTerrain(IDictionary<TileTerrainType, int> terrainTypes)
+        {
+            var random = UnityEngine.Random.Range(1, 101);
+
+            var sum = 0;
+            var terrainTable = terrainTypes.ToDictionary(t => sum += t.Value, t => t.Key);
+
+            terrainTable.Add(100, TileTerrainType.Plain);
+
+            var key = terrainTable.Keys.Where(k => k >= random).Min();
+            return terrainTable[key];
+        }
     }
 }
