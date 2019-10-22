@@ -86,7 +86,8 @@ public class VoronoiGenerator : MonoBehaviour
         var voronoiMap = GenerateMap();
         var points = voronoiMap.Where(g => g is Site).Select(s => s.Point).ToList();
         _regions = DetectRegions(points);
-        GenerateCountries();
+
+        _mapOrganizationGenerator.GenerateCountries(_regions, _map, MajorCountries, MinorCountries, ProvincesMajorCountries, ProvincesMinorCountries, Instantiate, Country);
         _mapOrganizationGenerator.GenerateContinentsList(Instantiate, Continent, _regions, _map, _mapObject);
 
         _terrainGenerator.GenerateTerrain(_map);
@@ -144,10 +145,13 @@ public class VoronoiGenerator : MonoBehaviour
 
     private void SkinMap()
     {
-        var tiles = _mapObject.transform.GetComponentsInChildren<Tile>().ToList();//.Where(t => t.TileTerrainType == TileTerrainType.Water).ToList();
+        var tiles = _mapObject.transform.GetComponentsInChildren<Tile>().ToList();
         tiles.ForEach(t =>
         {
-            t.SetColor(TerrainColorMapping[(int)t.TileTerrainType]);
+            if (t.Province != null && t.Province.IsCapital && t.TileTerrainType == TileTerrainType.City)
+                t.SetColor(Color.red);
+            else
+                t.SetColor(TerrainColorMapping[(int)t.TileTerrainType]);
             t.ResetSelectionColor();
         });
     }
@@ -200,35 +204,5 @@ public class VoronoiGenerator : MonoBehaviour
                 }
             }
         }
-    }
-
-    private void GenerateCountries()
-    {
-        var color = new Color(1, 1, 1, 1);
-
-        var regions = _regions.Where(p => !p.HexTiles.Any(h => h.Position.X == 0 || h.Position.Y == 0 || h.Position.X == Width - 1 || h.Position.Y == Height - 1)).ToList();
-
-        var majorCountries = Enumerable.Range(1, MajorCountries).Select(n => new { number = n, isMajor = true });
-        var minorCountries = Enumerable.Range(1, MinorCountries).Select(n => new { number = n, isMajor = false });
-        var countries = majorCountries.Concat(minorCountries).Shuffle().ToList();
-        var step = 1f / countries.Count;
-
-        var count = 0;
-        foreach (var countryInfo in countries)
-        {
-            var regionCount = countryInfo.isMajor ? ProvincesMajorCountries : ProvincesMinorCountries;
-            var prefix = countryInfo.isMajor ? "Major" : "Minor";
-            var countryContainer = Instantiate(Country);
-            var country = _organisationFactory.CreateCountry(
-                countryContainer,
-                $"{prefix} Country {count}",
-                countryInfo.isMajor ? CountryType.Major : CountryType.Minor,
-                color);
-
-            _mapOrganizationGenerator.GenerateCountryOnMap(country, regions, _map, regionCount, color, step);
-
-            color = new Color(color.r - step, color.g - step, color.b - step, 1);
-            count++;
-        }
-    }
+    }    
 }

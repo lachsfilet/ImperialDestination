@@ -61,6 +61,7 @@ namespace Tests
         [TestCase(TileTerrainType.Water)]
         [TestCase(TileTerrainType.Mountains)]
         [TestCase(TileTerrainType.Hills)]
+        [TestCase(TileTerrainType.City)]
         public void GenerateTerrain_WithHexMapWithUnchangeable_CreatesTerrainMap(TileTerrainType tileTerrainType)
         {
             var heightMapGeneratorMock = new Mock<IHeightMapGenerator>();
@@ -78,9 +79,11 @@ namespace Tests
                 ).Build();
 
             var terrainGenerator = new TerrainGenerator(heightMapGeneratorMock.Object);
+            terrainGenerator.DesertBelt = 1;
+            terrainGenerator.PoleBelt = 1;
             terrainGenerator.GenerateTerrain(hexMap);
 
-            Assert.IsTrue(hexMap.All(t => t.TileTerrainType == tileTerrainType));
+            Assert.IsTrue(hexMap.All(t => t.TileTerrainType == tileTerrainType), $"The map does not only consist of {tileTerrainType}");
         }
 
         [Test]

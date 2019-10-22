@@ -26,7 +26,7 @@ namespace Assets.Scripts.Map
         {
             _heightMapGenerator = heightMapGenerator;
         }
-                
+
         public void GenerateTerrain(IHexMap hexMap)
         {
             CalculateDesertArea(hexMap);
@@ -43,21 +43,12 @@ namespace Assets.Scripts.Map
                 { TileTerrainType.SheepMeadows, 5 },
                 { TileTerrainType.StudFarm, 1 }
             };
-
+                        
             _heightMapGenerator.GenerateHeightMap(hexMap, 5);
 
-            foreach(var tile in hexMap)
+            foreach (var tile in hexMap.Where(t => t.TileTerrainType == TileTerrainType.Plain).ToList())
             {
                 var y = tile.Position.Y;
-                
-                if (tile.Province.IsWater)
-                {
-                    tile.TileTerrainType = TileTerrainType.Water;
-                    continue;
-                }
-
-                if (tile.TileTerrainType == TileTerrainType.Mountains || tile.TileTerrainType == TileTerrainType.Hills)
-                    continue;
 
                 if (IsWithinDesertBelt(y))
                 {
@@ -70,10 +61,10 @@ namespace Assets.Scripts.Map
                     tile.TileTerrainType = TileTerrainType.Tundra;
                     continue;
                 }
-                        
+
                 tile.TileTerrainType = RandomizeTerrain(terrainTypes);
             }
-        }            
+        }
 
         private void CalculateDesertArea(IHexMap hexMap)
         {
@@ -83,14 +74,14 @@ namespace Assets.Scripts.Map
             _desertBeltLower = equator - DesertBelt / 2;
         }
 
-        private bool IsWithinDesertBelt(int y) 
+        private bool IsWithinDesertBelt(int y)
             => DesertBelt == 0 ? false : y <= _desertBeltUpper && y >= _desertBeltLower;
 
         private bool IsWithinPoleBelt(int y, int height)
         {
             return (y < PoleBelt || y >= height - PoleBelt);
         }
-        
+
         private TileTerrainType RandomizeTerrain(IDictionary<TileTerrainType, int> terrainTypes)
         {
             var random = UnityEngine.Random.Range(1, 101);

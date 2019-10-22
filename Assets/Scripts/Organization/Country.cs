@@ -1,11 +1,10 @@
-﻿using Assets.Scripts.Map;
+﻿using Assets.Contracts;
+using Assets.Contracts.Map;
+using Assets.Contracts.Organization;
+using Assets.Scripts.Game;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using Assets.Scripts.Game;
-using Assets.Contracts.Map;
-using Assets.Contracts.Organization;
-using Assets.Contracts;
 
 namespace Assets.Scripts.Organization
 {
@@ -29,22 +28,21 @@ namespace Assets.Scripts.Organization
         {
             Provinces = new List<IProvince>();
         }
-        
+
         public void AddProvince(IProvince province)
         {
             Provinces.Add(province);
             var provinceObject = (Province)province;
-            provinceObject.transform.SetParent(this.transform);
+            provinceObject.transform.SetParent(transform);
             province.Owner = this;
         }
 
-        public void SetCapital(HexMap map)
+        public void SetCapital(IHexMap map)
         {
             // First try to set any harbor city
-            var cities = Provinces.SelectMany(p => p.HexTiles.Where(t => t.TileTerrainType == TileTerrainType.City 
-                && map.GetNeighbours(t).Where(n => n.TileTerrainType == TileTerrainType.Water).Any())).ToList();
-            if(!cities.Any())
-                cities = Provinces.SelectMany(p => p.HexTiles.Where(t => t.TileTerrainType == TileTerrainType.City)).ToList();
+            var allCities = Provinces.Select(p => p.Capital).ToList();
+            var harborCities = allCities.Where(t => map.GetNeighbours(t).Where(n => n.TileTerrainType == TileTerrainType.Water).Any()).ToList();
+            var cities = harborCities.Any() ? harborCities : allCities;
             var rand = new System.Random();
             var index = rand.Next(cities.Count);
             Capital = cities[index];

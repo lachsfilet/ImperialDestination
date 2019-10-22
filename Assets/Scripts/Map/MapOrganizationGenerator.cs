@@ -1,5 +1,6 @@
 ﻿using Assets.Contracts.Map;
 using Assets.Contracts.Organization;
+using Assets.Contracts.Utilities;
 using Assets.Scripts.Organization;
 using System;
 using System.Collections.Generic;
@@ -24,6 +25,36 @@ namespace Assets.Scripts.Map
             _random = random;
         }
 
+        public void GenerateCountries(ICollection<IProvince> provinces, IHexMap map, int majorCountryCount, int minorCountryCount, int provincesMajorCountries, int provincesMinorCountries, Func<GameObject, GameObject> instantiate, GameObject original)
+        {
+            var color = new Color(1, 1, 1, 1);
+
+            var regions = provinces.Where(p => !p.HexTiles.Any(h => h.Position.X == 0 || h.Position.Y == 0 || h.Position.X == map.Width - 1 || h.Position.Y == map.Height - 1)).ToList();
+
+            var majorCountries = Enumerable.Range(1, majorCountryCount).Select(n => new { number = n, isMajor = true });
+            var minorCountries = Enumerable.Range(1, minorCountryCount).Select(n => new { number = n, isMajor = false });
+            var countries = majorCountries.Concat(minorCountries).Shuffle().ToList();
+            var step = 1f / countries.Count;
+
+            var count = 0;
+            foreach (var countryInfo in countries)
+            {
+                var regionCount = countryInfo.isMajor ? provincesMajorCountries : provincesMinorCountries;
+                var prefix = countryInfo.isMajor ? "Major" : "Minor";
+                var countryContainer = instantiate(original);
+                var country = _organisationFactory.CreateCountry(
+                    countryContainer,
+                    $"{prefix} Country {count}",
+                    countryInfo.isMajor ? CountryType.Major : CountryType.Minor,
+                    color);
+
+                GenerateCountryOnMap(country, regions, map, regionCount, color, step);
+
+                color = new Color(color.r - step, color.g - step, color.b - step, 1);
+                count++;
+            }
+        }
+
         public void GenerateCountryOnMap(ICountry country, IList<IProvince> regions, IHexMap map, int regionCount, Color color, float step)
         {
             var index = _random(regionCount - 1, regions.Count - (regionCount - 1));
@@ -46,6 +77,7 @@ namespace Assets.Scripts.Map
                     tile.TileTerrainType = TileTerrainType.Plain;
                     tile.SetColor(color);
                 }
+                region.SetCapital(map);
                 regions.Remove(region);
 
                 Debug.Log($"Remaining provinces: {string.Join(", ", regions.Select(r => r.Name).OrderBy(n => n))}");
@@ -91,6 +123,7 @@ namespace Assets.Scripts.Map
                                 
                 color = new Color(color.r - countryStep, color.g - countryStep, color.b - countryStep, 1);
             }
+            country.SetCapital(map);
             country.DrawBorder(map);
         }
 

@@ -21,6 +21,8 @@ namespace Assets.Contracts.Organization
         void DrawBorder(IHexMap map);
 
         Transform GetParent();
+        
+        void SetCapital(IHexMap map);
 
         void SetParent(Transform transform);
     }

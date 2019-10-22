@@ -60,6 +60,7 @@ namespace Assets.Scripts.Organization
             var rand = new System.Random();
             var index = rand.Next(innerTiles.Count);
             Capital = innerTiles[index];
+            Capital.TileTerrainType = TileTerrainType.City;
         }
 
         public IList<IProvince> GetNeighbours(IHexMap map)

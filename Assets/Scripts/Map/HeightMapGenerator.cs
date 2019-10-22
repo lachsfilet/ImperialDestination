@@ -72,12 +72,15 @@ namespace Assets.Scripts.Map
             var centerY = north / 2 + south / 2;
 
             var comparer = new PositionComparer(east);
+
+            Func<TileBase, bool> predicate = t => t.TileTerrainType == TileTerrainType.Plain;
+
             var sectors = new List<List<TileBase>>
                 {
-                    tiles.Where(t => t.Position.X <= centerX && t.Position.Y > centerY).OrderBy(p=>p.Position, comparer).ToList(),
-                    tiles.Where(t => t.Position.X > centerX && t.Position.Y > centerY).OrderBy(p=>p.Position, comparer).ToList(),
-                    tiles.Where(t => t.Position.X <= centerX && t.Position.Y <= centerY).OrderBy(p=>p.Position, comparer).ToList(),
-                    tiles.Where(t => t.Position.X > centerX && t.Position.Y <= centerY).OrderBy(p=>p.Position, comparer).ToList()
+                    tiles.Where(predicate).Where(t => t.Position.X <= centerX && t.Position.Y > centerY).OrderBy(p=>p.Position, comparer).ToList(),
+                    tiles.Where(predicate).Where(t => t.Position.X > centerX && t.Position.Y > centerY).OrderBy(p=>p.Position, comparer).ToList(),
+                    tiles.Where(predicate).Where(t => t.Position.X <= centerX && t.Position.Y <= centerY).OrderBy(p=>p.Position, comparer).ToList(),
+                    tiles.Where(predicate).Where(t => t.Position.X > centerX && t.Position.Y <= centerY).OrderBy(p=>p.Position, comparer).ToList()
                 };
             return sectors;
         }
@@ -107,7 +110,8 @@ namespace Assets.Scripts.Map
                         fringes.Add(new List<TileBase>());
                         var neighbours = map.GetNeighbours(tile).ToList();
                         foreach (var neighbour in neighbours
-                            .Where(n => n.TileTerrainType != TileTerrainType.Water                                
+                            .Where(n => n.TileTerrainType != TileTerrainType.Water
+                                && n.TileTerrainType != TileTerrainType.City
                                 && !mountains.Contains(n)
                                 && !subresult.Contains(n)))
                         {

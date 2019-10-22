@@ -16,6 +16,8 @@ namespace Assets.Contracts.Organization
         IList<IProvince> GetNeighbours(IHexMap map);
 
         void AddHexTile(TileBase hexTile);
+        
+        void SetCapital(IHexMap map);
 
         IEnumerable<TileBase> HexTiles { get; }
 
