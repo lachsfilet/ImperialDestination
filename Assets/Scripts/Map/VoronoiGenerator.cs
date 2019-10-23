@@ -26,7 +26,7 @@ public class VoronoiGenerator : MonoBehaviour
 
     public GameObject Country;
 
-    public GameObject Continent;
+    public GameObject Continent;      
 
     public int Height = 1;
 

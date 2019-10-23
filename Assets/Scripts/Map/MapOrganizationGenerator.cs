@@ -165,7 +165,7 @@ namespace Assets.Scripts.Map
             return steps > 0;
         }
 
-        public ICollection<IContinent> GenerateContinentsList(Func<GameObject, GameObject> instantiate, GameObject original, ICollection<IProvince> provinces, IHexMap map, GameObject parent)
+        public void GenerateContinentsList(Func<GameObject, GameObject> instantiate, GameObject original, ICollection<IProvince> provinces, IHexMap map, GameObject parent)
         {
             var continents = new List<IContinent>();
             var landProvinces = provinces.Where(p => !p.IsWater && p.Owner != null).ToList();
@@ -196,7 +196,6 @@ namespace Assets.Scripts.Map
                     }
                 }
             }
-            return continents;
         }
     }
 }

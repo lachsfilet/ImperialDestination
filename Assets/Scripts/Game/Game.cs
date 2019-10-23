@@ -1,7 +1,6 @@
-﻿using UnityEngine;
+﻿using System.Linq;
+using UnityEngine;
 using UnityEngine.UI;
-using System.Linq;
-using System.Collections.Generic;
 
 namespace Assets.Scripts.Game
 {
@@ -22,9 +21,9 @@ namespace Assets.Scripts.Game
         public Player Player;
 
         // Use this for initialization
-        void Start()
+        private void Start()
         {
-            if(!GameCache.Instance.ContainsMapInfo())
+            if (!GameCache.Instance.ContainsMapInfo())
             {
                 CurrentSeason = GameCache.Instance.CurrentGame.Season;
                 CurrentYear = GameCache.Instance.CurrentGame.Year;
@@ -33,12 +32,12 @@ namespace Assets.Scripts.Game
 
             SetInfoTexts();
         }
-        
+
         public void EndTurn()
         {
             CurrentTurn++;
-            
-            if(CurrentSeason == Season.Winter)
+
+            if (CurrentSeason == Season.Winter)
             {
                 CurrentSeason = Season.Spring;
                 CurrentYear++;
@@ -52,8 +51,6 @@ namespace Assets.Scripts.Game
 
         private void SetInfoTexts()
         {
-
-
             if (CountryText != null)
                 CountryText.text = Player.CountryName;
 

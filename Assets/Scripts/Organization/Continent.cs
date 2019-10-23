@@ -1,5 +1,6 @@
 ﻿using Assets.Contracts.Organization;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class Continent : MonoBehaviour, IContinent
@@ -23,5 +24,8 @@ public class Continent : MonoBehaviour, IContinent
         Countries.Add(country);
         country.Continent = this;
         country.SetParent(transform);
+
+        var tiles = country.Provinces.SelectMany(p => p.HexTiles).ToList();
+        tiles.ForEach(t => t.transform.SetParent(transform));
     }
 }

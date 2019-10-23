@@ -81,13 +81,15 @@ namespace Assets.Scripts.Map
                     return;
                 }
 
+                var continent = tile.Province.Owner?.Continent?.Name ?? tile.transform.parent.name ?? "None";
+
                 if (_selectedTile != null)
                     _selectedTile.Deselect();
                 tile.Select();
                 _selectedTile = tile;
                 TerrainText.text = _selectedTile.TileTerrainType.ToString();
                 PositionText.text = string.Format("x: {0}, y: {1}", _selectedTile.Position.X, _selectedTile.Position.Y);
-                ContinentText.text = tile.transform.parent != null ? tile.transform.parent.name : "None";
+                ContinentText.text = continent;
                 TileCountText.text = tile.transform.parent != null ? tile.transform.parent.childCount.ToString() : "None";
                 ProvinceText.text = tile.Province != null ? tile.Province.Name : "None";
                 ProvinceCountText.text = tile.Province != null ? tile.Province.HexTiles.Count().ToString() : "None";

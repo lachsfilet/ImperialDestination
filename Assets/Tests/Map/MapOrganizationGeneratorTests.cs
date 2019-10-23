@@ -245,7 +245,7 @@ namespace Tests
         }
 
         [Test]
-        public void GenerateContinentsList_WithProvinces_Returns_TwoContinents()
+        public void GenerateContinentsList_WithProvinces_Returns_CreatesTwoContinents()
         {
             var hexMap = new Mock<IHexMap>();
 
@@ -292,9 +292,9 @@ namespace Tests
 
             var mapOrganizationGenerator = new MapOrganizationGenerator(organisationFactory.Object, (a, b) => 0);
 
-            var result = mapOrganizationGenerator.GenerateContinentsList(foo => container, new GameObject(), provinceObjects, hexMap.Object, parent);
+            mapOrganizationGenerator.GenerateContinentsList(foo => container, new GameObject(), provinceObjects, hexMap.Object, parent);
 
-            Assert.AreEqual(2, result.Count);
+            organisationFactory.Verify(o => o.CreateContinent(container, It.IsAny<string>(), parent), Times.Exactly(2));
         }
 
         private IList<Mock<IProvince>> GenerateProvinces(int count)
