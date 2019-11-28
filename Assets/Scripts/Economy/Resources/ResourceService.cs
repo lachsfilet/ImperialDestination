@@ -22,7 +22,7 @@ namespace Assets.Scripts.Economy.Resources
         {
         }
 
-        public void SpreadResources(IHexMap map, Dictionary<Type, double> resourceProbability)
+        public void SpreadResources(IHexMap map, IDictionary<Type, double> resourceProbability)
         {
             var rand = new Random();
             foreach (var key in resourceProbability.Keys)

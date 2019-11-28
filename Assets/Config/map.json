@@ -1,0 +1,52 @@
+{
+    "resources": [
+        {
+            "name": "Coal",
+            "value": 0.3
+        },
+        {
+            "name": "IronOre",
+            "value": 0.2
+        },
+        {
+            "name": "Gold",
+            "value": 0.1
+        },
+        {
+            "name": "Gemstone",
+            "value": 0.05
+        },
+        {
+            "name": "Oil",
+            "value": 0.3
+        },
+        {
+            "name": "Wood",
+            "value": 1
+        },
+        {
+            "name": "Wool",
+            "value": 1
+        },
+        {
+            "name": "Grain",
+            "value": 1
+        },
+        {
+            "name": "Cotton",
+            "value": 1
+        },
+        {
+            "name": "Cattle",
+            "value": 1
+        },
+        {
+            "name": "Fruit",
+            "value": 1
+        },
+        {
+            "name": "Horse",
+            "value": 1
+        }
+    ]
+}
