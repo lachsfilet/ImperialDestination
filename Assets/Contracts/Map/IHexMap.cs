@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace Assets.Contracts.Map
 {
@@ -25,5 +21,7 @@ namespace Assets.Contracts.Map
         void AddTile(int x, int y, TileBase tile);
 
         IEnumerable<Position> DrawLine(Position start, Position end);
+
+        IEnumerable<TileBase> GetTilesOfTerrainType(TileTerrainType terrainType);
     }
 }

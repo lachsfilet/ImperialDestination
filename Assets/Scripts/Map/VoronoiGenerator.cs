@@ -3,8 +3,10 @@ using Assets.Contracts.Map;
 using Assets.Contracts.Organization;
 using Assets.Contracts.Utilities;
 using Assets.Scripts;
+using Assets.Scripts.Economy.Resources;
 using Assets.Scripts.Map;
 using Assets.Scripts.Organization;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -47,7 +49,7 @@ public class VoronoiGenerator : MonoBehaviour
     public int PoleBelt = 5;
 
     public List<Color> TerrainColorMapping;
-
+    
     // Private fields
     private GameObject _mapObject;
 
@@ -91,6 +93,25 @@ public class VoronoiGenerator : MonoBehaviour
         _mapOrganizationGenerator.GenerateContinentsList(Instantiate, Continent, _regions, _map, _mapObject);
 
         _terrainGenerator.GenerateTerrain(_map);
+
+        var resources = new Dictionary<Type, double>
+        {
+            { typeof(Coal), 0.3 },
+            { typeof(IronOre), 0.2 },
+            { typeof(Gold), 0.1 },
+            { typeof(Gemstone), 0.05 },
+            { typeof(Oil), 0.3 },
+            { typeof(Wood), 1 },
+            { typeof(Wool), 1 },
+            { typeof(Grain), 1 },
+            { typeof(Cotton), 1 },
+            { typeof(Cattle), 1 },
+            { typeof(Fruit), 1 },
+            { typeof(Horse), 1 }
+        };
+
+        ResourceService.Instance.SpreadResources(_map, resources);
+
         SkinMap();
     }
 
