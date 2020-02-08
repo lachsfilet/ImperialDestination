@@ -10,13 +10,7 @@ namespace Assets.Scripts.Economy.Resources
     {
         private static ResourceService _instance;
 
-        public static ResourceService Instance
-        {
-            get
-            {
-                return _instance ?? (_instance = new ResourceService());
-            }
-        }
+        public static ResourceService Instance => _instance ?? (_instance = new ResourceService());
 
         private ResourceService()
         {

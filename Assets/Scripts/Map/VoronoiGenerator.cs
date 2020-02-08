@@ -99,10 +99,7 @@ public class VoronoiGenerator : MonoBehaviour
 
         _terrainGenerator.GenerateTerrain(_map);
 
-        var path = Path.Combine(Application.dataPath, "Config", "map.json");
-        var settingsLoader = new SettingsLoader(path);
-        var resources = settingsLoader.GetResourceSettings();
-
+        var resources = SettingsLoader.Instance.GetResourceSettings();
         ResourceService.Instance.SpreadResources(_map, resources);
 
         SkinMap();

@@ -15,6 +15,8 @@ namespace Assets.Scripts.Map
 
         private IOrganisationFactory _organisationFactory;
 
+        private ICollection<string> _countryNames;
+
         public MapOrganizationGenerator(IOrganisationFactory organisationFactory) : this(organisationFactory, UnityEngine.Random.Range)
         {
         }
@@ -23,6 +25,7 @@ namespace Assets.Scripts.Map
         {
             _organisationFactory = organisationFactory;
             _random = random;
+            _countryNames = SettingsLoader.Instance.GetCountryNames();
         }
 
         public void GenerateCountries(ICollection<IProvince> provinces, IHexMap map, int majorCountryCount, int minorCountryCount, int provincesMajorCountries, int provincesMinorCountries, Func<GameObject, GameObject> instantiate, GameObject original)
@@ -44,7 +47,7 @@ namespace Assets.Scripts.Map
                 var countryContainer = instantiate(original);
                 var country = _organisationFactory.CreateCountry(
                     countryContainer,
-                    $"{prefix} Country {count}",
+                    count < _countryNames.Count ? _countryNames.ElementAt(count) : $"{prefix} Country {count}",
                     countryInfo.isMajor ? CountryType.Major : CountryType.Minor,
                     color);
 

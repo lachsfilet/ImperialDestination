@@ -48,5 +48,10 @@
             "name": "Horse",
             "value": 1
         }
+    ],
+
+    "countryNames": [
+        "Janland",
+        "Fantasia"
     ]
 }

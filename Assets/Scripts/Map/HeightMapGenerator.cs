@@ -55,7 +55,7 @@ namespace Assets.Scripts.Map
                 var mountainTiles = mountains.Select(m => hexMap.GetTile(m))
                     .Where(t => t.TileTerrainType != TileTerrainType.Water).ToList();
 
-                Debug.Log($"Continent: {continent.TileCount} Ratio: {_ratio} Mountains: {mountainTiles.Count} Mountains to extend {(int)Math.Round(continent.TileCount * _ratio) - mountainTiles.Count}");
+                //Debug.Log($"Continent: {continent.TileCount} Ratio: {_ratio} Mountains: {mountainTiles.Count} Mountains to extend {(int)Math.Round(continent.TileCount * _ratio) - mountainTiles.Count}");
                 var count = Math.Max((int)Math.Round(continent.TileCount * _ratio) - mountainTiles.Count, MOUNTAIN_COUNT_MIN);
                 ExtendMountains(mountainTiles, hexMap, count);
 
@@ -139,7 +139,7 @@ namespace Assets.Scripts.Map
 
         private void ExtendMountains(ICollection<TileBase> mountains, IHexMap map, int count)
         {
-            Debug.Log($"Extend mountains: {count}");
+            //Debug.Log($"Extend mountains: {count}");
             for (var i = 0; i < count; i++)
             {
                 var index = _random(0, mountains.Count - 1);
@@ -157,7 +157,7 @@ namespace Assets.Scripts.Map
 
                 index = _random(0, neighbours.Count - 1);
                 var neighbour = neighbours[index];
-                Debug.Log($"Add mountain {i}: {neighbour.Position}");
+                //Debug.Log($"Add mountain {i}: {neighbour.Position}");
                 mountains.Add(neighbour);
             }
         }

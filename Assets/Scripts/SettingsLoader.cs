@@ -10,13 +10,15 @@ namespace Assets.Scripts
 {
     public class SettingsLoader
     {
+        private static SettingsLoader _instance;
+
+        public static SettingsLoader Instance => _instance ?? (_instance = new SettingsLoader());
+        
         private Config _settings;
 
-        public SettingsLoader(string path)
+        private SettingsLoader()
         {
-            if (string.IsNullOrWhiteSpace(path))
-                throw new ArgumentException("Invalid settings file path", nameof(path));
-
+            var path = Path.Combine(Application.dataPath, "Config", "map.json");
             var jsonContent = File.ReadAllText(path);
             _settings = JsonConvert.DeserializeObject<Config>(jsonContent, new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.Auto });
         }
@@ -26,5 +28,7 @@ namespace Assets.Scripts
             var resources = _settings.Resources.ToDictionary(r => Type.GetType($"Assets.Scripts.Economy.Resources.{r.Name}"), r => r.Value);
             return resources;
         }
+
+        public ICollection<string> GetCountryNames() => _settings.CountryNames;
     }
 }
