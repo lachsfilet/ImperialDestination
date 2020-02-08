@@ -7,7 +7,7 @@ public class Continent : MonoBehaviour, IContinent
 {
     public string Name { get; set; }
 
-    public int TileCount { get; set; }
+    public int TileCount => Countries.SelectMany(c => c.Provinces.SelectMany(p => p.HexTiles)).Count();
 
     public ICollection<ICountry> Countries { get; set; }
 

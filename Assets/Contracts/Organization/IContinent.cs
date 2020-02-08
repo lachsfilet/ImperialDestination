@@ -6,7 +6,7 @@ namespace Assets.Contracts.Organization
     {
         string Name { get; set; }
 
-        int TileCount { get; set; }
+        int TileCount { get; }
 
         ICollection<ICountry> Countries { get; set; }
 

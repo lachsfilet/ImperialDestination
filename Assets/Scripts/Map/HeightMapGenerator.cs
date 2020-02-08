@@ -11,14 +11,19 @@ namespace Assets.Scripts.Map
 {
     public class HeightMapGenerator : IHeightMapGenerator
     {
+        private const int MOUNTAIN_COUNT_MIN = 5;
+
+        private double _ratio;
+
         private Func<int, int, int> _random;
 
-        public HeightMapGenerator() : this(UnityEngine.Random.Range)
+        public HeightMapGenerator(double ratio) : this(ratio, UnityEngine.Random.Range)
         {
         }
 
-        public HeightMapGenerator(Func<int, int, int> random)
+        public HeightMapGenerator(double ratio, Func<int, int, int> random)
         {
+            _ratio = ratio;
             _random = random;
         }
 
@@ -49,6 +54,11 @@ namespace Assets.Scripts.Map
                 var mountains = hexMap.DrawLine(startTile.Position, endTile.Position).ToList();
                 var mountainTiles = mountains.Select(m => hexMap.GetTile(m))
                     .Where(t => t.TileTerrainType != TileTerrainType.Water).ToList();
+
+                Debug.Log($"Continent: {continent.TileCount} Ratio: {_ratio} Mountains: {mountainTiles.Count} Mountains to extend {(int)Math.Round(continent.TileCount * _ratio) - mountainTiles.Count}");
+                var count = Math.Max((int)Math.Round(continent.TileCount * _ratio) - mountainTiles.Count, MOUNTAIN_COUNT_MIN);
+                ExtendMountains(mountainTiles, hexMap, count);
+
                 foreach (var mountain in mountainTiles)
                     mountain.TileTerrainType = TileTerrainType.Mountains;
 
@@ -94,7 +104,7 @@ namespace Assets.Scripts.Map
             foreach (var mountain in mountains)
             {
                 var subresult = new List<TileBase>();
-                Debug.Log($"Mountain at {mountain.Position}");
+                //Debug.Log($"Mountain at {mountain.Position}");
 
                 var fringes = new List<List<TileBase>>
                 {
@@ -105,7 +115,7 @@ namespace Assets.Scripts.Map
                 {
                     foreach (var tile in fringes[i - 1])
                     {
-                        Debug.Log($"Fringe {i - 1}, Tile: {tile.TileTerrainType} at {tile.Position}");
+                        //Debug.Log($"Fringe {i - 1}, Tile: {tile.TileTerrainType} at {tile.Position}");
 
                         fringes.Add(new List<TileBase>());
                         var neighbours = map.GetNeighbours(tile).ToList();
@@ -117,7 +127,7 @@ namespace Assets.Scripts.Map
                         {
                             subresult.Add(neighbour);
 
-                            Debug.Log($"Fringe {i}, Add tile: {neighbour.TileTerrainType} at {neighbour.Position}");
+                            //Debug.Log($"Fringe {i}, Add tile: {neighbour.TileTerrainType} at {neighbour.Position}");
                             fringes[i].Add(neighbour);
                         }
                     }
@@ -125,6 +135,31 @@ namespace Assets.Scripts.Map
                 result.AddRange(subresult.Where(t => !result.Contains(t)));
             }
             return result;
+        }
+
+        private void ExtendMountains(ICollection<TileBase> mountains, IHexMap map, int count)
+        {
+            Debug.Log($"Extend mountains: {count}");
+            for (var i = 0; i < count; i++)
+            {
+                var index = _random(0, mountains.Count - 1);
+                var field = mountains.ElementAt(index);
+
+                var neighbours = map.GetNeighbours(field)
+                    .Where(n => n.TileTerrainType != TileTerrainType.Water
+                        && n.TileTerrainType != TileTerrainType.City
+                        && !mountains.Contains(n)).ToList();
+                if (neighbours.Count == 0)
+                {
+                    i--;
+                    continue;
+                }
+
+                index = _random(0, neighbours.Count - 1);
+                var neighbour = neighbours[index];
+                Debug.Log($"Add mountain {i}: {neighbour.Position}");
+                mountains.Add(neighbour);
+            }
         }
     }
 }

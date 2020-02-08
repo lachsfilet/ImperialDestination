@@ -48,6 +48,8 @@ public class VoronoiGenerator : MonoBehaviour
 
     public int PoleBelt = 5;
 
+    public double MountainRatio = 0.25;
+
     public List<Color> TerrainColorMapping;
 
     // Private fields
@@ -83,7 +85,7 @@ public class VoronoiGenerator : MonoBehaviour
         _organisationFactory = new OrganisationFactory();
         _mapOrganizationGenerator = new MapOrganizationGenerator(_organisationFactory);
 
-        var heightMapGenerator = new HeightMapGenerator();
+        var heightMapGenerator = new HeightMapGenerator(MountainRatio);
         _terrainGenerator = new TerrainGenerator(heightMapGenerator);
         _terrainGenerator.DesertBelt = DesertBelt;
         _terrainGenerator.PoleBelt = PoleBelt;
