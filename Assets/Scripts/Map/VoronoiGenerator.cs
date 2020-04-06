@@ -52,6 +52,10 @@ public class VoronoiGenerator : MonoBehaviour
 
     public List<Color> TerrainColorMapping;
 
+    public MapMode MapMode = MapMode.InGame;
+
+    public List<Color> CountryColors;
+
     // Private fields
     private GameObject _mapObject;
 
@@ -64,8 +68,6 @@ public class VoronoiGenerator : MonoBehaviour
     private ICollection<Position> _lines;
 
     private ICollection<IProvince> _regions;
-
-    private ICollection<ICountry> _countries;
 
     private IMapOrganizationGenerator _mapOrganizationGenerator;
 
@@ -94,7 +96,7 @@ public class VoronoiGenerator : MonoBehaviour
         var points = voronoiMap.Where(g => g is Site).Select(s => s.Point).ToList();
         _regions = DetectRegions(points);
 
-        _mapOrganizationGenerator.GenerateCountries(_regions, _map, MajorCountries, MinorCountries, ProvincesMajorCountries, ProvincesMinorCountries, Instantiate, Country);
+        _mapOrganizationGenerator.GenerateCountries(_regions, _map, MajorCountries, MinorCountries, ProvincesMajorCountries, ProvincesMinorCountries, Instantiate, Country, CountryColors);
         _mapOrganizationGenerator.GenerateContinentsList(Instantiate, Continent, _regions, _map, _mapObject);
 
         _terrainGenerator.GenerateTerrain(_map);
@@ -102,7 +104,10 @@ public class VoronoiGenerator : MonoBehaviour
         var resources = SettingsLoader.Instance.GetResourceSettings();
         ResourceService.Instance.SpreadResources(_map, resources);
 
-        SkinMap();
+        if (MapMode == MapMode.InGame)
+            SkinMap();
+        else
+            ColorCountries();
     }
 
     private VoronoiMap GenerateMap()
@@ -164,6 +169,25 @@ public class VoronoiGenerator : MonoBehaviour
             else
                 t.SetColor(TerrainColorMapping[(int)t.TileTerrainType]);
             t.ResetSelectionColor();
+        });
+    }
+
+    private void ColorCountries()
+    {
+        var countries = _map.Select(t => t.Province.Owner).Where(c => c != null).Distinct().ToList();
+        countries.ForEach(c =>
+        {
+            c.Provinces.ForEach(p => p.HexTiles.ToList().ForEach(t =>
+            {
+                var renderer = t.GetComponent<Renderer>();
+                renderer.material.color = c.Color;
+            }));
+        });
+
+        var waterTiles = _map.Where(t => t.TileTerrainType == TileTerrainType.Water).ToList();
+        waterTiles.ForEach(t =>
+        {
+            t.SetColor(TerrainColorMapping[(int)t.TileTerrainType]);
         });
     }
 

@@ -31,7 +31,7 @@ namespace Tests
 
             var mapOrganizationGenerator = new MapOrganizationGenerator(organisationFactory.Object);
 
-            Assert.Throws<InvalidOperationException>(() => mapOrganizationGenerator.GenerateCountryOnMap(country.Object, regions, map.Object, 1, Color.black, 1));
+            Assert.Throws<InvalidOperationException>(() => mapOrganizationGenerator.GenerateCountryOnMap(country.Object, regions, map.Object, 1, 1));
         }
 
         [Test]
@@ -57,7 +57,7 @@ namespace Tests
 
             var mapOrganizationGenerator = new MapOrganizationGenerator(organisationFactory.Object);
 
-            mapOrganizationGenerator.GenerateCountryOnMap(country.Object, regions, map.Object, 2, Color.black, 1);
+            mapOrganizationGenerator.GenerateCountryOnMap(country.Object, regions, map.Object, 2, 1);
 
 
             Assert.AreEqual(2, regions.Count);
@@ -95,7 +95,7 @@ namespace Tests
 
             var mapOrganizationGenerator = new MapOrganizationGenerator(organisationFactory.Object, random);
 
-            mapOrganizationGenerator.GenerateCountryOnMap(country.Object, regions, map.Object, 3, Color.black, 1);
+            mapOrganizationGenerator.GenerateCountryOnMap(country.Object, regions, map.Object, 3, 1);
 
             Assert.AreEqual(3, country.Object.Provinces.Count);
             Assert.Contains(provinces[2].Object, country.Object.Provinces);
@@ -153,7 +153,7 @@ namespace Tests
 
             var mapOrganizationGenerator = new MapOrganizationGenerator(organisationFactory.Object, random);
 
-            mapOrganizationGenerator.GenerateCountryOnMap(country.Object, regions, map.Object, 8, Color.black, 1);
+            mapOrganizationGenerator.GenerateCountryOnMap(country.Object, regions, map.Object, 8, 1);
 
             Assert.AreEqual(8, country.Object.Provinces.Count);
             Assert.Contains(provinces[6].Object, country.Object.Provinces, provinces[6].Object.Name);
@@ -229,7 +229,7 @@ namespace Tests
 
             var mapOrganizationGenerator = new MapOrganizationGenerator(organisationFactory.Object, random);
 
-            mapOrganizationGenerator.GenerateCountryOnMap(country.Object, regions, map.Object, 10, Color.black, 1);
+            mapOrganizationGenerator.GenerateCountryOnMap(country.Object, regions, map.Object, 10, 1);
 
             Assert.AreEqual(10, country.Object.Provinces.Count);
             Assert.Contains(provinces[8].Object, country.Object.Provinces, provinces[6].Object.Name);

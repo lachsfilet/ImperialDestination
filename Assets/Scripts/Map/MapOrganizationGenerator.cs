@@ -1,7 +1,6 @@
 ﻿using Assets.Contracts.Map;
 using Assets.Contracts.Organization;
 using Assets.Contracts.Utilities;
-using Assets.Scripts.Organization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,9 +27,10 @@ namespace Assets.Scripts.Map
             _countryNames = SettingsLoader.Instance.GetCountryNames();
         }
 
-        public void GenerateCountries(ICollection<IProvince> provinces, IHexMap map, int majorCountryCount, int minorCountryCount, int provincesMajorCountries, int provincesMinorCountries, Func<GameObject, GameObject> instantiate, GameObject original)
+        public void GenerateCountries(ICollection<IProvince> provinces, IHexMap map, int majorCountryCount, int minorCountryCount, int provincesMajorCountries, int provincesMinorCountries, Func<GameObject, GameObject> instantiate, GameObject original, ICollection<Color> countryColors)
         {
-            var color = new Color(1, 1, 1, 1);
+            if (countryColors.Count != majorCountryCount)
+                throw new ArgumentException($"{majorCountryCount} and {countryColors.Count} must be equal");
 
             var regions = provinces.Where(p => !p.HexTiles.Any(h => h.Position.X == 0 || h.Position.Y == 0 || h.Position.X == map.Width - 1 || h.Position.Y == map.Height - 1)).ToList();
 
@@ -49,16 +49,14 @@ namespace Assets.Scripts.Map
                     countryContainer,
                     count < _countryNames.Count ? _countryNames.ElementAt(count) : $"{prefix} Country {count}",
                     countryInfo.isMajor ? CountryType.Major : CountryType.Minor,
-                    color);
+                    countryInfo.isMajor ? countryColors.ElementAt(count) : Color.grey);
 
-                GenerateCountryOnMap(country, regions, map, regionCount, color, step);
-
-                color = new Color(color.r - step, color.g - step, color.b - step, 1);
+                GenerateCountryOnMap(country, regions, map, regionCount, step);
                 count++;
             }
         }
 
-        public void GenerateCountryOnMap(ICountry country, IList<IProvince> regions, IHexMap map, int regionCount, Color color, float step)
+        public void GenerateCountryOnMap(ICountry country, IList<IProvince> regions, IHexMap map, int regionCount, float step)
         {
             var index = _random(regionCount - 1, regions.Count - (regionCount - 1));
             var region = regions[index];
@@ -78,7 +76,6 @@ namespace Assets.Scripts.Map
                 foreach (var tile in region.HexTiles)
                 {
                     tile.TileTerrainType = TileTerrainType.Plain;
-                    tile.SetColor(color);
                 }
                 region.SetCapital(map);
                 regions.Remove(region);
@@ -123,15 +120,13 @@ namespace Assets.Scripts.Map
                 } while (!found && --tries > 0);
                 if (!found)
                     throw new InvalidOperationException("No unset neighbour found!");
-                                
-                color = new Color(color.r - countryStep, color.g - countryStep, color.b - countryStep, 1);
             }
             country.SetCapital(map);
             country.DrawBorder(map);
         }
 
         /// <summary>
-        /// Checks with a flood fill algorithm if any sea provinces are surrounded 
+        /// Checks with a flood fill algorithm if any sea provinces are surrounded
         /// by land provinces.
         /// </summary>
         /// <param name="start"></param>
@@ -147,7 +142,7 @@ namespace Assets.Scripts.Map
             var checkedSeaProvinces = new List<IProvince>();
 
             provinceStack.Push(start);
-            
+
             while (provinceStack.Count > 0 && steps-- > 0)
             {
                 var province = provinceStack.Pop();
@@ -187,12 +182,12 @@ namespace Assets.Scripts.Map
                     var province = provinceQueue.Dequeue();
                     var countryParent = province.Owner.GetParent();
                     if (countryParent == null)
-                        continent.AddCountry(province.Owner);                        
+                        continent.AddCountry(province.Owner);
 
                     landProvinces.Remove(province);
 
-                    foreach (var neighbour in province.GetNeighbours(map).Where(n => !n.IsWater 
-                    && !provinceQueue.Contains(n) 
+                    foreach (var neighbour in province.GetNeighbours(map).Where(n => !n.IsWater
+                    && !provinceQueue.Contains(n)
                     && landProvinces.Contains(n)))
                     {
                         provinceQueue.Enqueue(neighbour);
