@@ -6,6 +6,8 @@ namespace Assets.Contracts.Settings
     {
         public IList<ResourceModel> Resources { get; set; }
         
-        public IList<string> CountryNames { get; set; }
+        public IList<string> MajorCountryNames { get; set; }
+
+        public IList<string> MinorCountryNames { get; set; }
     }
 }

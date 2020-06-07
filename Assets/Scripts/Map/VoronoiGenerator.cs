@@ -69,6 +69,8 @@ public class VoronoiGenerator : MonoBehaviour
 
     private ICollection<IProvince> _regions;
 
+    private CountryGenerator _countryGenerator;
+
     private IMapOrganizationGenerator _mapOrganizationGenerator;
 
     private ITerrainGenerator _terrainGenerator;
@@ -85,7 +87,8 @@ public class VoronoiGenerator : MonoBehaviour
         _hexGrid = new HexGrid(Height, Width, HexTile);
         _map = new HexMap(Height, Width);
         _organisationFactory = new OrganisationFactory();
-        _mapOrganizationGenerator = new MapOrganizationGenerator(_organisationFactory);
+        _mapOrganizationGenerator = new MapOrganizationGenerator(_organisationFactory);       
+        _countryGenerator = new CountryGenerator(_organisationFactory, _mapOrganizationGenerator);
 
         var heightMapGenerator = new HeightMapGenerator(MountainRatio);
         _terrainGenerator = new TerrainGenerator(heightMapGenerator);
@@ -96,12 +99,14 @@ public class VoronoiGenerator : MonoBehaviour
         var points = voronoiMap.Where(g => g is Site).Select(s => s.Point).ToList();
         _regions = DetectRegions(points);
 
-        _mapOrganizationGenerator.GenerateCountries(_regions, _map, MajorCountries, MinorCountries, ProvincesMajorCountries, ProvincesMinorCountries, Instantiate, Country, CountryColors);
+        var majorCountryNames = SettingsLoader.Instance.MajorCountryNames;
+        var minorCountryNames = SettingsLoader.Instance.MinorCountryNames;
+        _countryGenerator.GenerateCountries(_regions, _map, MajorCountries, MinorCountries, ProvincesMajorCountries, ProvincesMinorCountries, majorCountryNames, minorCountryNames, Instantiate, Country, CountryColors);
         _mapOrganizationGenerator.GenerateContinentsList(Instantiate, Continent, _regions, _map, _mapObject);
 
         _terrainGenerator.GenerateTerrain(_map);
 
-        var resources = SettingsLoader.Instance.GetResourceSettings();
+        var resources = SettingsLoader.Instance.ResourceSettings;
         ResourceService.Instance.SpreadResources(_map, resources);
 
         if (MapMode == MapMode.InGame)

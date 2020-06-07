@@ -23,12 +23,11 @@ namespace Assets.Scripts
             _settings = JsonConvert.DeserializeObject<Config>(jsonContent, new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.Auto });
         }
 
-        public IDictionary<Type, double> GetResourceSettings()
-        {
-            var resources = _settings.Resources.ToDictionary(r => Type.GetType($"Assets.Scripts.Economy.Resources.{r.Name}"), r => r.Value);
-            return resources;
-        }
+        public IDictionary<Type, double> ResourceSettings
+            => _settings.Resources.ToDictionary(r => Type.GetType($"Assets.Scripts.Economy.Resources.{r.Name}"), r => r.Value);
 
-        public ICollection<string> GetCountryNames() => _settings.CountryNames;
+        public ICollection<string> MajorCountryNames => _settings.MajorCountryNames;
+
+        public ICollection<string> MinorCountryNames => _settings.MajorCountryNames;
     }
 }

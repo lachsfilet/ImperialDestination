@@ -1,6 +1,7 @@
 ﻿using Assets.Contracts.Map;
 using Assets.Contracts.Organization;
 using Assets.Scripts.Map;
+using Assets.Scripts.Organization;
 using Moq;
 using NUnit.Framework;
 using System;
@@ -296,7 +297,7 @@ namespace Tests
 
             organisationFactory.Verify(o => o.CreateContinent(container, It.IsAny<string>(), parent), Times.Exactly(2));
         }
-
+       
         private IList<Mock<IProvince>> GenerateProvinces(int count)
         {
             return Enumerable.Range(0, count).Select(

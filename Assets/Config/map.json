@@ -50,8 +50,12 @@
         }
     ],
 
-    "countryNames": [
-        "Janland",
+    "majorCountryNames": [
+        "Janland"
+    ],
+
+    "minorCountryNames": [
         "Fantasia"
     ]
+
 }

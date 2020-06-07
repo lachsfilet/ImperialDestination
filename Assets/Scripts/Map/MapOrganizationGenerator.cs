@@ -1,6 +1,5 @@
 ﻿using Assets.Contracts.Map;
 using Assets.Contracts.Organization;
-using Assets.Contracts.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,46 +13,15 @@ namespace Assets.Scripts.Map
 
         private IOrganisationFactory _organisationFactory;
 
-        private ICollection<string> _countryNames;
-
-        public MapOrganizationGenerator(IOrganisationFactory organisationFactory) : this(organisationFactory, UnityEngine.Random.Range)
+        public MapOrganizationGenerator(IOrganisationFactory organisationFactory)
+            : this(organisationFactory, UnityEngine.Random.Range)
         {
         }
 
         public MapOrganizationGenerator(IOrganisationFactory organisationFactory, Func<int, int, int> random)
         {
-            _organisationFactory = organisationFactory;
-            _random = random;
-            _countryNames = SettingsLoader.Instance.GetCountryNames();
-        }
-
-        public void GenerateCountries(ICollection<IProvince> provinces, IHexMap map, int majorCountryCount, int minorCountryCount, int provincesMajorCountries, int provincesMinorCountries, Func<GameObject, GameObject> instantiate, GameObject original, ICollection<Color> countryColors)
-        {
-            if (countryColors.Count != majorCountryCount)
-                throw new ArgumentException($"{majorCountryCount} and {countryColors.Count} must be equal");
-
-            var regions = provinces.Where(p => !p.HexTiles.Any(h => h.Position.X == 0 || h.Position.Y == 0 || h.Position.X == map.Width - 1 || h.Position.Y == map.Height - 1)).ToList();
-
-            var majorCountries = Enumerable.Range(1, majorCountryCount).Select(n => new { number = n, isMajor = true });
-            var minorCountries = Enumerable.Range(1, minorCountryCount).Select(n => new { number = n, isMajor = false });
-            var countries = majorCountries.Concat(minorCountries).Shuffle().ToList();
-            var step = 1f / countries.Count;
-
-            var count = 0;
-            foreach (var countryInfo in countries)
-            {
-                var regionCount = countryInfo.isMajor ? provincesMajorCountries : provincesMinorCountries;
-                var prefix = countryInfo.isMajor ? "Major" : "Minor";
-                var countryContainer = instantiate(original);
-                var country = _organisationFactory.CreateCountry(
-                    countryContainer,
-                    count < _countryNames.Count ? _countryNames.ElementAt(count) : $"{prefix} Country {count}",
-                    countryInfo.isMajor ? CountryType.Major : CountryType.Minor,
-                    countryInfo.isMajor ? countryColors.ElementAt(count) : Color.grey);
-
-                GenerateCountryOnMap(country, regions, map, regionCount, step);
-                count++;
-            }
+            _organisationFactory = organisationFactory ?? throw new ArgumentNullException(nameof(organisationFactory));
+            _random = random ?? throw new ArgumentNullException(nameof(random));
         }
 
         public void GenerateCountryOnMap(ICountry country, IList<IProvince> regions, IHexMap map, int regionCount, float step)
