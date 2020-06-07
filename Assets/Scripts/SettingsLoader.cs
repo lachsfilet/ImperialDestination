@@ -28,6 +28,6 @@ namespace Assets.Scripts
 
         public ICollection<string> MajorCountryNames => _settings.MajorCountryNames;
 
-        public ICollection<string> MinorCountryNames => _settings.MajorCountryNames;
+        public ICollection<string> MinorCountryNames => _settings.MinorCountryNames;
     }
 }
