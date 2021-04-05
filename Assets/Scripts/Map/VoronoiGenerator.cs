@@ -6,9 +6,11 @@ using Assets.Scripts;
 using Assets.Scripts.Economy.Resources;
 using Assets.Scripts.Map;
 using Assets.Scripts.Organization;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using UnityEditor.VersionControl;
 using UnityEngine;
 using VoronoiEngine;
 using VoronoiEngine.Elements;
@@ -67,6 +69,8 @@ public class VoronoiGenerator : MonoBehaviour
 
     private ICollection<Position> _lines;
 
+    private ICollection<Position> _vertices;
+
     private ICollection<IProvince> _regions;
 
     private CountryGenerator _countryGenerator;
@@ -76,6 +80,8 @@ public class VoronoiGenerator : MonoBehaviour
     private ITerrainGenerator _terrainGenerator;
 
     private IOrganisationFactory _organisationFactory;
+
+    private ProvinceFactory _provinceFactory;
 
     // Start is called before the first frame update
     private void Start()
@@ -87,7 +93,7 @@ public class VoronoiGenerator : MonoBehaviour
         _hexGrid = new HexGrid(Height, Width, HexTile);
         _map = new HexMap(Height, Width);
         _organisationFactory = new OrganisationFactory();
-        _mapOrganizationGenerator = new MapOrganizationGenerator(_organisationFactory);       
+        _mapOrganizationGenerator = new MapOrganizationGenerator(_mapObject, _organisationFactory);       
         _countryGenerator = new CountryGenerator(_organisationFactory, _mapOrganizationGenerator);
 
         var heightMapGenerator = new HeightMapGenerator(MountainRatio);
@@ -97,13 +103,18 @@ public class VoronoiGenerator : MonoBehaviour
 
         var voronoiMap = GenerateMap();
         var points = voronoiMap.Where(g => g is Site).Select(s => s.Point).ToList();
-        _regions = DetectRegions(points);
+
+        _provinceFactory = new ProvinceFactory(_map, _lines, Instantiate, Province, _organisationFactory);
+        _regions = _provinceFactory.CreateProvinces(points);
+
+        Debug.Log("Map check after region detection");
+        CheckMap(points);
 
         var majorCountryNames = SettingsLoader.Instance.MajorCountryNames;
         var minorCountryNames = SettingsLoader.Instance.MinorCountryNames;
+
         _countryGenerator.GenerateCountries(_regions, _map, MajorCountries, MinorCountries, ProvincesMajorCountries, ProvincesMinorCountries, majorCountryNames, minorCountryNames, Instantiate, Country, CountryColors);
         _mapOrganizationGenerator.GenerateContinentsList(Instantiate, Continent, _regions, _map, _mapObject);
-
         _terrainGenerator.GenerateTerrain(_map);
 
         var resources = SettingsLoader.Instance.ResourceSettings;
@@ -113,6 +124,56 @@ public class VoronoiGenerator : MonoBehaviour
             SkinMap();
         else
             ColorCountries();
+    }
+
+    private void CheckMap(List<Point> points)
+    {
+        var provinceless = _map.Where(t => t.Province == null);
+        if (!provinceless.Any())
+            return;
+
+        Debug.LogError("Tiles without province found!");
+
+        var siteCommands = string.Join(", ", points.Select(p => $"new Point({p.X}, {p.Y})"));
+        var siteListComand = $"var points = new List<Point> {{ {siteCommands} }};";
+        Debug.Log(siteListComand);
+
+        var hexGridCommand = $"new HexGrid({Height}, {Width}, HexTile);";
+        Debug.Log(hexGridCommand);
+
+        var mapCommand = $"new HexMap({Height}, {Width});";
+        Debug.Log(mapCommand);
+
+        Debug.Log(points.Count);
+        Debug.Log(_lines.Count);
+
+        foreach (var tile in provinceless)
+            tile.SetColor(Color.yellow);
+
+        foreach (var line in _lines)
+        {
+            if (line.X < 0 || line.X >= Width || line.Y < 0 || line.Y >= Height)
+                continue;
+            var tile = _map.GetTile(line);
+            tile.SetColor(Color.red);
+        }
+
+        foreach (var point in points)
+        {
+            var tile = _map.GetTile(point.XInt, point.YInt);
+            if(provinceless.Contains(tile))
+                tile.SetColor(Color.cyan);
+            else
+                tile.SetColor(Color.black);
+        }
+
+        foreach(var vertex in _vertices)
+        {
+            if (vertex.X < 0 || vertex.X >= Width || vertex.Y < 0 || vertex.Y >= Height)
+                continue;
+            var tile = _map.GetTile(vertex);
+            tile.SetColor(Color.blue);
+        }
     }
 
     private VoronoiMap GenerateMap()
@@ -138,6 +199,7 @@ public class VoronoiGenerator : MonoBehaviour
                 var line = _map.DrawLine(start, end);
                 return line;
             }).ToList();
+        _vertices = voronoiMap.Where(g => g is Vertex).Cast<Vertex>().Select(v => new Position(v.Point.XInt, v.Point.YInt)).ToList();
         return voronoiMap;
     }
 
@@ -179,7 +241,7 @@ public class VoronoiGenerator : MonoBehaviour
 
     private void ColorCountries()
     {
-        var countries = _map.Select(t => t.Province.Owner).Where(c => c != null).Distinct().ToList();
+        var countries = _map.Where(t=>t.Province!= null).Select(t => t.Province.Owner).Where(c => c != null).Distinct().ToList();
         countries.ForEach(c =>
         {
             c.Provinces.ForEach(p => p.HexTiles.ToList().ForEach(t =>
@@ -189,60 +251,10 @@ public class VoronoiGenerator : MonoBehaviour
             }));
         });
 
-        var waterTiles = _map.Where(t => t.TileTerrainType == TileTerrainType.Water).ToList();
+        var waterTiles = _map.Where(t => t.Province != null).Where(t => t.TileTerrainType == TileTerrainType.Water).ToList();
         waterTiles.ForEach(t =>
         {
             t.SetColor(TerrainColorMapping[(int)t.TileTerrainType]);
         });
-    }
-
-    private ICollection<IProvince> DetectRegions(ICollection<Point> points) =>
-        points.OrderBy(p => p.X * Height.CountDigits() * 10 + p.Y).Select((point, index) =>
-            {
-                var tile = _map.GetTile(point.XInt, point.YInt);
-                if (tile == null)
-                    Debug.LogError($"Tile is NULL at X: {point.XInt}, Y: {point.YInt} (X: {point.X}, Y: {point.Y})");
-                var provinceContainer = Instantiate(Province);
-                var province = provinceContainer.GetComponent<Province>();
-                province.Name = $"Region {index}";
-                FillRegion(province, tile);
-                province.DrawBorder(_map);
-                province.ArrangePosition();
-                province.IsWater = true;
-                return province;
-            }).Cast<IProvince>().ToList();
-
-    private void FillRegion(Province province, TileBase start)
-    {
-        var tileStack = new Stack<TileBase>();
-        tileStack.Push(start);
-
-        while (tileStack.Count > 0)
-        {
-            var tile = tileStack.Pop();
-            if (province.HexTiles.Contains(tile))
-                continue;
-
-            if (tile == null)
-            {
-                Debug.LogError($"Tile is null, tileStack.Count is {tileStack.Count}, province is {province.Name}");
-            }
-
-            province.AddHexTile(tile);
-
-            if (_lines.Contains(tile.Position))
-                continue;
-
-            foreach (var neighbour in _map.GetNeighboursWithDirection(tile))
-            {
-                if (neighbour.Neighbour == null)
-                    Debug.LogError($"Neighbour is null, tile is {tile}, tileStack.Count is {tileStack.Count}, province is {province.Name}");
-
-                if (neighbour.Neighbour.Province == null)
-                {
-                    tileStack.Push(neighbour.Neighbour);
-                }
-            }
-        }
     }
 }

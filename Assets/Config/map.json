@@ -51,11 +51,16 @@
     ],
 
     "majorCountryNames": [
-        "Janland"
+        "Janland",
+        "Kailand",
+        "Apfelka",
+        "Süßiengland",
+        "Kleintedelbrem",
+        "Timoland",
+        "Inaland"
     ],
 
     "minorCountryNames": [
         "Fantasia"
     ]
-
 }

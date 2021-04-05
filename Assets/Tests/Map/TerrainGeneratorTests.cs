@@ -6,6 +6,7 @@ using Assets.Contracts;
 using Assets.Contracts.Map;
 using Assets.Contracts.Organization;
 using Assets.Scripts.Map;
+using Helpers;
 using Moq;
 using NUnit.Framework;
 using UnityEngine;
@@ -19,7 +20,7 @@ namespace Tests
         public void GenerateTerrain_WithHexMap_CreatesTerrainMap()
         {            
             var heightMapGeneratorMock = new Mock<IHeightMapGenerator>();
-            var hexMap = HexMapBuilder.Create().WithHeight(100).WithWidth(100).Build();
+            var hexMap = HexMapBuilder.New.WithHeight(100).WithWidth(100).Build();
 
             var waterProvinceMock = new Mock<IProvince>();
             waterProvinceMock.Setup(p => p.IsWater).Returns(true);
@@ -69,11 +70,11 @@ namespace Tests
             var provinceMock = new Mock<IProvince>();
             provinceMock.Setup(p => p.IsWater).Returns(tileTerrainType == TileTerrainType.Water);
 
-            var hexMap = HexMapBuilder.Create()
+            var hexMap = HexMapBuilder.New
                 .WithHeight(10)
                 .WithWidth(10)
                 .WithTiles(
-                    TileBuilder.Create()
+                    TileBuilder.New
                     .WithType(tileTerrainType)
                     .WithProvince(provinceMock.Object)
                 ).Build();
@@ -94,11 +95,11 @@ namespace Tests
             var provinceMock = new Mock<IProvince>();
             provinceMock.Setup(p => p.IsWater).Returns(false);
 
-            var hexMap = HexMapBuilder.Create()
+            var hexMap = HexMapBuilder.New
                 .WithHeight(10)
                 .WithWidth(10)
                 .WithTiles(
-                    TileBuilder.Create()
+                    TileBuilder.New
                     .WithType(TileTerrainType.Plain)
                     .WithProvince(provinceMock.Object)
                 ).Build();

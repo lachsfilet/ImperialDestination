@@ -23,5 +23,6 @@ namespace Assets.Contracts.Map
         IEnumerable<Position> DrawLine(Position start, Position end);
 
         IEnumerable<TileBase> GetTilesOfTerrainType(TileTerrainType terrainType);
+        TileBase GetTile(int x, int y);
     }
 }

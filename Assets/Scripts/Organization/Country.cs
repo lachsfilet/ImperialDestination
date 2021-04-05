@@ -37,6 +37,12 @@ namespace Assets.Scripts.Organization
             province.Owner = this;
         }
 
+        public void RemoveProvince(IProvince province)
+        {
+            Provinces.Remove(province);
+            province.Owner = null;
+        }
+
         public void SetCapital(IHexMap map)
         {
             // First try to set any harbor city

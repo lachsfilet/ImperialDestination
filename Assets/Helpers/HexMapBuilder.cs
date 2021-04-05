@@ -1,7 +1,7 @@
 ﻿using Assets.Contracts.Map;
 using Assets.Scripts.Map;
 
-namespace Tests
+namespace Helpers
 {
     public class HexMapBuilder
     {
@@ -13,7 +13,7 @@ namespace Tests
         {
             _height = 1;
             _width = 1;
-            _tileBuilder = TileBuilder.Create();
+            _tileBuilder = TileBuilder.New;
         }
 
         public HexMapBuilder WithHeight(int height)
@@ -34,7 +34,7 @@ namespace Tests
             return this;
         }
 
-        public static HexMapBuilder Create() => new HexMapBuilder();
+        public static HexMapBuilder New => new HexMapBuilder();
 
         public HexMap Build()
         {

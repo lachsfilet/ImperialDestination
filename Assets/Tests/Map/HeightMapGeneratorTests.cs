@@ -2,6 +2,7 @@
 using Assets.Contracts.Organization;
 using Assets.Contracts.Utilities;
 using Assets.Scripts.Map;
+using Helpers;
 using Moq;
 using NUnit.Framework;
 using System;
@@ -25,10 +26,10 @@ namespace Tests
             continent.Setup(c => c.Countries).Returns(new List<ICountry> { country.Object });
             continent.Setup(c => c.TileCount).Returns(64);
 
-            var hexMap = HexMapBuilder.Create()
+            var hexMap = HexMapBuilder.New
                 .WithHeight(8)
                 .WithWidth(8)
-                .WithTiles(TileBuilder.Create().WithProvince(province.Object).WithType(TileTerrainType.Plain))
+                .WithTiles(TileBuilder.New.WithProvince(province.Object).WithType(TileTerrainType.Plain))
                 .Build();
 
             province.Setup(p => p.HexTiles).Returns(hexMap.ToList());
@@ -110,10 +111,10 @@ namespace Tests
             continent.Setup(c => c.Countries).Returns(new List<ICountry> { country.Object });
             continent.Setup(c => c.TileCount).Returns(64);
 
-            var hexMap = HexMapBuilder.Create()
+            var hexMap = HexMapBuilder.New
                 .WithHeight(8)
                 .WithWidth(8)
-                .WithTiles(TileBuilder.Create().WithProvince(province.Object).WithType(TileTerrainType.Plain))
+                .WithTiles(TileBuilder.New.WithProvince(province.Object).WithType(TileTerrainType.Plain))
                 .Build();
 
             province.Setup(p => p.HexTiles).Returns(hexMap.ToList());

@@ -1,10 +1,14 @@
 {
     "name": "Tests",
+    "rootNamespace": "",
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
         "ScriptsAssembly",
-        "Contracts"
+        "Contracts",
+        "Unity.Addressables",
+        "Unity.ResourceManager",
+        "Helpers"
     ],
     "includePlatforms": [
         "Editor"
@@ -15,11 +19,13 @@
     "precompiledReferences": [
         "nunit.framework.dll",
         "Newtonsoft.Json.dll",
-        "Moq.dll"
+        "Moq.dll",
+        "VoronoiEngine.dll"
     ],
     "autoReferenced": false,
     "defineConstraints": [
         "UNITY_INCLUDE_TESTS"
     ],
-    "versionDefines": []
+    "versionDefines": [],
+    "noEngineReferences": false
 }

@@ -36,5 +36,7 @@ namespace Assets.Contracts
         public abstract void Select(Color color);
 
         public abstract void Deselect();
+
+        public override string ToString() => $"Tile at position {Position}, terrain: {TileTerrainType}, province: {Province?.Name}, owner: {Province?.Owner?.Name}";
     }
 }

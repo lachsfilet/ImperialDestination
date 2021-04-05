@@ -39,7 +39,7 @@ public class Tile : TileBase
 
     public Color Color { get { return _color; } }
 
-    void Awake()
+    public void Setup()
     {
         _edges = new Dictionary<Direction, List<Vector3>>
         {
@@ -89,8 +89,11 @@ public class Tile : TileBase
         Resources = new List<IResource>();
     }
 
+    void Awake() 
+        => Setup();
+
     // Use this for initialization
-	void Start () {
+    void Start () {
         _renderer = GetComponent<Renderer>();
         _color = _renderer.material.color;
     }

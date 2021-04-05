@@ -1,9 +1,11 @@
 Library
 Logs
 Temp
+UserSettings
 obj
 *.csproj
 *.csproj.user
 *.sln
 *.userprefs
 .vs
+.vsconfig

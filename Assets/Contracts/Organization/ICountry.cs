@@ -18,6 +18,8 @@ namespace Assets.Contracts.Organization
 
         void AddProvince(IProvince province);
 
+        void RemoveProvince(IProvince province);
+
         void DrawBorder(IHexMap map);
 
         Transform GetParent();

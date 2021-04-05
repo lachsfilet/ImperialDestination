@@ -2,7 +2,7 @@
 using Assets.Contracts.Organization;
 using UnityEngine;
 
-namespace Tests
+namespace Helpers
 {
     public class TileBuilder
     {
@@ -16,7 +16,7 @@ namespace Tests
             _position = new Position(0, 0);
         }
 
-        public static TileBuilder Create() => new TileBuilder();
+        public static TileBuilder New => new TileBuilder();
 
         public TileBuilder WithType(TileTerrainType type)
         {

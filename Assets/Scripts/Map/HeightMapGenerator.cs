@@ -92,6 +92,13 @@ namespace Assets.Scripts.Map
                     tiles.Where(predicate).Where(t => t.Position.X <= centerX && t.Position.Y <= centerY).OrderBy(p=>p.Position, comparer).ToList(),
                     tiles.Where(predicate).Where(t => t.Position.X > centerX && t.Position.Y <= centerY).OrderBy(p=>p.Position, comparer).ToList()
                 };
+
+            if (sectors.Any(s => !s.Any()))
+            {
+                Debug.LogError("Empty continent sector detected!");
+                Debug.Log(string.Join(",", sectors.Select((s, i) => $"Sector {i}: {string.Join(", ", s.Select(t => t.ToString()))}")));
+            }
+
             return sectors;
         }
 

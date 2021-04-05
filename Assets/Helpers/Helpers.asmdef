@@ -1,0 +1,17 @@
+{
+    "name": "Helpers",
+    "rootNamespace": "",
+    "references": [
+        "GUID:303e533bc6b7ad341873d3f7b8050816",
+        "GUID:e024f3164eb3c0648a0e66f331aaf6d1"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -3,7 +3,7 @@
 namespace Assets.Contracts.Map
 {
     [Serializable]
-    public class Position
+    public class Position : IEquatable<Position>
     {
         public int X { get; set; }
         public int Y { get; set; }
@@ -20,13 +20,14 @@ namespace Assets.Contracts.Map
 
         public override bool Equals(object obj)
         {
-            var position = obj as Position;
+            var position = obj as Position; 
             if (position == null)
                 return false;
-            return X == position.X && Y == position.Y;
+  
+            return Equals(position);
         }
 
-        public override int GetHashCode() => base.GetHashCode();
+        public override int GetHashCode() => (X * 100000 + Y).GetHashCode();
 
         public static Position operator +(Position p1, Position p2)
         {
@@ -43,5 +44,10 @@ namespace Assets.Contracts.Map
         }
 
         public override string ToString() => $"Position X: {X}, Y: {Y}";
+
+        public bool Equals(Position other)
+        {
+            return X == other.X && Y == other.Y;
+        }
     }
 }

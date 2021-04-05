@@ -1,7 +1,7 @@
 ﻿using Assets.Contracts;
 using Assets.Contracts.Map;
 using Assets.Contracts.Organization;
-using Assets.Scripts.Map;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -22,7 +22,9 @@ namespace Assets.Scripts.Organization
         }
 
         private string _name;
-        public string Name {
+
+        public string Name
+        {
             get => _name;
             set
             {
@@ -45,7 +47,7 @@ namespace Assets.Scripts.Organization
         public void AddHexTile(TileBase hexTile)
         {
             if (hexTile == null)
-                return;
+                throw new ArgumentNullException(nameof(hexTile));
 
             _hexTiles.Add(hexTile);
             hexTile.Province = this;
@@ -61,6 +63,19 @@ namespace Assets.Scripts.Organization
             var index = rand.Next(innerTiles.Count);
             Capital = innerTiles[index];
             Capital.TileTerrainType = TileTerrainType.City;
+        }
+
+        public void ResetProvince(GameObject mapObject)
+        {
+            IsWater = true;
+            IsCapital = false;
+            Owner.RemoveProvince(this);
+            Capital = null;
+            foreach (var tile in HexTiles)
+            {
+                tile.TileTerrainType = TileTerrainType.Water;
+                tile.transform.SetParent(mapObject.transform);
+            }
         }
 
         public IList<IProvince> GetNeighbours(IHexMap map)
@@ -88,7 +103,7 @@ namespace Assets.Scripts.Organization
             this.transform.position = new Vector3(x, 0, z);
         }
 
-        public void DrawBorder(HexMap map)
+        public void DrawBorder(IHexMap map)
         {
             TraceBorder(map);
 
@@ -99,6 +114,9 @@ namespace Assets.Scripts.Organization
             //lineRenderer.SetVertexCount(vectors.Length);
             lineRenderer.SetPositions(vectors);
         }
+
+        public override string ToString() 
+            => Name;
 
         private void TraceBorder(IHexMap map)
         {
@@ -125,7 +143,7 @@ namespace Assets.Scripts.Organization
 
             var nextPair = map.GetNextNeighbourWithDirection(tilePair.HexTile, tilePair.Neighbour);
 
-            if(nextPair.Neighbour.Province != tilePair.HexTile.Province)
+            if (nextPair.Neighbour.Province != tilePair.HexTile.Province)
             {
                 // Move on with current tile and next neighbour province tile
                 TraceBorder(nextPair, borderRoute, map);

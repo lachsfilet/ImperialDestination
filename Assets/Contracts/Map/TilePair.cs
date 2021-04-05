@@ -1,6 +1,4 @@
-﻿using Assets.Contracts;
-
-namespace Assets.Contracts.Map
+﻿namespace Assets.Contracts.Map
 {
     public class TilePair
     {

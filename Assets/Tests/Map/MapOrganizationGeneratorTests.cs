@@ -1,7 +1,6 @@
 ﻿using Assets.Contracts.Map;
 using Assets.Contracts.Organization;
 using Assets.Scripts.Map;
-using Assets.Scripts.Organization;
 using Moq;
 using NUnit.Framework;
 using System;
@@ -16,6 +15,7 @@ namespace Tests
         [Test]
         public void GenerateCountryOnMap_WithProvinceWithoutNeighbours_ThrowsInvalidOperationException()
         {
+            var mapObject = new GameObject();
             var map = new Mock<IHexMap>();
             var country = new Mock<ICountry>();
             var countryProvinces = new List<IProvince>();
@@ -30,7 +30,7 @@ namespace Tests
 
             var organisationFactory = new Mock<IOrganisationFactory>();
 
-            var mapOrganizationGenerator = new MapOrganizationGenerator(organisationFactory.Object);
+            var mapOrganizationGenerator = new MapOrganizationGenerator(mapObject, organisationFactory.Object);
 
             Assert.Throws<InvalidOperationException>(() => mapOrganizationGenerator.GenerateCountryOnMap(country.Object, regions, map.Object, 1, 1));
         }
@@ -38,6 +38,7 @@ namespace Tests
         [Test]
         public void GenerateCountryOnMap_WithTwoProvinces_AddsProvincesToCountry()
         {
+            var mapObject = new GameObject();
             var map = new Mock<IHexMap>();
 
             var country = new Mock<ICountry>();
@@ -56,14 +57,13 @@ namespace Tests
 
             var organisationFactory = new Mock<IOrganisationFactory>();
 
-            var mapOrganizationGenerator = new MapOrganizationGenerator(organisationFactory.Object);
+            var mapOrganizationGenerator = new MapOrganizationGenerator(mapObject, organisationFactory.Object);
 
             mapOrganizationGenerator.GenerateCountryOnMap(country.Object, regions, map.Object, 2, 1);
 
-
             Assert.AreEqual(2, regions.Count);
             Assert.AreEqual(2, country.Object.Provinces.Count);
-            foreach(var province in country.Object.Provinces)
+            foreach (var province in country.Object.Provinces)
             {
                 var neighbour = country.Object.Provinces.Except(new[] { province }).Single();
                 Assert.IsTrue(province.GetNeighbours(map.Object).Contains(neighbour));
@@ -73,6 +73,7 @@ namespace Tests
         [Test]
         public void GenerateCountryOnMap_WithThreeProvinces_CreatesInCountryWithProvincesInRow()
         {
+            var mapObject = new GameObject();
             var map = new Mock<IHexMap>();
 
             var country = new Mock<ICountry>();
@@ -81,10 +82,11 @@ namespace Tests
             country.Setup(c => c.AddProvince(It.IsAny<IProvince>())).Callback((IProvince p) => countryProvinces.Add(p));
 
             var provinces = GenerateProvinces(5, 5, map.Object);
-            
+
             var regions = provinces.Select(p => p.Object).ToList();
 
-            Func<int, int, int> random = (a, b) => {
+            Func<int, int, int> random = (a, b) =>
+            {
                 if (a == 2 && b == 23)
                     return 2;
                 if (a == 0 && b == 5)
@@ -94,7 +96,7 @@ namespace Tests
 
             var organisationFactory = new Mock<IOrganisationFactory>();
 
-            var mapOrganizationGenerator = new MapOrganizationGenerator(organisationFactory.Object, random);
+            var mapOrganizationGenerator = new MapOrganizationGenerator(mapObject, organisationFactory.Object, random);
 
             mapOrganizationGenerator.GenerateCountryOnMap(country.Object, regions, map.Object, 3, 1);
 
@@ -107,6 +109,7 @@ namespace Tests
         [Test]
         public void GenerateCountryOnMap_WithEightProvinces_AvoidsEnclosedWaterProvince()
         {
+            var mapObject = new GameObject();
             var map = new Mock<IHexMap>();
 
             var country = new Mock<ICountry>();
@@ -119,9 +122,10 @@ namespace Tests
             var regions = provinces.Select(p => p.Object).ToList();
 
             var randomStep = 0;
-            Func<int, int, int> random = (a, b) => {
+            Func<int, int, int> random = (a, b) =>
+            {
                 randomStep++;
-                switch(randomStep)
+                switch (randomStep)
                 {
                     // First region is at index 6
                     case 1:
@@ -129,11 +133,13 @@ namespace Tests
                     // First and second neighbours are the right ones
                     case 2:
                         return 4;
+
                     case 3:
                         return 3;
                     // Third and fourth neighbours are the bottom ones
                     case 4:
                         return 5;
+
                     case 5:
                         return 4;
                     // Fifth and sixth neighbours are the left ones
@@ -143,16 +149,18 @@ namespace Tests
                     // Seventh neighbour is the upper one
                     case 8:
                         return 1;
+
                     case 9:
                         return 2;
+
                     default:
                         return 0;
-                }                
+                }
             };
-            
+
             var organisationFactory = new Mock<IOrganisationFactory>();
 
-            var mapOrganizationGenerator = new MapOrganizationGenerator(organisationFactory.Object, random);
+            var mapOrganizationGenerator = new MapOrganizationGenerator(mapObject, organisationFactory.Object, random);
 
             mapOrganizationGenerator.GenerateCountryOnMap(country.Object, regions, map.Object, 8, 1);
 
@@ -170,6 +178,7 @@ namespace Tests
         [Test]
         public void GenerateCountryOnMap_WithTenProvinces_AvoidsEnclosedWaterProvince()
         {
+            var mapObject = new GameObject();
             var map = new Mock<IHexMap>();
 
             var country = new Mock<ICountry>();
@@ -182,7 +191,8 @@ namespace Tests
             var regions = provinces.Select(p => p.Object).ToList();
 
             var randomStep = 0;
-            Func<int, int, int> random = (a, b) => {
+            Func<int, int, int> random = (a, b) =>
+            {
                 randomStep++;
                 switch (randomStep)
                 {
@@ -221,6 +231,7 @@ namespace Tests
                     // Index 19
                     case 11:
                         return 3;
+
                     default:
                         return 0;
                 }
@@ -228,7 +239,7 @@ namespace Tests
 
             var organisationFactory = new Mock<IOrganisationFactory>();
 
-            var mapOrganizationGenerator = new MapOrganizationGenerator(organisationFactory.Object, random);
+            var mapOrganizationGenerator = new MapOrganizationGenerator(mapObject, organisationFactory.Object, random);
 
             mapOrganizationGenerator.GenerateCountryOnMap(country.Object, regions, map.Object, 10, 1);
 
@@ -248,12 +259,13 @@ namespace Tests
         [Test]
         public void GenerateContinentsList_WithProvinces_Returns_CreatesTwoContinents()
         {
+            var mapObject = new GameObject();
             var hexMap = new Mock<IHexMap>();
 
             var provinces = GenerateProvinces(10, 10, hexMap.Object);
             var provinceObjects = provinces.Select(p => p.Object).ToList();
 
-            var countries = GenerateCountries(3);                      
+            var countries = GenerateCountries(3);
 
             provinceObjects[12].IsWater = false;
             provinceObjects[12].Owner = countries[0].Object;
@@ -291,13 +303,13 @@ namespace Tests
             var organisationFactory = new Mock<IOrganisationFactory>();
             organisationFactory.Setup(o => o.CreateContinent(container, It.IsAny<string>(), parent)).Returns(continent.Object);
 
-            var mapOrganizationGenerator = new MapOrganizationGenerator(organisationFactory.Object, (a, b) => 0);
+            var mapOrganizationGenerator = new MapOrganizationGenerator(mapObject, organisationFactory.Object, (a, b) => 0);
 
             mapOrganizationGenerator.GenerateContinentsList(foo => container, new GameObject(), provinceObjects, hexMap.Object, parent);
 
             organisationFactory.Verify(o => o.CreateContinent(container, It.IsAny<string>(), parent), Times.Exactly(2));
         }
-       
+
         private IList<Mock<IProvince>> GenerateProvinces(int count)
         {
             return Enumerable.Range(0, count).Select(
@@ -313,9 +325,9 @@ namespace Tests
                 n => new Mock<IProvince>())
                 .ToList();
 
-            for (var i=0; i<height; i++)
+            for (var i = 0; i < height; i++)
             {
-                for(var j=0; j<width; j++)
+                for (var j = 0; j < width; j++)
                 {
                     var index = j + i * width;
                     var province = provinces[index];

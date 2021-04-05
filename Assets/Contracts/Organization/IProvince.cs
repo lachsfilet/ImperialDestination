@@ -1,5 +1,6 @@
 ﻿using Assets.Contracts.Map;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Assets.Contracts.Organization
 {
@@ -18,6 +19,9 @@ namespace Assets.Contracts.Organization
         void AddHexTile(TileBase hexTile);
         
         void SetCapital(IHexMap map);
+        void DrawBorder(IHexMap map);
+        void ArrangePosition();
+        void ResetProvince(GameObject mapObject);
 
         IEnumerable<TileBase> HexTiles { get; }
 
