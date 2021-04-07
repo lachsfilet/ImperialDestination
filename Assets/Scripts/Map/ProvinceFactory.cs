@@ -38,7 +38,6 @@ namespace Assets.Scripts.Map
                  var provinceContainer = _instantiate(_original);
                  var province = _organisationFactory.CreateProvince(provinceContainer, $"Region {index}");
                  FillRegion(province, tile, sites);
-                 province.DrawBorder(_map);
                  province.ArrangePosition();
                  province.IsWater = true;
                  return province;
@@ -52,6 +51,9 @@ namespace Assets.Scripts.Map
                     throw new InvalidOperationException($"Cannot add tile to province - No neighbour owned by province found for {tile}");
                 tile.Province = neighbours.First().Province;
             }
+
+            foreach(var province in provinces)
+                province.DrawBorder(_map);
 
             return provinces;
         }
@@ -80,6 +82,7 @@ namespace Assets.Scripts.Map
                 // Edge cases
                 if (_lines.Contains(tile.Position))
                 {
+                    // If start tile is on border
                     if (tile.Position.Equals(start.Position))
                     {
                         var ownedNeighbours = _map.GetNeighboursWithDirection(tile).Where(n => n.Neighbour.Province != null).ToList();

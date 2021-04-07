@@ -171,7 +171,7 @@ namespace Tests
             Assert.AreSame(hexMap.GetTile(1, 2), neighbours[3].Neighbour);
             Assert.AreSame(hexMap.GetTile(0, 1), neighbours[4].Neighbour);
             Assert.AreSame(hexMap.GetTile(1, 0), neighbours[5].Neighbour);
-            
+
             Assert.AreSame(center, neighbours[0].HexTile);
             Assert.AreSame(center, neighbours[1].HexTile);
             Assert.AreSame(center, neighbours[2].HexTile);
@@ -181,7 +181,7 @@ namespace Tests
         }
 
         [Test]
-        public void GetNeighboursWithDirection_WithFifeNeighbours_ReturnsNeighboursInRightOrder()
+        public void GetNeighboursWithDirection_WithFiveNeighbours_ReturnsNeighboursInRightOrder()
         {
             var hexMap = HexMapBuilder.New.WithHeight(3).WithWidth(3).Build();
             var tile = hexMap.GetTile(0, 1);
@@ -201,12 +201,84 @@ namespace Tests
             Assert.AreSame(hexMap.GetTile(1, 2), neighbours[2].Neighbour);
             Assert.AreSame(hexMap.GetTile(0, 2), neighbours[3].Neighbour);
             Assert.AreSame(hexMap.GetTile(0, 0), neighbours[4].Neighbour);
-            
+
             Assert.AreSame(tile, neighbours[0].HexTile);
             Assert.AreSame(tile, neighbours[1].HexTile);
             Assert.AreSame(tile, neighbours[2].HexTile);
             Assert.AreSame(tile, neighbours[3].HexTile);
             Assert.AreSame(tile, neighbours[4].HexTile);
+        }
+
+        [Test]
+        public void GetNeighboursWithDirection_WithSixNeighboursAndreverseOrder_ReturnsNeighboursInLeftOrder()
+        {
+            var hexMap = HexMapBuilder.New.WithHeight(3).WithWidth(3).Build();
+            var tile = hexMap.GetTile(1, 1);
+
+            var neighbours = hexMap.GetNeighboursWithDirection(tile, true).ToList();
+
+            Assert.AreEqual(6, neighbours.Count);
+
+            Assert.AreEqual(Direction.Northwest, neighbours[0].Direction);
+            Assert.AreEqual(Direction.West, neighbours[1].Direction);
+            Assert.AreEqual(Direction.Southwest, neighbours[2].Direction);
+            Assert.AreEqual(Direction.Southeast, neighbours[3].Direction);
+            Assert.AreEqual(Direction.East, neighbours[4].Direction);
+            Assert.AreEqual(Direction.Northeast, neighbours[5].Direction);
+
+            Assert.AreSame(hexMap.GetTile(2, 0), neighbours[5].Neighbour);
+            Assert.AreSame(hexMap.GetTile(2, 1), neighbours[4].Neighbour);
+            Assert.AreSame(hexMap.GetTile(2, 2), neighbours[3].Neighbour);
+            Assert.AreSame(hexMap.GetTile(1, 2), neighbours[2].Neighbour);
+            Assert.AreSame(hexMap.GetTile(0, 1), neighbours[1].Neighbour);
+            Assert.AreSame(hexMap.GetTile(1, 0), neighbours[0].Neighbour);
+
+            Assert.AreSame(tile, neighbours[0].HexTile);
+            Assert.AreSame(tile, neighbours[1].HexTile);
+            Assert.AreSame(tile, neighbours[2].HexTile);
+            Assert.AreSame(tile, neighbours[3].HexTile);
+            Assert.AreSame(tile, neighbours[4].HexTile);
+            Assert.AreSame(tile, neighbours[5].HexTile);
+        }
+
+        [Test]
+        [TestCase(2, 0, 2, 1)]
+        [TestCase(2, 1, 2, 2)]
+        [TestCase(2, 2, 1, 2)]
+        [TestCase(1, 2, 0, 1)]
+        [TestCase(0, 1, 1, 0)]
+        [TestCase(1, 0, 2, 0)]
+        public void GetNextNeighbourWithDirection_WithNeighbour_ReturnsNextNeighbour(int ax, int ay, int bx, int by)
+        {
+            var hexMap = HexMapBuilder.New.WithHeight(3).WithWidth(3).Build();
+            var tile = hexMap.GetTile(1, 1);
+            var neighbour = hexMap.GetTile(ax, ay);
+            var expected = hexMap.GetTile(bx, by);
+
+            var result = hexMap.GetNextNeighbourWithDirection(tile, neighbour);
+
+            Assert.AreSame(tile, result.HexTile);
+            Assert.AreSame(expected, result.Neighbour);
+        }
+
+        [Test]
+        [TestCase(2, 0, 1, 0)]
+        [TestCase(1, 0, 0, 1)]
+        [TestCase(0, 1, 1, 2)]
+        [TestCase(1, 2, 2, 2)]
+        [TestCase(2, 2, 2, 1)]
+        [TestCase(2, 1, 2, 0)]
+        public void GetNextNeighbourWithDirection_WithNeighbourAndReverseOrder_ReturnsNextNeighbour(int ax, int ay, int bx, int by)
+        {
+            var hexMap = HexMapBuilder.New.WithHeight(3).WithWidth(3).Build();
+            var tile = hexMap.GetTile(1, 1);
+            var neighbour = hexMap.GetTile(ax, ay);
+            var expected = hexMap.GetTile(bx, by);
+
+            var result = hexMap.GetNextNeighbourWithDirection(tile, neighbour, true);
+
+            Assert.AreSame(tile, result.HexTile);
+            Assert.AreSame(expected, result.Neighbour);
         }
     }
 }

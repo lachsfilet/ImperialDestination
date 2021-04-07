@@ -189,7 +189,7 @@ public class VoronoiGenerator : MonoBehaviour
         }
         CreateMap();
 
-        var voronoiFactory = new VoronoiFactory(new EvenlySpreadSiteGenerator());
+        var voronoiFactory = new VoronoiFactory(new RandomSiteGenerator());
         var voronoiMap = voronoiFactory.CreateVoronoiMap(Height - 1, Width - 1, Regions);
         _lines = voronoiMap.Where(g => g is HalfEdge).Cast<HalfEdge>().SelectMany(
             edge =>

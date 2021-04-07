@@ -12,9 +12,9 @@ namespace Assets.Contracts.Map
 
         IEnumerable<TileBase> GetNeighbours(TileBase tile, bool reverse = false);
 
-        IEnumerable<TilePair> GetNeighboursWithDirection(TileBase tile);
+        IEnumerable<TilePair> GetNeighboursWithDirection(TileBase tile, bool reverse = false);
 
-        TilePair GetNextNeighbourWithDirection(TileBase hexTile, TileBase currentNeighbour);
+        TilePair GetNextNeighbourWithDirection(TileBase hexTile, TileBase currentNeighbour, bool reverse = false);
 
         TilePair GetPairWithDirection(TileBase hexTile, TileBase neighbour);
 

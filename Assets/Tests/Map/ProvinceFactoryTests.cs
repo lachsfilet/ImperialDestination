@@ -79,6 +79,17 @@ namespace Tests
                 Debug.Log(tile);
 
             Assert.False(provinceless.Any());
+
+            //var province = result.Single(p => p.Name == "Region 1");
+            //var neighbours = province.GetNeighbours(map);
+            foreach(var province in result)
+            {
+                var neighbours = province.GetNeighbours(map);
+                Debug.Log($"Neighbours of {province}: {string.Join(", ", neighbours.Select(n => n))}");
+            }
+
+            //Debug.Log(neighbours.Single().Name);
+            //Assert.AreEqual(5, neighbours.Count);
         }
 
         [UnityTest]
