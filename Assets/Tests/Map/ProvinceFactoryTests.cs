@@ -1,4 +1,5 @@
 ﻿using Assets.Contracts.Map;
+using Assets.Contracts.Organization;
 using Assets.Scripts;
 using Assets.Scripts.Map;
 using Assets.Scripts.Organization;
@@ -80,16 +81,39 @@ namespace Tests
 
             Assert.False(provinceless.Any());
 
-            //var province = result.Single(p => p.Name == "Region 1");
-            //var neighbours = province.GetNeighbours(map);
             foreach(var province in result)
             {
                 var neighbours = province.GetNeighbours(map);
                 Debug.Log($"Neighbours of {province}: {string.Join(", ", neighbours.Select(n => n))}");
             }
 
-            //Debug.Log(neighbours.Single().Name);
-            //Assert.AreEqual(5, neighbours.Count);
+            LogMap(map);
+
+            var provinces = result.ToList();
+            Assert.AreEqual(new[] { "Region 1", "Region 2" }, provinces[0].GetNeighbours(map).Select(p => p.Name).OrderBy(n => n).ToArray());
+            Assert.AreEqual(new[] { "Region 0", "Region 2", "Region 3", "Region 4" }, provinces[1].GetNeighbours(map).Select(p => p.Name).OrderBy(n => n).ToArray());
+            Assert.AreEqual(new[] { "Region 0", "Region 1", "Region 4" }, provinces[2].GetNeighbours(map).Select(p => p.Name).OrderBy(n => n).ToArray());
+            Assert.AreEqual(new[] { "Region 1", "Region 4", "Region 5" }, provinces[3].GetNeighbours(map).Select(p => p.Name).OrderBy(n => n).ToArray());
+            Assert.AreEqual(new[] { "Region 1", "Region 2", "Region 3", "Region 5" }, provinces[4].GetNeighbours(map).Select(p => p.Name).OrderBy(n => n).ToArray());
+            Assert.AreEqual(new[] { "Region 3", "Region 4   " }, provinces[5].GetNeighbours(map).Select(p => p.Name).OrderBy(n => n).ToArray());
+
+            // Neighbours of Region 0: Region 1, Region 2
+            // Neighbours of Region 1: Region 3, Region 4, Region 2, Region 0
+            // Neighbours of Region 2: Region 0, Region 1, Region 4
+            // Neighbours of Region 3: Region 5, Region 4, Region 1
+            // Neighbours of Region 4: Region 2, Region 0, Region 1, Region 3, Region 5
+            // Neighbours of Region 5: Region 4, Region 1, Region 3
+
+
+            //  0 0 0 0 0 1 1 1 1 3 3 3 3
+            //   0 0 0 0 0 1 1 1 1 3 3 3 3
+            //  0 0 0 0 0 1 1 1 1 3 3 3 3
+            //   0 0 0 0 0 1 1 1 1 3 3 3 3
+            //  0 0 0 0 0 1 1 1 1 3 3 3 3
+            //   2 2 2 2 2 4 4 4 4 5 5 5 5
+            //  2 2 2 2 2 4 4 4 4 5 5 5 5
+            //   2 2 2 2 2 4 4 4 4 5 5 5 5
+            //  2 2 2 2 2 4 4 4 4 5 5 5 5
         }
 
         [UnityTest]
@@ -194,6 +218,21 @@ namespace Tests
             return lines;
         }
 
-        //var points = new List<Point> { new Point(3,19696375550561, 0,259064570189949), new Point(5,47673264726844, 7,35443416580299), new Point(1,46673120300599, 9,6044423550388), new Point(7,05922293293254, 13,2550710445526), new Point(9,5326367796085, 0,542006226508881), new Point(15,1557762721348, 6,70530752218576), new Point(17,3631668600082, 9,47011462294968), new Point(9,37308112968369, 13,3188468671026), new Point(18,5614522917017, 3,8653869404762), new Point(26,4218715892275, 7,7817545122382), new Point(22,6280591211412, 9,4473085372929), new Point(25,7979922908349, 14,9776541027136), new Point(34,3169988222965, 3,97211253455473), new Point(32,1128553040851, 6,21197153544611), new Point(35,6954905244966, 10,0119497878533), new Point(35,0309263314265, 13,1750887656468), new Point(40,3841408059858, 2,73020903707026), new Point(38,6681405867767, 5,37370114278686), new Point(38,0553190387112, 8,17604658388349), new Point(37,8458784920377, 12,7904092747673) };
+        private void LogMap(HexMap map)
+        {
+            for(var y=0; y<map.Height; y++)
+            {
+                var row = "";
+                for (var x = 0; x < map.Width; x++)
+                {
+                    var tile = map.GetTile(x, y);
+                    var province = tile.Province.Name.Last();
+                    if (y % 2 != 0 && x == 0)
+                        row += " ";
+                    row += $"{province} ";
+                }
+                Debug.Log(row);
+            }
+        }
     }
 }
