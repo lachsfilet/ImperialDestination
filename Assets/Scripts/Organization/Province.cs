@@ -139,12 +139,6 @@ namespace Assets.Scripts.Organization
             if (_borderRoute.Any(p => p.Neighbour == tilePair.Neighbour && p.HexTile == tilePair.HexTile))
                 return;
 
-            if (Name == "Region 4" && tilePair.Neighbour.Province.Name == "Region 0")
-            {
-                Debug.Log($"Tile pair: tile: {tilePair.HexTile}, neighbour {tilePair.Neighbour}");
-                Debug.Log($"{this}, border: {string.Join(", ", _borderRoute.Select(b => "tile: " + b.HexTile + ", neighbour: " + b.Neighbour))}");
-            }
-
             if (reverse)
                 _borderRoute.Insert(0, tilePair);
             else
@@ -165,18 +159,21 @@ namespace Assets.Scripts.Organization
             var newPair = map.GetPairWithDirection(newCurrentProvinceTile, lastNeighbourProvinceTile);
 
             if (newPair != null)
+            {
                 TraceBorder(newPair, map, reverse);
-
-            //Debug.Log($"{this}, border: {string.Join(", ", _borderRoute.Select(b => "tile: " + b.HexTile + ", neighbour: " + b.Neighbour))}");
-            //Debug.Log($"{this}: Last pair: tile: {tilePair.HexTile}, neighbour {tilePair.Neighbour}");
-            //Debug.Log($"{this}: Next pair: tile: {nextPair.HexTile}, neighbour {nextPair.Neighbour}");
+                return;
+            }
 
             // Dead end -> go backwards from the first list entry
             var firstPair = _borderRoute.First();
 
             var neighbourPair = map.GetNextNeighbourWithDirection(firstPair.HexTile, firstPair.Neighbour, true);
+
             if ((Province)neighbourPair.Neighbour.Province != this)
+            { 
                 TraceBorder(neighbourPair, map, true);
+                return;
+            }
 
             newCurrentProvinceTile = neighbourPair.Neighbour;
             lastNeighbourProvinceTile = firstPair.Neighbour; //_borderRoute.Where(t => t.HexTile == tilePair.HexTile).Select(t => t.Neighbour).Last();

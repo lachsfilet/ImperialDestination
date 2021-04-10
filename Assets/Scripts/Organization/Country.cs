@@ -32,6 +32,7 @@ namespace Assets.Scripts.Organization
         public void AddProvince(IProvince province)
         {
             Provinces.Add(province);
+            province.IsWater = false;
             var provinceObject = (Province)province;
             provinceObject.transform.SetParent(transform);
             province.Owner = this;

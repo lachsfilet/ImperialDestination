@@ -28,7 +28,7 @@ namespace Assets.Scripts.Map
             if (countryColors.Count != majorCountryCount)
                 throw new ArgumentException($"{nameof(majorCountryCount)} ({majorCountryCount}) and {nameof(countryColors.Count)} ({countryColors.Count}) must be equal");
 
-            var regions = provinces.Where(p => !p.HexTiles.Any(h => h.Position.X == 0 || h.Position.Y == 0 || h.Position.X == map.Width - 1 || h.Position.Y == map.Height - 1)).ToList();
+            var regions = provinces.Where(p => !p.HexTiles.Any(h => h.Position.X == 0 || h.Position.X == map.Width - 1)).ToList();
 
             var majorCountryNameQueue = new Queue<string>(majorCountryNames ?? Enumerable.Empty<string>());
             var minorCountryNameQueue = new Queue<string>(minorCountryNames ?? Enumerable.Empty<string>());

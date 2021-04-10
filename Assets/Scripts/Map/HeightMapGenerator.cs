@@ -29,6 +29,12 @@ namespace Assets.Scripts.Map
 
         public void GenerateHeightMap(IHexMap hexMap, int ratio)
         {
+            var countryLess = hexMap.Where(t => t.TileTerrainType != TileTerrainType.Water).Select(t => t.Province).Where(p => p.Owner == null).ToList();
+            Debug.Log(string.Join(", ", countryLess));
+
+            var continentLess = countryLess.Where(p => p.Owner.Continent == null).Select(p => p.Owner).ToList();
+            Debug.Log(string.Join(", ", continentLess.Select(c => c.Name)));
+
             var heightMap = new Dictionary<TileBase, TileTerrainType>();
             var continents = hexMap.Where(t => t.TileTerrainType != TileTerrainType.Water).Select(t => t.Province.Owner.Continent).Distinct();
 

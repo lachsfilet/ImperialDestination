@@ -15,6 +15,8 @@ namespace Assets.Scripts.Map
 
         private IOrganisationFactory _organisationFactory;
 
+        private List<string> _trace;
+
         public MapOrganizationGenerator(GameObject mapObject, IOrganisationFactory organisationFactory)
             : this(mapObject, organisationFactory, UnityEngine.Random.Range)
         {
@@ -25,13 +27,14 @@ namespace Assets.Scripts.Map
             _mapObject = mapObject ?? throw new ArgumentNullException(nameof(mapObject));
             _organisationFactory = organisationFactory ?? throw new ArgumentNullException(nameof(organisationFactory));
             _random = random ?? throw new ArgumentNullException(nameof(random));
+            _trace = new List<string>();
         }
 
         public void GenerateCountryOnMap(ICountry country, IList<IProvince> regions, IHexMap map, int regionCount, float step)
         {
             for (var j = 0; j < 20; j++)
             {
-                Debug.Log($"Try genereate provinces for country {country.Name} attempt {j}");
+                _trace.Add($"Try genereate provinces for country {country.Name} attempt {j}");
                 if (!TryGenerateCountry(country, regions, map, regionCount, step))
                     continue;
 
@@ -44,29 +47,29 @@ namespace Assets.Scripts.Map
 
         private bool TryGenerateCountry(ICountry country, IList<IProvince> regions, IHexMap map, int regionCount, float step)
         {
-            Debug.Log($"From: {regionCount} - 1, {regions.Count} - ({regionCount} - 1)");           
+            _trace.Add($"From: {regionCount} - 1, {regions.Count} - ({regionCount} - 1)");
             if (regionCount > regions.Count)
                 throw new InvalidOperationException($"No regions left to generate country {country.Name}");
-            
+
             var index = _random(regionCount - 1, regions.Count - (regionCount - 1));
-            Debug.Log($"Index: {index}");
-            Debug.Log($"Region count: {regions.Count}");
+            _trace.Add($"Region random index: {index}");
+            _trace.Add($"Region count: {regions.Count}");
             var region = regions[index];
             var redoCache = new List<IProvince>();
 
             for (var i = 0; i < regionCount; i++)
             {
                 if (region == null)
-                    Debug.LogError($"Invalid index {index} for regions of count {regions.Count}");
+                    _trace.Add($"Invalid index {index} for regions of count {regions.Count}");
 
                 AddProvince(country, regions, map, region, redoCache);
 
-                //Debug.Log($"Remaining provinces: {string.Join(", ", regions.Select(r => r.Name).OrderBy(n => n))}");
+                _trace.Add($"Remaining provinces: {string.Join(", ", regions.Select(r => r.Name).OrderBy(n => n))}");
 
                 if (TrySetNextProvince(country, regions, map, region, out region))
                     continue;
 
-                Debug.Log($"Reset province {region?.Name} for country {country?.Name}");
+                _trace.Add($"Reset province {region?.Name} for country {country?.Name}");
                 ResetRegions(redoCache, regions);
                 return false;
             }
@@ -75,9 +78,16 @@ namespace Assets.Scripts.Map
 
         private void AddProvince(ICountry country, IList<IProvince> regions, IHexMap map, IProvince region, List<IProvince> redoCache)
         {
+            if (region == null || (country.Provinces.Any() && !region.GetNeighbours(map).Intersect(country.Provinces).Any()))
+            {
+                foreach(var log in _trace)
+                    Debug.Log(log);
+                throw new InvalidOperationException($"{region} is not next to {country.Name}");
+            }
             country.AddProvince(region);
             region.IsWater = false;
 
+            _trace.Add($"Add Province: {region.Name}");
             Debug.Log($"Add Province: {region.Name}");
 
             foreach (var tile in region.HexTiles)
@@ -93,7 +103,7 @@ namespace Assets.Scripts.Map
         {
             redoCache.ForEach(r =>
             {
-                Debug.Log($"Reset province {r.Name}");
+                _trace.Add($"Reset province {r.Name}");
                 regions.Add(r);
                 r.ResetProvince(_mapObject);
             });
@@ -108,35 +118,42 @@ namespace Assets.Scripts.Map
             do
             {
                 var neighbours = region.GetNeighbours(map);
+                _trace.Add($"Neighbours of {region}: {string.Join(", ", neighbours.Select(r => r.Name).OrderBy(n => n))}");
 
                 if (!neighbours.Any())
+                {
+                    foreach (var log in _trace)
+                        Debug.Log(log);
                     throw new InvalidOperationException("No neighbour found!");
+                }
 
                 var freeNeighbours = neighbours.Where(n => regions.Contains(n)).ToList();
                 var countryNeighbours = neighbours.Where(n => country.Provinces.Contains(n)).ToList();
 
-                //Debug.Log($"Remaining free provinces: {string.Join(", ", freeNeighbours.Select(r => r.Name).OrderBy(n => n))}");
-                //Debug.Log($"Remaining country neighbours: {string.Join(", ", countryNeighbours.Select(r => r.Name).OrderBy(n => n))}");
+                _trace.Add($"Remaining free provinces of {region}: {string.Join(", ", freeNeighbours.Select(r => r.Name).OrderBy(n => n))}");
+                _trace.Add($"Remaining country neighbours {region}: {string.Join(", ", countryNeighbours.Select(r => r.Name).OrderBy(n => n))}");
 
                 if (freeNeighbours.Any())
                 {
+                    var lastRegion = region;
                     var neighbourIndex = _random(0, freeNeighbours.Count);
                     region = freeNeighbours[neighbourIndex];
                     found = true;
                     region.IsWater = false;
-                    //Debug.Log($"Free neighbour province: {region.Name} with index {neighbourIndex} and {nameof(region.IsWater)} {region.IsWater}");
+                    _trace.Add($"Random neighbour index: {neighbourIndex}: Free neighbour province: {region.Name} with index {neighbourIndex} and {nameof(region.IsWater)} {region.IsWater}");
                     if (region.GetNeighbours(map).Any(n => CheckForSurroundedSeaProvince(n, map)))
                     {
-                        //Debug.LogWarning($"Surrounded sea province found for {region.Name}");
+                        _trace.Add($"Surrounded sea province found for {region.Name}");
                         found = false;
                         region.IsWater = true;
+                        region = lastRegion;
                     }
                 }
                 else
                 {
                     var neighbourIndex = _random(0, countryNeighbours.Count);
                     region = countryNeighbours[neighbourIndex];
-                    //Debug.Log($"Neighbour of another province: {region.Name} with index {neighbourIndex}");
+                    _trace.Add($"Random neighbour index: {neighbourIndex}: Neighbour of another province: {region.Name} with index {neighbourIndex}");
                 }
                 if (found)
                 {
@@ -145,7 +162,7 @@ namespace Assets.Scripts.Map
                 }
             } while (--tries > 0);
             return false;
-        }
+        }        
 
         /// <summary>
         /// Checks with a flood fill algorithm if any sea provinces are surrounded

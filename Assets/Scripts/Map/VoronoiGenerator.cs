@@ -86,44 +86,58 @@ public class VoronoiGenerator : MonoBehaviour
     // Start is called before the first frame update
     private void Start()
     {
-        Debug.Log(Application.dataPath);
-        Debug.Log(Application.persistentDataPath);
+        var points = new List<Point>();
+        try
+        {
+            Debug.Log(Application.dataPath);
+            Debug.Log(Application.persistentDataPath);
 
-        _mapObject = new GameObject("Map");
-        _hexGrid = new HexGrid(Height, Width, HexTile);
-        _map = new HexMap(Height, Width);
-        _organisationFactory = new OrganisationFactory();
-        _mapOrganizationGenerator = new MapOrganizationGenerator(_mapObject, _organisationFactory);       
-        _countryGenerator = new CountryGenerator(_organisationFactory, _mapOrganizationGenerator);
+            _mapObject = new GameObject("Map");
+            _hexGrid = new HexGrid(Height, Width, HexTile);
+            _map = new HexMap(Height, Width);
+            _organisationFactory = new OrganisationFactory();
+            _mapOrganizationGenerator = new MapOrganizationGenerator(_mapObject, _organisationFactory);
+            _countryGenerator = new CountryGenerator(_organisationFactory, _mapOrganizationGenerator);
 
-        var heightMapGenerator = new HeightMapGenerator(MountainRatio);
-        _terrainGenerator = new TerrainGenerator(heightMapGenerator);
-        _terrainGenerator.DesertBelt = DesertBelt;
-        _terrainGenerator.PoleBelt = PoleBelt;
+            var heightMapGenerator = new HeightMapGenerator(MountainRatio);
+            _terrainGenerator = new TerrainGenerator(heightMapGenerator);
+            _terrainGenerator.DesertBelt = DesertBelt;
+            _terrainGenerator.PoleBelt = PoleBelt;
 
-        var voronoiMap = GenerateMap();
-        var points = voronoiMap.Where(g => g is Site).Select(s => s.Point).ToList();
+            var voronoiMap = GenerateMap();
+            points = voronoiMap.Where(g => g is Site).Select(s => s.Point).ToList();
 
-        _provinceFactory = new ProvinceFactory(_map, _lines, Instantiate, Province, _organisationFactory);
-        _regions = _provinceFactory.CreateProvinces(points);
+            _provinceFactory = new ProvinceFactory(_map, _lines, Instantiate, Province, _organisationFactory);
+            _regions = _provinceFactory.CreateProvinces(points);
 
-        Debug.Log("Map check after region detection");
-        CheckMap(points);
+            Debug.Log("Map check after region detection");
+            CheckMap(points);
 
-        var majorCountryNames = SettingsLoader.Instance.MajorCountryNames;
-        var minorCountryNames = SettingsLoader.Instance.MinorCountryNames;
+            var majorCountryNames = SettingsLoader.Instance.MajorCountryNames;
+            var minorCountryNames = SettingsLoader.Instance.MinorCountryNames;
 
-        _countryGenerator.GenerateCountries(_regions, _map, MajorCountries, MinorCountries, ProvincesMajorCountries, ProvincesMinorCountries, majorCountryNames, minorCountryNames, Instantiate, Country, CountryColors);
-        _mapOrganizationGenerator.GenerateContinentsList(Instantiate, Continent, _regions, _map, _mapObject);
-        _terrainGenerator.GenerateTerrain(_map);
+            _countryGenerator.GenerateCountries(_regions, _map, MajorCountries, MinorCountries, ProvincesMajorCountries, ProvincesMinorCountries, majorCountryNames, minorCountryNames, Instantiate, Country, CountryColors);
+            _mapOrganizationGenerator.GenerateContinentsList(Instantiate, Continent, _regions, _map, _mapObject);
+            _terrainGenerator.GenerateTerrain(_map);
 
-        var resources = SettingsLoader.Instance.ResourceSettings;
-        ResourceService.Instance.SpreadResources(_map, resources);
+            var resources = SettingsLoader.Instance.ResourceSettings;
+            ResourceService.Instance.SpreadResources(_map, resources);
 
-        if (MapMode == MapMode.InGame)
-            SkinMap();
-        else
-            ColorCountries();
+            if (MapMode == MapMode.InGame)
+                SkinMap();
+            else
+                ColorCountries();
+            var siteCommands = string.Join(", ", points.Select(p => $"new Point({p.X}, {p.Y})"));
+            var siteListComand = $"var points = new List<Point> {{ {siteCommands} }};";
+            Debug.Log(siteListComand);
+        }
+        catch (Exception e)
+        {
+            Debug.LogError(e);
+            var siteCommands = string.Join(", ", points.Select(p => $"new Point({p.X}, {p.Y})"));
+            var siteListComand = $"var points = new List<Point> {{ {siteCommands} }};";
+            Debug.Log(siteListComand);
+        }
     }
 
     private void CheckMap(List<Point> points)
@@ -189,7 +203,7 @@ public class VoronoiGenerator : MonoBehaviour
         }
         CreateMap();
 
-        var voronoiFactory = new VoronoiFactory(new RandomSiteGenerator());
+        var voronoiFactory = new VoronoiFactory(new EvenlySpreadSiteGenerator());
         var voronoiMap = voronoiFactory.CreateVoronoiMap(Height - 1, Width - 1, Regions);
         _lines = voronoiMap.Where(g => g is HalfEdge).Cast<HalfEdge>().SelectMany(
             edge =>
