@@ -65,6 +65,30 @@ namespace Assets.Tests.Helpers
             }
         }
 
+        public static void LogMap(HexMap map, List<Position> lines, List<Point> points)
+        {
+            var sites = points.Select(p => new Position(p.XInt, p.YInt)).ToList();
+
+            for (var y = 0; y < map.Height; y++)
+            {
+                var row = "";
+                for (var x = 0; x < map.Width; x++)
+                {
+                    var tile = map.GetTile(x, y);
+                    var output = "x";
+                    if (lines.Contains(tile.Position))
+                        output = "l";
+                    if (sites.Contains(tile.Position))
+                        output = "s";
+
+                    if (y % 2 != 0 && x == 0)
+                        row += " ";
+                    row += $"{output} ";
+                }
+                Debug.Log(row);
+            }
+        }
+  
         private static GameObject CreateTile(GameObject tile, GameObject mapStartPoint, HexMap map, TileTerrainType type, Vector3 position, int x, int y)
         {
             var hexTile = TileFactory.Instance.CreateTile(UnityEngine.Object.Instantiate, tile, type, position, mapStartPoint.transform.rotation, x, y, map);
