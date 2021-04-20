@@ -60,6 +60,10 @@ namespace Assets.Scripts.Map
 
         private void FillRegion(IProvince province, TileBase start, List<Position> sites)
         {
+            if(province.Name == "Region 57" || province.Name == "Region 60")
+            {
+                Debug.Log(start);
+            }
             var lowerBorderDirections = new[] { Direction.Northeast, Direction.West, Direction.Northwest };
 
             var tileStack = new Stack<TileBase>();

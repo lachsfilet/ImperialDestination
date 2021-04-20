@@ -10,14 +10,23 @@ namespace Assets.Scripts.Map
 {
     public class CountryGenerator : ICountryGenerator
     {
-        private IOrganisationFactory _organisationFactory;
+        private readonly IOrganisationFactory _organisationFactory;
 
-        private IMapOrganizationGenerator _mapOrganizationGenerator;
+        private readonly IMapOrganizationGenerator _mapOrganizationGenerator;
 
-        public CountryGenerator(IOrganisationFactory organisationFactory, IMapOrganizationGenerator mapOrganizationGenerator)
+        private readonly Func<int, int, int> _random;
+
+
+        public CountryGenerator(IOrganisationFactory organisationFactory, IMapOrganizationGenerator mapOrganizationGenerator) :
+            this(organisationFactory, mapOrganizationGenerator, UnityEngine.Random.Range)
+        {
+        }
+
+        public CountryGenerator(IOrganisationFactory organisationFactory, IMapOrganizationGenerator mapOrganizationGenerator, Func<int, int, int> random)
         {
             _organisationFactory = organisationFactory ?? throw new ArgumentNullException(nameof(organisationFactory));
             _mapOrganizationGenerator = mapOrganizationGenerator ?? throw new ArgumentNullException(nameof(mapOrganizationGenerator));
+            _random = random ?? throw new ArgumentNullException(nameof(random));
         }
 
         public void GenerateCountries(ICollection<IProvince> provinces, IHexMap map, int majorCountryCount, 
@@ -35,7 +44,7 @@ namespace Assets.Scripts.Map
 
             var majorCountries = Enumerable.Range(1, majorCountryCount).Select(n => new { number = n, isMajor = true });
             var minorCountries = Enumerable.Range(1, minorCountryCount).Select(n => new { number = n, isMajor = false });
-            var countries = majorCountries.Concat(minorCountries).Shuffle().ToList();
+            var countries = majorCountries.Concat(minorCountries).Shuffle(_random).ToList();
             var step = 1f / countries.Count;
 
             var majorCount = 0;

@@ -392,22 +392,24 @@ namespace Tests
             var janland = organizationFactory.CreateCountry(janlandObject, "Janland", CountryType.Major, Color.blue);
             yield return null;
 
-
             var step = 0;
             Func<int, int, int> random = (a, b) =>
             {
                 step++;
-                switch(step)
+                switch (step)
                 {
                     case 1:
                         return 84;
+
                     case 2:
                         return 5;
+
                     case 3:
                         return 3;
+
                     default:
                         return a;
-                }                    
+                }
             };
 
             var restProvinces = provinces.Where(p => !p.HexTiles.Any(h => h.Position.X == 0 || h.Position.Y == 0 || h.Position.X == map.Width - 1 || h.Position.Y == map.Height - 1)).ToList();
@@ -416,7 +418,7 @@ namespace Tests
                 restProvinces.Remove(province);
             }
 
-            var mapOrganizationGenerator = new MapOrganizationGenerator(mapStartPoint, organizationFactory, random);            
+            var mapOrganizationGenerator = new MapOrganizationGenerator(mapStartPoint, organizationFactory, random);
             mapOrganizationGenerator.GenerateCountryOnMap(janland, restProvinces, map, 8, 1f / 2);
 
             TestMapHelpers.LogMap(map);
@@ -479,6 +481,170 @@ namespace Tests
                 }
             }
             return provinces;
+        }
+
+        [UnityTest]
+        public IEnumerator GenerateCountryOnMap_With75x100MapAnd2Countries_GeneratesCountries()
+        {
+            var mapStartPoint = new GameObject();
+
+            var provinceHandle = Addressables.LoadAssetAsync<GameObject>("Province");
+            yield return provinceHandle;
+
+            Assert.IsTrue(provinceHandle.IsDone);
+            Assert.AreEqual(AsyncOperationStatus.Succeeded, provinceHandle.Status);
+            Assert.IsNotNull(provinceHandle.Result);
+
+            var tileHandle = Addressables.LoadAssetAsync<GameObject>("HexTile");
+            yield return tileHandle;
+
+            Assert.IsTrue(tileHandle.IsDone);
+            Assert.AreEqual(AsyncOperationStatus.Succeeded, tileHandle.Status);
+            Assert.IsNotNull(tileHandle.Result);
+
+            var map = new HexMap(75, 100);
+
+            var points = new List<Point> { new Point(1.14285788272641, 3.92183331862177), new Point(1.5262768522493, 10.3822872519411), new Point(0.903637121386657, 18.2381861229605), new Point(2.49700655718195, 22.0047839321218), new Point(0.380313418517035, 30.9387679099751), new Point(2.979308875268, 41.4683333367428), new Point(0.0471314219977387, 45.1530587180299), new Point(0.894604329902029, 55.3601143087075), new Point(1.64344133420076, 57.0792698907104), new Point(1.85135311253898, 64.0850839019218), new Point(3.64604565065636, 4.12889892101702), new Point(4.86070120607535, 11.1125501343573), new Point(5.16934288999501, 17.9092022236014), new Point(3.91344721285321, 26.3703142555292), new Point(5.27288573713642, 30.3193453710151), new Point(3.2794659274069, 39.1700259471173), new Point(4.58378306850036, 44.6005057536999), new Point(3.28752865748831, 52.3122625487448), new Point(5.08140484014591, 56.4529930364587), new Point(4.04296865129982, 66.3312505592272), new Point(6.8571498095324, 2.44390132392007), new Point(7.99900608137204, 10.695345721997), new Point(6.42108097971467, 17.900864144741), new Point(7.9741135667889, 27.3010226652497), new Point(6.2186866324482, 28.7635516220534), new Point(8.09257611916055, 36.0940217720783), new Point(6.43790190733872, 43.0920480732303), new Point(8.25023040839016, 54.5377694720113), new Point(8.82008450190541, 62.448762520891), new Point(8.2802087894083, 68.1992843929675), new Point(9.90291826841557, 0.456034377895312), new Point(10.1577359480587, 12.5680526055247), new Point(9.98000603401102, 16.7816947618414), new Point(10.1883597901037, 25.5094675642948), new Point(10.0637822216674, 33.7751475543599), new Point(9.64435843501443, 38.3817034100097), new Point(11.4195755875761, 42.9885733700304), new Point(11.6078861484341, 55.0635385276114), new Point(11.7705220276353, 56.6462904255121), new Point(10.3414405064385, 64.160935931914), new Point(14.7012588147546, 2.83035416474117), new Point(14.0828766199215, 11.5398484312649), new Point(13.9014290398459, 20.5580653918712), new Point(13.3492520699973, 23.6034457532705), new Point(13.8642720574812, 30.1331307287948), new Point(13.5994565904138, 40.4078487727828), new Point(12.9139310833597, 46.2343091267321), new Point(12.5247605426818, 50.543981844347), new Point(14.8896503336214, 62.0962949176767), new Point(12.6037135611306, 68.2008275241595), new Point(15.4834391290711, 0.0967974248792964), new Point(16.6366560634396, 8.73512125468586), new Point(17.682877974437, 15.5009742013649), new Point(16.0492908861718, 21.0331977470933), new Point(15.8601344543789, 34.1869990919656), new Point(17.6028077460839, 40.9339067456005), new Point(16.4223148596577, 46.1595512433721), new Point(17.5270059250887, 55.2764551282285), new Point(16.1125666848908, 61.1615354475386), new Point(15.4848792196647, 65.7286153541545), new Point(20.8429028279348, 0.169393756971412), new Point(18.0683568986451, 7.34902778842907), new Point(18.875606647169, 17.0956542422509), new Point(18.535370378073, 22.4113672442787), new Point(20.8989137587598, 32.5410858353326), new Point(20.7090090353549, 35.3682564801389), new Point(20.6732680498032, 46.9292003241969), new Point(18.0141048417492, 55.206139809548), new Point(20.5763528643066, 59.1249241917976), new Point(20.2627713532479, 65.9356935582756), new Point(22.7613085674873, 3.11505708290034), new Point(21.2556280113084, 12.1629690421573), new Point(22.3113911376853, 18.7981586320317), new Point(21.8953346143921, 25.9729546178006), new Point(23.2876979863679, 29.947986138029), new Point(23.5491398198293, 36.5809819975779), new Point(23.1278186021968, 47.6800496218168), new Point(23.3860232538479, 49.9586308775277), new Point(23.9731277120175, 59.4698363595967), new Point(23.8680167476963, 66.1643943647688), new Point(24.1079042796548, 1.03697815678873), new Point(24.1153138471373, 11.4658945582183), new Point(26.9425620040589, 19.7049615940568), new Point(26.8698348411684, 26.3895343483377), new Point(25.7685599768388, 34.6902073489922), new Point(24.1135564763628, 41.4710647396143), new Point(26.9493152671258, 47.1956912876087), new Point(26.4080980128646, 52.5183828489475), new Point(26.8169693131079, 57.9965303880146), new Point(25.8381922002128, 67.244923544696), new Point(27.4313743465726, 3.27624293103639), new Point(28.3171736897515, 11.8161459657439), new Point(29.3970398238846, 18.740039084917), new Point(28.030005603577, 21.5575758277241), new Point(29.726491170808, 34.0742804198872), new Point(29.6866464920745, 37.5416536571186), new Point(28.4712364773598, 44.1154054594764), new Point(28.1502501024633, 52.072741834015), new Point(28.2197106169629, 59.1305708015014), new Point(29.2701390140085, 67.3549510605423), new Point(32.1865188582738, 3.69957975191045), new Point(30.3627062879329, 12.6477546191997), new Point(30.7212947256497, 20.4769281733208), new Point(30.7282484461219, 27.7692187841838), new Point(30.026208967914, 30.0490047433642), new Point(30.5938724915468, 39.9407676066927), new Point(32.6488805253286, 44.4471155332621), new Point(30.9247946668997, 52.9755337214915), new Point(32.1272455203008, 58.4529196775765), new Point(32.5169149867803, 65.1259389245538), new Point(34.414977936733, 6.13870546833552), new Point(35.5833092641939, 12.05235952607), new Point(33.1805852289221, 18.7233114543945), new Point(34.3020769824749, 25.7663301638171), new Point(34.0764747350833, 30.5461535293358), new Point(33.2881677468718, 38.4423575957503), new Point(34.5855168665692, 48.9341640732876), new Point(35.6327340894531, 53.3069603900923), new Point(34.0413978253684, 60.4256506568872), new Point(34.3427678310977, 69.1161647490767), new Point(37.3031968759853, 2.63412762416253), new Point(36.2127521011106, 11.3128079885211), new Point(38.0093905455477, 15.3280742081479), new Point(37.4403996134365, 21.9857695805774), new Point(38.9818076728758, 33.7083831842562), new Point(38.1896438371342, 35.3930717620035), new Point(37.8247582138631, 45.1710521081328), new Point(36.4514296606423, 54.9631718676366), new Point(38.0022249151963, 58.7939551457735), new Point(38.2398810364492, 66.9597095721214), new Point(40.4737493775197, 3.93291621046742), new Point(40.8246190295669, 11.5150007291301), new Point(39.5899771431414, 18.9433448845257), new Point(39.5319549648706, 27.2465571524792), new Point(40.4160297105163, 32.8508938326737), new Point(39.6624023409851, 35.5379222238147), new Point(41.7084834592922, 48.7566368867441), new Point(41.6079198059663, 49.6674875615479), new Point(41.4181216710331, 57.7149136279313), new Point(39.1559063941966, 69.0932913260038), new Point(42.5838767241612, 2.05241004519742), new Point(44.0609052544743, 10.8033911976048), new Point(43.9015648182954, 14.279319647364), new Point(44.6505378986013, 21.5284872471953), new Point(44.5203549421953, 28.1798743410874), new Point(44.8436152519861, 41.6359731134195), new Point(44.656826387931, 48.1734153671066), new Point(43.1474640863703, 55.107876500165), new Point(44.3042928093599, 58.9814208401281), new Point(43.2583691376533, 69.7452330550855), new Point(45.0372196957642, 4.11437527887261), new Point(47.006442966874, 9.10665740403657), new Point(46.7840475951247, 18.5712467294984), new Point(45.4599758672807, 25.5011322789365), new Point(46.7511025260906, 28.385848313284), new Point(45.1375234150968, 37.9569445075267), new Point(46.041502953992, 48.1330977590443), new Point(46.1131416638909, 50.3863385023486), new Point(47.6246302642974, 56.4540532047181), new Point(45.0334354941889, 64.0972936866327), new Point(50.4680384804811, 0.712741004169332), new Point(48.1567409802958, 10.1241949834508), new Point(50.2353392477312, 15.9096323488791), new Point(48.5737117079896, 21.1463793712418), new Point(49.74823743652, 34.9772697137563), new Point(48.9817732884464, 37.6608630589493), new Point(50.4765938457458, 42.6185485313733), new Point(50.5741908725231, 53.2480037441701), new Point(49.8731613382107, 58.7021215230702), new Point(50.8459772038488, 69.8657378465243), new Point(53.6597325530181, 1.68345615113315), new Point(52.4753920084217, 12.4949798851716), new Point(53.9395655882263, 17.6781577471076), new Point(52.8024855231878, 21.0661638127948), new Point(52.5326077791548, 29.2910776991821), new Point(53.9930310929162, 39.9226300171216), new Point(52.2443162944374, 43.8389009678917), new Point(51.4227756859841, 55.3741049526139), new Point(52.6065627106496, 57.5575052725885), new Point(52.6675139254273, 65.2531453730786), new Point(55.385394033224, 0.926897652413183), new Point(54.1808192544527, 11.1086361804552), new Point(56.1835902743896, 18.6600249096099), new Point(55.7906680860513, 22.8116250279414), new Point(54.0542795956388, 33.3493268049086), new Point(55.7209837342244, 38.4220157602904), new Point(54.3486170267447, 42.2122783065831), new Point(54.8105361698244, 53.0753003033229), new Point(55.8300684219366, 57.8707490688519), new Point(55.3993751189669, 64.5376338309318), new Point(59.0159283406175, 1.27249683918082), new Point(58.5301262370917, 9.78814298603132), new Point(59.9972273558365, 18.3681743225866), new Point(59.8960535879694, 24.9398180055152), new Point(59.8423165417473, 34.6323404166067), new Point(57.2140103225661, 37.8132045165697), new Point(59.4905381558885, 46.3874681025685), new Point(58.5570650438578, 54.2791449712958), new Point(57.5406619531758, 62.3339451725287), new Point(57.1714011049696, 65.1989614629182), new Point(62.7856852341377, 2.39417452616346), new Point(62.9740763241304, 12.2267580131193), new Point(61.8323352797107, 17.5617234565139), new Point(61.7610815520217, 23.6911263804376), new Point(62.9775642449863, 31.9111762973066), new Point(60.9016908434693, 36.8778972559971), new Point(62.2681271407139, 44.3532319950653), new Point(61.9497053907019, 50.9600892383419), new Point(61.8671156139426, 60.6337686076918), new Point(61.7636167215014, 63.7268696509892), new Point(65.1010999447206, 0.238407528604571), new Point(63.9340941845132, 7.49431197321709), new Point(65.078558308109, 15.2024241966207), new Point(64.9760400270932, 24.4259716265024), new Point(64.5339113732492, 31.6121060916279), new Point(64.2058953196769, 39.9362144786568), new Point(63.6303484959669, 43.0662471480045), new Point(63.8733006934045, 51.3096582686108), new Point(63.5712794640899, 61.3435365400945), new Point(65.3625831428741, 66.431807040438), new Point(66.1109931576583, 4.06633199149106), new Point(67.7109291859488, 9.72089563343716), new Point(67.9407407636478, 19.6214601633239), new Point(67.937531937816, 24.4580237020077), new Point(68.9306380818275, 29.6730625306596), new Point(66.3953750880414, 38.6277759497183), new Point(66.9509312095823, 48.6730662606065), new Point(67.8413121108158, 55.2615246843833), new Point(66.0919806124139, 62.445199449754), new Point(66.1614808403707, 66.0730247893711), new Point(71.5504128828414, 0.683218661548206), new Point(71.6194285040812, 10.3355438133402), new Point(69.4703230934545, 18.1677308227717), new Point(69.1744646137461, 25.2260495136613), new Point(69.1352273044806, 30.2396543096936), new Point(69.2687587809138, 41.0130665591047), new Point(71.6233176889938, 42.6832986430653), new Point(69.2005224070514, 49.8362345461902), new Point(70.3912454691675, 62.4586574637604), new Point(70.2711072248738, 69.2285092222637), new Point(73.5777927178786, 1.15273636120965), new Point(73.5376354723878, 8.90606400692186), new Point(73.1526703797992, 20.1859797961945), new Point(73.1645892812706, 22.7977468966496), new Point(73.6156509526147, 30.7761769335606), new Point(72.8978729312764, 36.8877859664558), new Point(74.1286062482412, 44.4396692106685), new Point(73.9203615630606, 55.5757653729877), new Point(74.1232852065579, 56.656624287207), new Point(72.6957750351614, 63.3606642924066) };
+            yield return null;
+
+            var lines = TestMapHelpers.GenerateMap(75, 100, points, map);
+            var grid = TestMapHelpers.CreateMap(mapStartPoint, map, tileHandle.Result, TileTerrainType.Water);
+
+            Assert.IsNotNull(grid);
+            yield return null;
+
+            var organizationFactory = new OrganisationFactory();
+            var provinceFactory = new ProvinceFactory(map, lines, UnityEngine.Object.Instantiate, provinceHandle.Result, organizationFactory);
+
+            var result = provinceFactory.CreateProvinces(points);
+            yield return null;
+
+            Assert.IsNotNull(result);
+            Assert.AreEqual(250, result.Count);
+            Assert.IsTrue(map.All(t => t.TileTerrainType == TileTerrainType.Water));
+
+            // TestMapHelpers.LogMap(map, lines, points);
+
+            foreach (var province in result)
+            {
+                var tileProvinces = province.HexTiles.Select(t => t.Province);
+                Assert.IsFalse(tileProvinces.Any(p => p.Name != province.Name), $"Province {province} contains tiles of province {string.Join(", ", tileProvinces.Distinct())}");
+            }
+
+            var provinceless = map.Where(t => t.Province == null).ToList();
+
+            foreach (var tile in provinceless)
+            {
+                Debug.Log($"{tile} is on line: {lines.Contains(tile.Position)}");
+                foreach (var neighbour in map.GetNeighbours(tile))
+                {
+                    Debug.Log($"Neighbour: {neighbour} is on line: {lines.Contains(neighbour.Position)}");
+                }
+            }
+
+            TestMapHelpers.LogMap(map);
+            Assert.False(provinceless.Any());
+            yield return null;
+
+            var countryHandle = Addressables.LoadAssetAsync<GameObject>("Country");
+            yield return countryHandle;
+
+            Assert.IsTrue(countryHandle.IsDone);
+            Assert.AreEqual(AsyncOperationStatus.Succeeded, countryHandle.Status);
+            Assert.IsNotNull(countryHandle.Result);
+
+            var step = 0;
+            Func<int, int, int> random = (a, b) =>
+            {
+                step++;
+                switch (step)
+                {
+                    case 1:
+                        return 189;
+
+                    case 2:
+                        return 0;
+
+                    case 3:
+                        return 2;
+
+                    case 4:
+                        return 2;
+
+                    case 5:
+                        return 2;
+
+                    case 6:
+                        return 184;
+
+                    case 7:
+                        return 5;
+
+                    case 8:
+                        return 4;
+
+                    case 9:
+                        return 1;
+
+                    case 10:
+                        return 0;
+
+                    case 11:
+                        return 1;
+
+                    case 12:
+                        return 1;
+
+                    case 13:
+                        return 2;
+
+                    case 14:
+                        return 2;
+
+                    case 15:
+                        return 0;
+
+                    case 16:
+                        return 3;
+
+                    case 17:
+                        return 0;
+
+                    default:
+                        throw new InvalidOperationException("This point should never been reached");
+                }
+            };
+
+            var organisationFactory = new OrganisationFactory();
+            yield return null;
+            var mapOrganizationGenerator = new MapOrganizationGenerator(mapStartPoint, organisationFactory, random);
+            yield return null;
+
+            var shuffleStep = 0;
+            Func<int, int, int> shuffleRandom = (a, b) =>
+            {
+                shuffleStep++;
+                switch (shuffleStep)
+                {
+                    case 1:
+                        return 1;
+
+                    case 2:
+                        return 0;
+
+                    default:
+                        throw new InvalidOperationException("This point should never been reached");
+                }
+            };
+
+            var countryGenerator = new CountryGenerator(organisationFactory, mapOrganizationGenerator, shuffleRandom);
+            yield return null;
+
+            countryGenerator.GenerateCountries(result, map, 1, 1, 8, 4, new List<string> { "Janland" }, new List<string> { "Fantasia" }, UnityEngine.Object.Instantiate, countryHandle.Result, new List<Color> { Color.green });
+
+            CollectionAssert.IsEmpty(map.Where(t => t.TileTerrainType != TileTerrainType.Water && t.Province.Owner == null));
+
+            yield return null;
         }
 
         private IList<Mock<ICountry>> GenerateCountries(int count) =>

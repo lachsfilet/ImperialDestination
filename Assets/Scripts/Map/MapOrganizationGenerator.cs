@@ -39,7 +39,7 @@ namespace Assets.Scripts.Map
                     continue;
 
                 country.SetCapital(map);
-                country.DrawBorder(map);
+                country.DrawBorder(map);                               
                 return;
             }
             throw new InvalidOperationException($"Country {country.Name} could not be generated due to lack of space on the map.");
@@ -64,6 +64,17 @@ namespace Assets.Scripts.Map
 
                 AddProvince(country, regions, map, region, redoCache);
 
+                if (map.Any(t => t.TileTerrainType != TileTerrainType.Water && t.Province.Owner == null))
+                {
+                    foreach (var log in _trace)
+                        Debug.Log(log);
+                    var countryless = map.Where(t => t.TileTerrainType != TileTerrainType.Water && t.Province.Owner == null).Select(t => t.Province).ToList();
+                    foreach (var province in countryless)
+                        Debug.Log($"Country less {province} detected with terrain types {string.Join(", ", province.HexTiles.Select(t => t.TileTerrainType))} and neighbours {province.GetNeighbours(map)}");
+
+                    throw new InvalidOperationException($"Land provinces without country found:{string.Join(", ", countryless)}");
+                }
+
                 _trace.Add($"Remaining provinces: {string.Join(", ", regions.Select(r => r.Name).OrderBy(n => n))}");
 
                 if (TrySetNextProvince(country, regions, map, region, out region))
@@ -80,7 +91,7 @@ namespace Assets.Scripts.Map
         {
             if (region == null || (country.Provinces.Any() && !region.GetNeighbours(map).Intersect(country.Provinces).Any()))
             {
-                foreach(var log in _trace)
+                foreach (var log in _trace)
                     Debug.Log(log);
                 throw new InvalidOperationException($"{region} is not next to {country.Name}");
             }
@@ -162,7 +173,7 @@ namespace Assets.Scripts.Map
                 }
             } while (--tries > 0);
             return false;
-        }        
+        }
 
         /// <summary>
         /// Checks with a flood fill algorithm if any sea provinces are surrounded

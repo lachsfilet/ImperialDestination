@@ -134,9 +134,20 @@ public class VoronoiGenerator : MonoBehaviour
         catch (Exception e)
         {
             Debug.LogError(e);
+
+            LogMap();
+
             var siteCommands = string.Join(", ", points.Select(p => $"new Point({p.X}, {p.Y})"));
-            var siteListComand = $"var points = new List<Point> {{ {siteCommands} }};";
+            var siteListComand = $"var points = new List<Point> {{ {siteCommands} }};";                       
             Debug.Log(siteListComand);
+
+            Debug.Log("var lines  = new List<Position>()");
+            Debug.Log("{");
+            foreach (var line in _lines)
+            {
+                Debug.Log($"new Position({line.X}, {line.Y})");
+            }
+            Debug.Log("}");
         }
     }
 
@@ -204,7 +215,7 @@ public class VoronoiGenerator : MonoBehaviour
         CreateMap();
 
         var voronoiFactory = new VoronoiFactory(new EvenlySpreadSiteGenerator());
-        var voronoiMap = voronoiFactory.CreateVoronoiMap(Height - 1, Width - 1, Regions);
+        var voronoiMap = voronoiFactory.CreateVoronoiMap(Height, Width, Regions);
         _lines = voronoiMap.Where(g => g is HalfEdge).Cast<HalfEdge>().SelectMany(
             edge =>
             {
@@ -270,5 +281,23 @@ public class VoronoiGenerator : MonoBehaviour
         {
             t.SetColor(TerrainColorMapping[(int)t.TileTerrainType]);
         });
+    }
+
+    public void LogMap()
+    {
+        for (var y = 0; y < _map.Height; y++)
+        {
+            var row = "";
+            for (var x = 0; x < _map.Width; x++)
+            {
+                var tile = _map.GetTile(x, y);
+                var province = int.Parse(tile.Province.Name.Split(' ')[1]);
+                var country = tile.Province.Owner != null ? tile.Province.Owner.Name.First() : '0';
+                if (y % 2 != 0 && x == 0)
+                    row += "  ";
+                row += $"{country}{province:000} ";
+            }
+            Debug.Log(row);
+        }
     }
 }

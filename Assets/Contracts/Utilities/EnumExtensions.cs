@@ -17,5 +17,16 @@ namespace Assets.Contracts.Utilities
                 list.RemoveAt(i);
             }
         }
+
+        public static IEnumerable<T> Shuffle<T>(this IEnumerable<T> values, Func<int, int, int> random)
+        {
+            var list = values.ToList();
+            while (list.Count() > 0)
+            {
+                var i = random(0, list.Count());
+                yield return list[i];
+                list.RemoveAt(i);
+            }
+        }
     }
 }
