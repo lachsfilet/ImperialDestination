@@ -11,7 +11,7 @@ namespace Assets.Scripts.Map
 {
     public class HeightMapGenerator : IHeightMapGenerator
     {
-        private const int MOUNTAIN_COUNT_MIN = 5;
+        private const int MountainCountMin = 5;
 
         private double _ratio;
 
@@ -29,24 +29,19 @@ namespace Assets.Scripts.Map
 
         public void GenerateHeightMap(IHexMap hexMap, int ratio)
         {
-            var countryLess = hexMap.Where(t => t.TileTerrainType != TileTerrainType.Water).Select(t => t.Province).Where(p => p.Owner == null).ToList();
-            Debug.Log(string.Join(", ", countryLess));
-
-            var continentLess = countryLess.Where(p => p.Owner.Continent == null).Select(p => p.Owner).ToList();
-            Debug.Log(string.Join(", ", continentLess.Select(c => c.Name)));
-
             var heightMap = new Dictionary<TileBase, TileTerrainType>();
             var continents = hexMap.Where(t => t.TileTerrainType != TileTerrainType.Water).Select(t => t.Province.Owner.Continent).Distinct();
+            Debug.Log($"Continents: {string.Join(", ", continents.Select(c => c.Name))}");
 
             foreach (var continent in continents)
             {
                 var sectors = SliceContinentSectors(continent);
 
-                var index = _random(0, 4);
+                var index = _random(0, sectors.Count);
                 var startSector = sectors[index];
                 sectors.Remove(startSector);
 
-                index = _random(0, 3);
+                index = _random(0, sectors.Count - 1);
                 var endSector = sectors[index];
 
                 // Determine start of mountains
@@ -62,7 +57,7 @@ namespace Assets.Scripts.Map
                     .Where(t => t.TileTerrainType != TileTerrainType.Water).ToList();
 
                 //Debug.Log($"Continent: {continent.TileCount} Ratio: {_ratio} Mountains: {mountainTiles.Count} Mountains to extend {(int)Math.Round(continent.TileCount * _ratio) - mountainTiles.Count}");
-                var count = Math.Max((int)Math.Round(continent.TileCount * _ratio) - mountainTiles.Count, MOUNTAIN_COUNT_MIN);
+                var count = Math.Max((int)Math.Round(continent.TileCount * _ratio) - mountainTiles.Count, MountainCountMin);
                 ExtendMountains(mountainTiles, hexMap, count);
 
                 foreach (var mountain in mountainTiles)
@@ -76,6 +71,7 @@ namespace Assets.Scripts.Map
 
         private List<List<TileBase>> SliceContinentSectors(IContinent continent)
         {
+            Debug.Log($"Continent {continent.Name}");
             var tiles = continent.Countries.SelectMany(c => c.Provinces.SelectMany(p => p.HexTiles)).ToList();
 
             var west = tiles.Min(t => t.Position.X);
@@ -84,8 +80,12 @@ namespace Assets.Scripts.Map
             var north = tiles.Max(t => t.Position.Y);
             var south = tiles.Min(t => t.Position.Y);
 
+            Debug.Log($"West: {west}, north: {north}, east: {east}, south: {south}");
+
             var centerX = west / 2 + east / 2;
             var centerY = north / 2 + south / 2;
+
+            Debug.Log($"centerX: {centerX}, centerY: {centerY}");
 
             var comparer = new PositionComparer(east);
 
@@ -99,11 +99,9 @@ namespace Assets.Scripts.Map
                     tiles.Where(predicate).Where(t => t.Position.X > centerX && t.Position.Y <= centerY).OrderBy(p=>p.Position, comparer).ToList()
                 };
 
-            if (sectors.Any(s => !s.Any()))
-            {
-                Debug.LogError("Empty continent sector detected!");
-                Debug.Log(string.Join(",", sectors.Select((s, i) => $"Sector {i}: {string.Join(", ", s.Select(t => t.ToString()))}")));
-            }
+            var emptySectors = sectors.Where(s => !s.Any()).ToList();
+            foreach(var sector in emptySectors)
+                sectors.Remove(sector);
 
             return sectors;
         }
