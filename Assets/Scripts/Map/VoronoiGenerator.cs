@@ -4,6 +4,7 @@ using Assets.Contracts.Organization;
 using Assets.Contracts.Utilities;
 using Assets.Scripts;
 using Assets.Scripts.Economy.Resources;
+using Assets.Scripts.Game;
 using Assets.Scripts.Map;
 using Assets.Scripts.Organization;
 using System;
@@ -83,6 +84,8 @@ public class VoronoiGenerator : MonoBehaviour
 
     private ProvinceFactory _provinceFactory;
 
+    private List<string> _countryNames;
+
     // Start is called before the first frame update
     private void Start()
     {
@@ -93,6 +96,9 @@ public class VoronoiGenerator : MonoBehaviour
             Debug.Log(Application.persistentDataPath);
 
             _mapObject = new GameObject("Map");
+
+            LoadMapFromCache();
+
             _hexGrid = new HexGrid(Height, Width, HexTile);
             _map = new HexMap(Height, Width);
             _organisationFactory = new OrganisationFactory();
@@ -115,6 +121,7 @@ public class VoronoiGenerator : MonoBehaviour
 
             var majorCountryNames = SettingsLoader.Instance.MajorCountryNames;
             var minorCountryNames = SettingsLoader.Instance.MinorCountryNames;
+            _countryNames = majorCountryNames.Union(minorCountryNames).ToList();
 
             _countryGenerator.GenerateCountries(_regions, _map, MajorCountries, MinorCountries, ProvincesMajorCountries, ProvincesMinorCountries, majorCountryNames, minorCountryNames, Instantiate, Country, CountryColors);
             _mapOrganizationGenerator.GenerateContinentsList(Instantiate, Continent, _regions, _map, _mapObject);
@@ -127,6 +134,9 @@ public class VoronoiGenerator : MonoBehaviour
                 SkinMap();
             else
                 ColorCountries();
+
+            StoreMapIntoCache();
+
             var siteCommands = string.Join(", ", points.Select(p => $"new Point({p.X}, {p.Y})"));
             var siteListComand = $"var points = new List<Point> {{ {siteCommands} }};";
             Debug.Log(siteListComand);
@@ -283,7 +293,7 @@ public class VoronoiGenerator : MonoBehaviour
         });
     }
 
-    public void LogMap()
+    private void LogMap()
     {
         for (var y = 0; y < _map.Height; y++)
         {
@@ -299,5 +309,108 @@ public class VoronoiGenerator : MonoBehaviour
             }
             Debug.Log(row);
         }
+    }
+
+    private void SetupMap(MapInfo mapInfo)
+    {
+        var continents = new List<GameObject>();
+        foreach (var continentInfo in mapInfo.Tiles.Select(t => t.ProvinceInfo.ContinentInfo).Distinct())
+        {
+            var continent = new GameObject(continentInfo.Name);
+            continent.transform.SetParent(_mapObject.transform);
+            continents.Add(continent);
+        }
+
+        var countries = new Dictionary<string, Country>();
+        foreach (var countryInfo in mapInfo.Tiles.Select(t => t.ProvinceInfo.OwnerInfo).Distinct().ToList())
+        {
+            var countryContainer = Instantiate(Country);
+            var country = countryContainer.GetComponent<Country>();
+            var countryName = countryInfo.Name;
+            country.Name = countryName;
+            countries.Add(countryName, country);
+        }
+
+        var provinces = new Dictionary<string, Province>();
+        foreach (var provinceInfo in mapInfo.Tiles.Select(t => t.ProvinceInfo).Distinct())
+        {
+            var provinceContainer = Instantiate(Province);
+            var province = provinceContainer.GetComponent<Province>();
+            province.Name = provinceInfo.Name;
+            provinces.Add(provinceInfo.Name, province);
+            var country = countries[provinceInfo.OwnerInfo.Name];
+            country.Provinces.Add(province);
+            province.Owner = country;
+            province.IsCapital = provinceInfo.IsCapital;
+        }
+
+        foreach (var tileInfo in mapInfo.Tiles)
+        {
+            var tile = _map.GetTile(tileInfo.Position.X, tileInfo.Position.Y);
+            tile.TileTerrainType = tileInfo.TileTerrainType;
+            tile.Resources = tileInfo.Resources.ToList();
+
+            var provinceInfo = tileInfo.ProvinceInfo;
+            provinces[provinceInfo.Name].AddHexTile(tile);
+
+            var continent = continents.Single(c => c.name == provinceInfo.ContinentInfo.Name);
+            tile.transform.SetParent(continent.transform);
+        }
+
+        foreach (var province in provinces.Values)
+        {
+            province.DrawBorder(_map);
+        }
+        foreach (var country in countries.Values)
+        {
+            country.DrawBorder(_map);
+        }
+    }
+
+    private void StoreMapIntoCache()
+    {
+        // Store generated map in game cache
+        var mapInfo = new MapInfo
+        {
+            Map = _terrainMap.Map,
+            Tiles = _map.Where(t=>t.Owner != null).Select(t => new TileInfo
+            {
+                Position = t.Position,
+                TileTerrainType = t.TileTerrainType,
+                Resources = t.Resources,
+                ProvinceInfo = new ProvinceInfo
+                {
+                    Name = t.Province.Name,
+                    IsCapital = t.Province.IsCapital,
+                    OwnerInfo = new CountryInfo { Name = t.Province.Owner.Name },
+                    ContinentInfo = new ContinentInfo { Name = t.transform.parent.name }
+                }
+            }).ToList()
+        };
+        GameCache.Instance.SetMapInfo(mapInfo);
+        GameCache.Instance.SetCountryNames(_countryNames);
+    }
+
+    private bool LoadMapFromCache()
+    {
+        if (GameCache.Instance.ContainsMapInfo() || MapMode != MapMode.InGame)
+            return false;
+
+        var mapInfo = GameCache.Instance.CurrentGame.MapInfo;
+
+        Height = mapInfo.Map.GetLength(1);
+        Width = mapInfo.Map.GetLength(0);
+        _hexGrid = new HexGrid(Height, Width, HexTile);
+        _map = new HexMap(Height, Width);
+        _terrainMap = new TileTerrainTypeMap(mapInfo.Map);
+
+        //_mapInfoCache = map.gameObject;
+
+        CreateMap();
+
+        SetupMap(GameCache.Instance.CurrentGame.MapInfo);
+
+        SkinMap();
+        return true;
     }
 }

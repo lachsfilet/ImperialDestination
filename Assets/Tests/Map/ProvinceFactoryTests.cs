@@ -1,6 +1,5 @@
 ﻿using Assets.Contracts.Map;
 using Assets.Contracts.Organization;
-using Assets.Scripts;
 using Assets.Scripts.Map;
 using Assets.Scripts.Organization;
 using Assets.Tests.Helpers;
@@ -14,7 +13,6 @@ using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.TestTools;
-using VoronoiEngine;
 using VoronoiEngine.Elements;
 
 namespace Tests

@@ -87,20 +87,22 @@ namespace Assets.Scripts.Game
 
             foreach(var country in _currentGame.CountryNames)
             {
-                if (!_currentGame.Players.Any(p => p.CountryName == country))
-                    _currentGame.Players.Add(
-                        new Player
+                if (_currentGame.Players.Any(p => p.CountryName == country))
+                    continue;
+
+                _currentGame.Players.Add(
+                    new Player
+                    {
+                        IsHuman = false,
+                        Name = string.Format("AI {0}", country),
+                        CountryName = country,
+                        Balance = balance,
+                        Technologies = new List<ITechnology>
                         {
-                            IsHuman = false,
-                            Name = string.Format("AI {0}", country),
-                            CountryName = country,
-                            Balance = balance,
-                            Technologies = new List<ITechnology>
-                            {
-                                new Railway { IsInvented = true }
-                            }
+                            new Railway { IsInvented = true }
                         }
-                    );                        
+                    }
+                );
             }
         }
     }

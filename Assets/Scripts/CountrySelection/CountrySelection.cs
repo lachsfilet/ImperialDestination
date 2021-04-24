@@ -13,7 +13,7 @@ namespace Assets.Scripts.CountrySelection
                 return;
 
             GameCache.Instance.SetAiPlayers(20000);
-            SceneManager.LoadScene("Map");
+            SceneManager.LoadScene("VoronoiTest");
         }
     }
 }
