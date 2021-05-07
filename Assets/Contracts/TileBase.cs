@@ -23,7 +23,7 @@ namespace Assets.Contracts
 
         public List<IBuilding> Buildings;
 
-        public ICountry Owner;
+        //public ICountry Owner;
 
         public IProvince Province;
 

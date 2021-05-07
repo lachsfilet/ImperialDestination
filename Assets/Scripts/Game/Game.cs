@@ -23,7 +23,7 @@ namespace Assets.Scripts.Game
         // Use this for initialization
         private void Start()
         {
-            if (!GameCache.Instance.ContainsMapInfo())
+            if (!GameCache.Instance.ContainsMapInfo)
             {
                 CurrentSeason = GameCache.Instance.CurrentGame.Season;
                 CurrentYear = GameCache.Instance.CurrentGame.Year;

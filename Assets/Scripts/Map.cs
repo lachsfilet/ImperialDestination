@@ -76,7 +76,7 @@ public class Map : MonoBehaviour {
         var map = _mapInfoCache.AddComponent<Assets.Scripts.Map.Map>();
         MapInfo mapInfo = null;
 
-        if (!GameCache.Instance.ContainsMapInfo() && MapMode == MapMode.InGame)
+        if (!GameCache.Instance.ContainsMapInfo && MapMode == MapMode.InGame)
         {
             mapInfo = GameCache.Instance.CurrentGame.MapInfo;
             // TODO: Replace debug text fields

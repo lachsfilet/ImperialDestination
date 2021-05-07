@@ -37,10 +37,8 @@ namespace Assets.Scripts.Game
             }
         }
 
-        public bool ContainsMapInfo()
-        {
-            return _currentGame.MapInfo == null;
-        }
+        public bool ContainsMapInfo => _currentGame.MapInfo == null;
+        
 
         public void SetPlayer(string name, string country, int balance)
         {

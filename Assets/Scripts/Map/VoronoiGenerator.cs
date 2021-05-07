@@ -97,7 +97,8 @@ public class VoronoiGenerator : MonoBehaviour
 
             _mapObject = new GameObject("Map");
 
-            LoadMapFromCache();
+            if (LoadMapFromCache())
+                return;
 
             _hexGrid = new HexGrid(Height, Width, HexTile);
             _map = new HexMap(Height, Width);
@@ -314,7 +315,7 @@ public class VoronoiGenerator : MonoBehaviour
     private void SetupMap(MapInfo mapInfo)
     {
         var continents = new List<GameObject>();
-        foreach (var continentInfo in mapInfo.Tiles.Select(t => t.ProvinceInfo.ContinentInfo).Distinct())
+        foreach (var continentInfo in mapInfo.Tiles.Where(t => t.ProvinceInfo.ContinentInfo != null).Select(t => t.ProvinceInfo.ContinentInfo).Distinct())
         {
             var continent = new GameObject(continentInfo.Name);
             continent.transform.SetParent(_mapObject.transform);
@@ -322,7 +323,7 @@ public class VoronoiGenerator : MonoBehaviour
         }
 
         var countries = new Dictionary<string, Country>();
-        foreach (var countryInfo in mapInfo.Tiles.Select(t => t.ProvinceInfo.OwnerInfo).Distinct().ToList())
+        foreach (var countryInfo in mapInfo.Tiles.Where(t => t.ProvinceInfo.OwnerInfo != null).Select(t => t.ProvinceInfo.OwnerInfo).Distinct().ToList())
         {
             var countryContainer = Instantiate(Country);
             var country = countryContainer.GetComponent<Country>();
@@ -338,6 +339,10 @@ public class VoronoiGenerator : MonoBehaviour
             var province = provinceContainer.GetComponent<Province>();
             province.Name = provinceInfo.Name;
             provinces.Add(provinceInfo.Name, province);
+
+            if(provinceInfo.OwnerInfo==null)            
+                continue;
+            
             var country = countries[provinceInfo.OwnerInfo.Name];
             country.Provinces.Add(province);
             province.Owner = country;
@@ -352,6 +357,9 @@ public class VoronoiGenerator : MonoBehaviour
 
             var provinceInfo = tileInfo.ProvinceInfo;
             provinces[provinceInfo.Name].AddHexTile(tile);
+
+            if (provinceInfo.ContinentInfo == null)
+                continue;
 
             var continent = continents.Single(c => c.name == provinceInfo.ContinentInfo.Name);
             tile.transform.SetParent(continent.transform);
@@ -369,31 +377,14 @@ public class VoronoiGenerator : MonoBehaviour
 
     private void StoreMapIntoCache()
     {
-        // Store generated map in game cache
-        var mapInfo = new MapInfo
-        {
-            Map = _terrainMap.Map,
-            Tiles = _map.Where(t=>t.Owner != null).Select(t => new TileInfo
-            {
-                Position = t.Position,
-                TileTerrainType = t.TileTerrainType,
-                Resources = t.Resources,
-                ProvinceInfo = new ProvinceInfo
-                {
-                    Name = t.Province.Name,
-                    IsCapital = t.Province.IsCapital,
-                    OwnerInfo = new CountryInfo { Name = t.Province.Owner.Name },
-                    ContinentInfo = new ContinentInfo { Name = t.transform.parent.name }
-                }
-            }).ToList()
-        };
+        var mapInfo = MapInfo.Create(_map, _terrainMap);
         GameCache.Instance.SetMapInfo(mapInfo);
         GameCache.Instance.SetCountryNames(_countryNames);
     }
 
     private bool LoadMapFromCache()
     {
-        if (GameCache.Instance.ContainsMapInfo() || MapMode != MapMode.InGame)
+        if (GameCache.Instance.ContainsMapInfo || MapMode != MapMode.InGame)
             return false;
 
         var mapInfo = GameCache.Instance.CurrentGame.MapInfo;
@@ -404,13 +395,10 @@ public class VoronoiGenerator : MonoBehaviour
         _map = new HexMap(Height, Width);
         _terrainMap = new TileTerrainTypeMap(mapInfo.Map);
 
-        //_mapInfoCache = map.gameObject;
-
         CreateMap();
-
         SetupMap(GameCache.Instance.CurrentGame.MapInfo);
-
         SkinMap();
+
         return true;
     }
 }
